@@ -5,7 +5,7 @@ Redirect clients to a payment link.
     <a href="https://github.com/tjdaley/payment_redirect/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/tjdaley/payment_redirect"></a>
     <a href="https://github.com/tjdaley/payment_redirect/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/tjdaley/payment_redirect"></a>
     <a href="https://github.com/tjdaley/payment_redirect/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/tjdaley/payment_redirect"><a>
-    <img alt="PyPI - License" src="https://img.shields.io/pypi/l/payment_redirect-tjdaley">
+    <img alt="PyPI - License" src="https://img.shields.io/pypi/l/payment_redirect">
     <img alt="Stage: Development" src="https://img.shields.io/badge/stage-Development-orange">
 </p>
 <p align="center">
