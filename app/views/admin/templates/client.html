@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h1>Client</h1>
+    {% from 'includes/_formhelpers.html' import render_field %}
+    <form method='POST'>
+        <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
+        <div class="form-group">
+            {{render_field(form.billing_id, class_="form-control", value=client.billing_id)}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.client_name, class_="form-control", value=client.client_name)}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.client_ssn, class_="form-control", value=client.client_ssn)}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.client_dl, class_="form-control", value=client.client_dl)}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.attorney_initials, class_="form-control", value=client.attorney_initials)}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.payment_due, class_="form-control", value=client.payment_due)}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.notes, class_="form-control", value=client.notes)}}
+        </div>
+    </form>
+{% endblock %}

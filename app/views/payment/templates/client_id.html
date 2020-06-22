@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+{% block body %}
+<h1>Welcome to our Payment Portal</h1>
+<p>Please enter the following identifying information.</p>
+<hr />
+{% from 'includes/_formhelpers.html' import render_field %}
+<form method='POST'>
+    <div class="form-group">
+        {{render_field(form.client_ssn, class_="form-control")}}
+    </div>
+    <div class="form-group">
+        {{render_field(form.client_dl, class_="form-control")}}
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+</form>
+{% endblock %}

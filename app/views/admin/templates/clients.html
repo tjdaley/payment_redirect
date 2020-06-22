@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+{% block body %}
+<h1>Clients</h1>
+<ul class="list-group">
+    {% for client in clients %}
+    <li class="list-group-item">
+        <a href="/client/{{client._id}}/">{{client.billing_id}}</a>
+        <div><small class="text-muted">{{client.name}} // {{client.attorney_initials}}</small></div>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
