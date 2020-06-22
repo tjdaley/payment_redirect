@@ -15,6 +15,10 @@ class ClientForm(Form):
         "Client name",
         [validators.DataRequired(), validators.Length(min=3, max=50)]
     )
+    salutation = StringField(
+        "Salutation",
+        [validators.DataRequired(), validators.Length(min=3, max=50)]
+    )
     client_ssn = StringField(
         "Client SSN",
         [validators.DataRequired(), validators.Length(min=3, max=3)]
@@ -23,13 +27,39 @@ class ClientForm(Form):
         "Client Driver's License",
         [validators.DataRequired(), validators.Length(min=3, max=3)]
     )
+    address1 = StringField(
+        "Street",
+        [validators.DataRequired(), validators.Length(min=3, max=50)]
+    )
+    city = StringField(
+        "City",
+        [validators.DataRequired(), validators.Length(min=3, max=50)]
+    )
+    state = StringField(
+        "State",
+        [validators.DataRequired(), validators.Length(min=2, max=2)]
+    )
+    postal_code = StringField(
+        "ZIP code",
+        [validators.DataRequired(), validators.Length(min=5, max=10)]
+    )
+    client_email = StringField(
+        "Client email",
+        [validators.DataRequired(), validators.Email()]
+    )
+    check_digit = StringField(
+        "Check digit"
+    )
     attorney_initials = StringField(
         "Attorney initials",
         [validators.DataRequired(), validators.Length(min=2, max=4)]
     )
+    admin_users = StringField(
+        "Admin emails",
+        [validators.DataRequired()]
+    )
     payment_due = StringField(
-        "Payment due",
-        [validators.NumberRange(min=.01, max=500000.00, message="Payment due must be between $0.01 and $500,000.00")]
+        "Payment due"
     )
     notes = StringField(
         "Note to client",

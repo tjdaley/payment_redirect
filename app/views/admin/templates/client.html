@@ -4,26 +4,87 @@
     {% from 'includes/_formhelpers.html' import render_field %}
     <form method='POST'>
         <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
-        <div class="form-group">
-            {{render_field(form.billing_id, class_="form-control", value=client.billing_id)}}
+        <div class="form-row">
+            <div class="form-group col">
+                {{render_field(form.billing_id, class_="form-control", value=client.billing_id)}}
+            </div>
+            <div class="form-group col">
+                {{render_field(form.client_name, class_="form-control", value=client.client_name)}}
+            </div>
+            <div class="form-group col">
+                {{render_field(form.salutation, class_="form-control", value=client.salutation)}}
+            </div>
         </div>
-        <div class="form-group">
-            {{render_field(form.client_name, class_="form-control", value=client.client_name)}}
+
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">Payment</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{render_field(form.payment_due, class_="form-control", value=client.payment_due)}}
+                    </div>
+                    <div class="form-group col">
+                        {{render_field(form.notes, class_="form-control", value=client.notes)}}
+                    </div>
+                    <div class="form-group col">
+                        {{render_field(form.client_email, class_="form-control", value=client.email)}}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            {{render_field(form.client_ssn, class_="form-control", value=client.client_ssn)}}
+
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">User Login</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{render_field(form.client_ssn, class_="form-control", value=client.client_ssn)}}
+                    </div>
+                    <div class="form-group col">
+                        {{render_field(form.client_dl, class_="form-control", value=client.client_dl)}}
+                    </div>
+                    <div class="form-group col">
+                        {{render_field(form.check_digit, class_="form-control", value=client.check_digit, readonly="Y")}}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            {{render_field(form.client_dl, class_="form-control", value=client.client_dl)}}
+
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">Cardholder Address</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{render_field(form.address1, class_="form-control", value=client.address1)}}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{render_field(form.city, class_="form-control", value=client.city)}}
+                    </div>
+                    <div class="form-group col">
+                        {{render_field(form.state, class_="form-control", value=client.state)}}
+                    </div>
+                    <div class="form-group col">
+                        {{render_field(form.postal_code, class_="form-control", value=client.postal_code)}}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            {{render_field(form.attorney_initials, class_="form-control", value=client.attorney_initials)}}
+
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">Administrative Access</div>
+            <div class="card-body">
+                <div class="form-group">
+                    {{render_field(form.attorney_initials, class_="form-control", value=client.attorney_initials)}}
+                </div>
+                <div class="form-group">
+                    {{render_field(form.admin_users, class_="form-control", value=client.admin_users)}}
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            {{render_field(form.payment_due, class_="form-control", value=client.payment_due)}}
-        </div>
-        <div class="form-group">
-            {{render_field(form.notes, class_="form-control", value=client.notes)}}
-        </div>
+
+        <button class="btn btn-primary" type="submit">Submit</button>
     </form>
 {% endblock %}

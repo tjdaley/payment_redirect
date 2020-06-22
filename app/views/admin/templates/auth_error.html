@@ -1,0 +1,9 @@
+{% extends 'layout.html' %}
+{% block body %}
+<h1>Login Failure</h1>
+    <dl>
+        <dt>{{ result.get("error") }}</dt>
+        <dd>{{ result.get("error_description") }}</dd>
+    </dl>
+<small>MSAL version {{ version }}</small>
+{% endblock %}

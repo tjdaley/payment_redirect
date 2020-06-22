@@ -66,7 +66,6 @@ def identify_client():
         url = enrich_url(url, client)
         return redirect(url, code=302)
 
-    form = ClientIdForm(request.form)
     return render_template("client_id.html", form=form)
 
 

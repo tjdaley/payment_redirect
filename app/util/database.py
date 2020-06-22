@@ -33,6 +33,7 @@ except KeyError as e:
 DB_NAME = 'payment_redirect'
 USER_TABLE = 'users'
 CLIENTS_TABLE = 'clients'
+ADMIN_TABLE = 'admins'
 
 
 class MissingFieldException(Exception):
@@ -98,11 +99,29 @@ class Database(object):
 
         return status
 
-    def get_clients(self) -> list:
+    def get_admin_record(self, email: str) -> dict:
         """
-        Return a list of client records.
+        Retrieve the admin record associated with the given email.
+        The admin record will have a list call 'for', which is a list
+        of attorney initials for which the admin user is an administrator.
+        For attorneys, this list will probably just have their initials,
+        e.g. ['TJD']. For paralegals, it will probably have a list with
+        an entry for each attorney she or he supports, e.g. ['TJD', 'BSL']
         """
-        documents = self.dbconn[CLIENTS_TABLE].find()
+        # Create lookup filter
+        filter_ = {'email': email.lower()}
+
+        # Locate matching admin record
+        document = self.dbconn[ADMIN_TABLE].find_one(filter_)
+        return document
+
+    def get_clients(self, email: str) -> list:
+        """
+        Return a list of client records where the email provided
+        is one of the admin_users of the client record.
+        """
+        filter_ = {'admin_users': {'$elemMatch': {'$eq': email}}}
+        documents = self.dbconn[CLIENTS_TABLE].find(filter_)
         return documents
 
     def get_client(self, client_id) -> dict:
@@ -132,3 +151,9 @@ class Database(object):
         # Locate matching client document
         document = self.dbconn[CLIENTS_TABLE].find_one(filter_)
         return document
+
+    def save_client(self, fields, user_email) -> dict:
+        """
+        Save a client record, if the user is permitted to do so.
+        """
+        return {'success': True, 'message': "Client record updated"}
