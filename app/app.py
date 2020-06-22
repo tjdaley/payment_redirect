@@ -46,7 +46,6 @@ def index():
 
 
 if __name__ == "__main__":
-    # app.secret_key = os.environ['APP_SECRET_KEY']
     app.jinja_env.globals.update(_build_auth_url=_build_auth_url)
     port = int(os.environ.get('LISTEN_PORT', '8088'))
     app.run(debug=DEBUG, port=port)

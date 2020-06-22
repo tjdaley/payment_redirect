@@ -28,10 +28,27 @@ git clone https://github.com/tjdaley/payment_redirect
 
 ## Implemented Utilities
 
-### /admin
+### /clients, /client
 
 Authenticates an administrative user and let's the user CRUD client
-records including payment due amount and date.
+records including payment due amount and date. Authentication is
+performed through Microsoft's identity provider service API.
+
+### /pay
+
+Prompts the user for the last three digits of their Social Security number
+and the last three digits of their driver's license. If a match is found in
+the database, the user is redirected to a pre-populated payment page.
+
+### /pay/<string:client_id>
+
+*client_id* is formatted so that the first three characters are the last
+three digits of the user's Social Security number, the next three characters
+are the last three digits of the user's Driver's License number, and the last
+character is a check-digit, for now A-Z.
+
+For example, if the user's Social Security number is XXX-XX-X123 and their
+driver's license number is XXXXX456, the *client_id* would be '123456V'.
 
 ## Author
 
