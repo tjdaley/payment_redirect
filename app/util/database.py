@@ -140,7 +140,7 @@ class Database(object):
         clients = clients_to_dataframe(documents)
 
         # Drop columns that don't need to be downloaded
-        clients = clients.drop(columns=['_id', 'admin_users', 'attorney_initials', 'check_digit', 'client_dl', 'client_ssn', 'active_flag'])
+        clients = clients.drop(columns=['_id', 'admin_users', 'check_digit', 'client_dl', 'client_ssn', 'active_flag'])
 
         # Create and return CSV file.
         csv_export = clients.to_csv(sep=",")
