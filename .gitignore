@@ -1,6 +1,7 @@
 # Rutime environment
 .env
 flask_session/
+payment/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
