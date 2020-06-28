@@ -11,6 +11,7 @@ import requests
 
 from views.decorators import is_logged_in, is_admin_user
 from .forms.ClientForm import ClientForm
+from util.logger import get_logger
 import config
 
 from util.database import Database
@@ -145,7 +146,7 @@ def _build_msal_app(cache=None, authority=None):
 
 
 def _build_auth_url(authority=None, scopes: list = None, state=None):
-    print("*"*10, url_for("admin_routes.authorized",_external=True), "*"*10)
+    get_logger("pmtredir.admin").info(url_for("admin_routes.authorized", _external=True))
     return _build_msal_app(authority=authority).get_authorization_request_url(
         scopes or [],
         state=state or str(uuid.uuid4()),
