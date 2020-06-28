@@ -145,6 +145,7 @@ def _build_msal_app(cache=None, authority=None):
 
 
 def _build_auth_url(authority=None, scopes: list = None, state=None):
+    print("*"*10, url_for("admin_routes.authorized",_external=True), "*"*10)
     return _build_msal_app(authority=authority).get_authorization_request_url(
         scopes or [],
         state=state or str(uuid.uuid4()),
