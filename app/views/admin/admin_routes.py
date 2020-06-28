@@ -96,7 +96,7 @@ def login():
 
 
 # REDIRECT_PATH must match your app's redirect_uri set in AAD
-@admin_routes.route(REDIRECT_PATH)
+@admin_routes.route('/getAToken')  # REDIRECT_PATH)
 def authorized():
     print("Processing authorization")
     if request.args.get('state') != session.get('state'):
@@ -106,10 +106,12 @@ def authorized():
         return render_template("auth_error.html", result=request.args)
     if request.args.get('code'):
         cache = _load_cache()
+        redirect_uri = os.environ.get('AZURE_REDIRECT_PATH')
+        get_logger("pmtredir.admin").info("A  %s", redirect_uri)
         result = _build_msal_app(cache=cache).acquire_token_by_authorization_code(
             request.args['code'],
             scopes=config.AZURE_SCOPE,  # Misspelled scope would cause HTTP 400 error here
-            redirect_uri=url_for('admin_routes.authorized', _external=True)
+            redirect_uri=redirect_uri
         )
         if 'error' in result:
             return render_template('auth_error.html', result=result)
@@ -146,11 +148,13 @@ def _build_msal_app(cache=None, authority=None):
 
 
 def _build_auth_url(authority=None, scopes: list = None, state=None):
-    get_logger("pmtredir.admin").info(url_for("admin_routes.authorized", _external=True))
+    redirect_uri = url_for("admin_routes.authorized", _external=True)
+    redirect_uri = os.environ.get('AZURE_REDIRECT_PATH')
+    get_logger("pmtredir.admin").info("B %s", redirect_uri)
     return _build_msal_app(authority=authority).get_authorization_request_url(
         scopes or [],
         state=state or str(uuid.uuid4()),
-        redirect_uri=url_for("admin_routes.authorized", _external=True))
+        redirect_uri=redirect_uri)
 
 
 def _load_cache():
