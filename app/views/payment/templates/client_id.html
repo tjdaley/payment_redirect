@@ -1,16 +1,28 @@
 {% extends 'layout.html' %}
 {% block body %}
-<h1>Welcome to our Payment Portal</h1>
-<p>Please enter the following identifying information.</p>
-<hr />
 {% from 'includes/_formhelpers.html' import render_field %}
-<form method='POST'>
-    <div class="form-group">
-        {{render_field(form.client_ssn, class_="form-control")}}
-    </div>
-    <div class="form-group">
-        {{render_field(form.client_dl, class_="form-control")}}
-    </div>
-    <button class="btn btn-primary" type="submit">Submit</button>
-</form>
+<div class="container">
+    <form method='POST'>
+        <div class="row">
+            <div class="col-sm-4 offset-sm-4">
+                <div class="card text-center card  bg-default sm-3">
+                    <div class="card-header">
+                        <img src="/static/logo.png" alt="KoonsFuller Family Law"/>
+                    </div>
+                    <div class="card-body">
+                            <div class="form-group">
+                                {{render_field(form.client_ssn, class_="form-control")}}
+                            </div>
+                            <div class="form-group">
+                                {{render_field(form.client_dl, class_="form-control")}}
+                            </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <button class="btn btn-primary" type="submit">Continue >></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
 {% endblock %}

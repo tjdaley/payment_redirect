@@ -1,7 +1,27 @@
 {% extends 'layout.html' %}
 {% block body %}
-<h1>Login</h1>
+<h1>Confidentiality Notice</h1>
+<p class="text-justify">
+    This site, and any contents or web pages attached, contains confidential and proprietary information that is intended
+    for the exclusive use of <strong>{{firm_name}}</strong> employees and authorized partners for the limited purpose of normal operations
+    of the firm. Only authorized {{firm_name}} employees and
+    partners are permitted to access this system. <span class="text-danger"><strong>Any unauthorized use of this system is unlawful.</strong></span>
+</p>
+<p>
+    The information and
+    material contained on this site are privileged, confidential, and all authorized persons accessing the material have an obligation of
+    confidentiality.
+</p>
+<p class="text-justify bg-danger text-white p-5 m-2">
+    <strong>If you are not an authorized employee or partner of {{firm_name}}, you are hereby notified that any entry
+    into this site or disclosure, copying, distribution or use of any of the information contained in or attached to this
+    site is strictly prohibited.</strong>
+</p>
+<p class="text-justify">
+    If you have any knowledge of attempts to enter this site wrongfully, please immediately
+    notify us via e-mail at {{firm_admin_email}}. All access to this system is monitored and may be used as evidence in
+    court. If you are uncertain of your authorization status, please contact us via email at {{firm_admin_email}}.
+</p>
 <a class="btn btn-primary" href='{{ auth_url }}'>Sign In</a>
-<br />
-<small>MSAL version {{ version }}</small>
+<a class="btn btn-danger float-right" href="/">CANCEL</a>
 {% endblock %}

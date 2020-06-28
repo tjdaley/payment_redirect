@@ -3,7 +3,7 @@ ClientForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
-from wtforms import Form, StringField, SelectField, validators
+from wtforms import Form, StringField, SelectField, validators, BooleanField
 
 
 class ClientForm(Form):
@@ -43,7 +43,7 @@ class ClientForm(Form):
         "ZIP code",
         [validators.DataRequired(), validators.Length(min=5, max=10)]
     )
-    client_email = StringField(
+    email = StringField(
         "Client email",
         [validators.DataRequired(), validators.Email()]
     )
@@ -64,4 +64,8 @@ class ClientForm(Form):
     notes = StringField(
         "Note to client",
         [validators.Length(max=256)]
+    )
+    active_flag = BooleanField(
+        "Active?",
+        false_values=('N', '')
     )

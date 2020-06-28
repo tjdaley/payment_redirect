@@ -41,11 +41,23 @@ app.register_blueprint(payment_routes)
 
 @app.route('/', methods=['GET'])
 def index():
-    url = os.environ.get('BASE_URL')
-    return redirect(url, code=302)
+    return redirect(url_for('payment_routes.identify_client'))
+
+
+@app.route('/privacy')
+def privacy():
+    return render_template("privacy.html")
+
+
+@app.route('/terms_and_conditions')
+def terms_and_conditions():
+    return render_template("terms_and_conditions.html")
 
 
 if __name__ == "__main__":
-    app.jinja_env.globals.update(_build_auth_url=_build_auth_url)
+    # The following line is from MSFT's example. It causes a lint error
+    # and commenting it out does not seem to cause any problems.
+    # tjd 06/28/2020
+    # app.jinja_env.globals.update(_build_auth_url=_build_auth_url)
     port = int(os.environ.get('LISTEN_PORT', '8088'))
     app.run(debug=DEBUG, port=port)

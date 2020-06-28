@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="jumbotron text-center">
+    <h1 class="display-4">Privacy Matters</h1>
+    <p class="lead">
+        Assuring your privacy and maintaining your trust are more to us than collecting data about you.
+        Here's what we gather,
+        what we do with it, and how we protect it.
+    </p>
+</div>
+
+<h1>Data We Gather</h1>
+<p>
+    Other than what data entered by you through the use of our system, we do not gather much data about you,
+     your business, or your clients. 
+</p>
+<h2>Data About You</h2>
+<p>When you sign up, we create an account record with this information in it:</p>
+<ul>
+    <li><strong>id</strong> - A unique ID for your account. This allows us to link your account to information
+        you have chosen to save, e.g. a case record.</li>
+    <li><strong>time</strong> - The date and time that we created your account record. This helps us track
+        the rate of account creation and plan our capacity accordingly. It would also allow us to archive
+        or remove old unused accounts in the future, although that is not a practice we enage in currently.</li>
+    <li><strong>name</strong> - Your fullname, as supplied by the authentication provider and updated by you.
+        You can use any name you want. Some features
+        produce output that makes more sense if you use your real name, but we don't care. It's up to you.</li>
+    <li><strong>email</strong> - Your email address. This is your username when logging in to our system.
+        If you use someone
+        else's email address without their permission, we will remove your account once we learn of your
+        rotten behavior.</li>
+    <li><strong>flags</strong> - We keeps some flag values that tell us whether you're an administrative user
+        (you're not) or have any other enhanced or deprecated access to our system.</li>
+</ul>
+<h2>Data About Your Activities</h2>
+<h3>Login History</h3>
+<p>
+    At this time, we do not maintain a login history or even a "last logged in" timestamp.
+</p>
+<h3>Server Logs</h3>
+<p>
+    Our server logs are rotated very frequently and are NOT archived. We keep some limited log data for
+    a short time to aid in technical support issues. But after 90 minutes (that window is subject to change),
+    we don't have any use for server logs and we delete them on a sliding window basis.
+</p>
+<h1>Data We Share</h1>
+<h2>Requests from Third Parties</h2>
+<p>
+    We do not honor subpoenas from any non-government agency. We just ignore them. If we receive
+    a subpoena from a government agency, and we have any ability and right to do so, we will
+    notify you so that you can hire an attorney and try to resist the subpoena. Our services
+    are hosted on cloud-servers (Amazon AWS, for now) and we can't promise you that they never
+    peek or poke or honor a third-party subpoena or request for instrusion. But that's just life
+    in our modern surveillance state. We'll do all we can to protect you, but we can't promise
+    that anyone else will.
+</p>
+<h2>Others</h2>
+<p>
+    Other than that, we don't share any of your data or any data about you with anyone else.
+</p>
+<h1>Data Protection</h1>
+<h2>Passwords</h2>
+<p>
+    We do not store passwords. We use third-party authentication providers (Microsoft, for now).
+    That means that you must have an active Microsoft account to use our services. Microsoft does
+    not share your password with us or any payment details you have on file with them. We store
+    your name and email address.
+</p>
+<h2>Database</h2>
+<p>
+    Our databases are hosted behind firewalls that do not pass traffic between the Internet
+    and the database. There is no way to connect to our databases from the outside. Even we can't
+    connect to our databases from the outside. So, for example, if one of us loses a laptop in an
+    airport and someone breaks into it, yes, they'll find our query tools, but they will not be
+    able to connect the query tools to the database. It's THAT secure.
+</p>
+<h2>Traffic</h2>
+<p>
+    We support the most recent and strongest HTTPS encryption features. You will use them by
+    default. I suppose you could coax your browser to bypass HTTPS and use an unencrypted HTTP
+    connection, but then, that's on you. We'll assume you had your reasons. As long as you are
+    using the default HTTPS connection, all traffic between your computer and our servers is
+    encrypted and protected from snooping.
+</p>
+<p>
+    NOTE: The only part of an HTTPS connection that is encrypted is the payload. It is exactly
+    like a sealed enveloped deposited in the mail. Anyone can read the address, only the recipient
+    can read the content. (In this example, the envelope contains a letter written in code, so even
+    if someone intercepts and opens the envelope, the contents will make no sense.) Likewise, your
+    internet provider is probably keeping a list of web sites that you visit. So, most likely, is
+    your browser. They don't know what you're doing on our web site and they
+    can't tell what we're sending back to you other than its size.
+</p>
+<h1>Remember: We Live in a Surveillance State</h1>
+<p>
+    We protect all that we can. Just remember, we live in a surveillance state. Governments think
+    it's their business and perhaps in our interest to monitor every move we make, whether in the
+    temporal world or the digital world. We don't disclose anything to them, but they gather up what
+    they can by reading traffic destinations and computer locations. Big Data companies are
+    positioned to make a fortune from whatever they can discern about you so they meticulously track
+    everything they possibley can. Again, they know where you are and they know what web sites you
+    visit. But they have no ability to see what you use our site for or what information we send back
+    to you.
+</p>
+{% endblock %}

@@ -1,8 +1,21 @@
 {% extends 'layout.html' %}
 {% block body %}
-    <h1>Client</h1>
+<div class="alert alert-success alert-dismissible fade show d-none" role="alert" id="copy_link_alert_success">
+    <strong>Got it!</strong> Payment link copied. You can paste it in another application.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="alert alert-warning alert-dismissible fade show d-none" role="alert" id="copy_link_alert_invalid">
+    <strong>Link Invalidated.</strong> The payment link is invalid because you changed the SSN or DL.
+    Click [SAVE] and then come back to this record for a valid payment link.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+    <h1>{{operation}} Client</h1>
     {% from 'includes/_formhelpers.html' import render_field %}
-    <form method='POST'>
+    <form method='POST' action="/client/save/">
         <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
         <div class="form-row">
             <div class="form-group col">
@@ -16,8 +29,8 @@
             </div>
         </div>
 
-        <div class="card border-primary">
-            <div class="card-header bg-primary text-white">Payment</div>
+        <div class="card border-primary my-3">
+            <div class="card-header alert-primary">Payment</div>
             <div class="card-body">
                 <div class="form-row">
                     <div class="form-group col">
@@ -27,21 +40,28 @@
                         {{render_field(form.notes, class_="form-control", value=client.notes)}}
                     </div>
                     <div class="form-group col">
-                        {{render_field(form.client_email, class_="form-control", value=client.email)}}
+                        {{render_field(form.email, class_="form-control", value=client.email)}}
                     </div>
+                </div>
+                <div class="form-group row copy_link_panel d-none">
+                        <label for="copy_link" class="col-sm-2 col-form-label" id="copy_link_label">Payment link: </label>
+                        <div class="col-sm-8">
+                            <input type="text" id="copy_link" readonly class="form-control"/>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary far fa-copy" id="copy_link_button" onclick="copyPaymentLink()"></button>
                 </div>
             </div>
         </div>
 
-        <div class="card border-primary">
-            <div class="card-header bg-primary text-white">User Login</div>
+        <div class="card border-primary my-3">
+            <div class="card-header alert-primary">User Login</div>
             <div class="card-body">
                 <div class="form-row">
                     <div class="form-group col">
-                        {{render_field(form.client_ssn, class_="form-control", value=client.client_ssn)}}
+                        {{render_field(form.client_ssn, class_="form-control", value=client.client_ssn, onchange="hidePaymentLink()")}}
                     </div>
                     <div class="form-group col">
-                        {{render_field(form.client_dl, class_="form-control", value=client.client_dl)}}
+                        {{render_field(form.client_dl, class_="form-control", value=client.client_dl, onchange="hidePaymentLink()")}}
                     </div>
                     <div class="form-group col">
                         {{render_field(form.check_digit, class_="form-control", value=client.check_digit, readonly="Y")}}
@@ -50,8 +70,8 @@
             </div>
         </div>
 
-        <div class="card border-primary">
-            <div class="card-header bg-primary text-white">Cardholder Address</div>
+        <div class="card border-primary my-3">
+            <div class="card-header alert-primary">Cardholder Address</div>
             <div class="card-body">
                 <div class="form-row">
                     <div class="form-group col">
@@ -73,11 +93,21 @@
             </div>
         </div>
 
-        <div class="card border-danger">
-            <div class="card-header bg-danger text-white">Administrative Access</div>
+        <div class="card border-danger my-3">
+            <div class="card-header alert-danger">Administrative Access</div>
             <div class="card-body">
-                <div class="form-group">
-                    {{render_field(form.attorney_initials, class_="form-control", value=client.attorney_initials)}}
+                <div class="form-row">
+                    <div class="form-group col-11">
+                        {{render_field(form.attorney_initials, class_="form-control", value=client.attorney_initials)}}
+                    </div>
+                    <div class="form-group col">
+                        {% if client.active_flag == 'Y' %}
+                        {{render_field(form.active_flag, class_="form-control", value='Y', checked='Y')}}
+                        {% else %}
+                        {{render_field(form.active_flag, class_="form-control", value='Y')}}
+                        {% endif %}
+                        {{client.active_flag}}
+                    </div>
                 </div>
                 <div class="form-group">
                     {{render_field(form.admin_users, class_="form-control", value=client.admin_users)}}
@@ -85,6 +115,100 @@
             </div>
         </div>
 
-        <button class="btn btn-primary" type="submit">Submit</button>
+        <button class="btn btn-primary my-3" type="submit">Save</button>
+        <a href="/clients" class="btn btn-secondary my-3 mx-3">Cancel</a>
     </form>
+
+    <script>
+        window.addEventListener('load', client_init);
+
+        function client_init(event)
+        {
+            if ('{{client._id}}' == '0') {
+                document.getElementById('billing_id').focus();
+            }
+            else {
+                var amount_field = document.getElementById("payment_due");
+                amount_field.select();
+                amount_field.setSelectionRange(0, 99999);
+                amount_field.focus();
+            }
+
+            var check_digit = document.getElementById("check_digit").value;
+            if (!check_digit)
+            {
+                return false;
+            }
+
+            showPaymentLinkControls();
+            showPaymentLink();
+        }
+
+        function showPaymentLinkControls()
+        {
+            document.getElementsByClassName("copy_link_panel")[0].classList.remove('d-none');
+            document.getElementsByClassName("copy_link_panel")[0].classList.add('d-flex');
+        }
+
+        function hidePaymentLink()
+        {
+            var link_field = document.getElementById("copy_link");
+            link_field.value = '';
+            link_field.textContent = '';
+        }
+
+        function showPaymentLink()
+        {
+            var check_digit = document.getElementById("check_digit").value;
+            var ssn = document.getElementById("client_ssn").value;
+            var dl = document.getElementById("client_dl").value;
+
+            if (!check_digit || !validate_digits(ssn) || !validate_digits(dl))
+            {
+                var payment_link = '';
+            }
+            else
+            {
+                var payment_link = "{{our_pay_url}}" + ssn + dl + check_digit;
+            }
+
+            var link_field = document.getElementById("copy_link");
+            link_field.value = payment_link;
+            link_field.textContent = payment_link;
+        }
+
+        function copyPaymentLink()
+        {
+            var link_field = document.getElementById("copy_link");
+            link_field.select();
+            link_field.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            link_text = link_field.value;
+            if (link_text)
+            {
+                var alert_id = "copy_link_alert_success";
+            }
+            else
+            {
+                var alert_id = "copy_link_alert_invalid";
+            }
+            var message_box = document.getElementById(alert_id);
+            // Once the box is displayed, then dismissed by the user, it is removed from the DOM.
+            // Therefore, if the user clicks the "copy" button more than once, there is non alert
+            // to display. TODO: Fix this.
+            if (message_box)
+            {
+                message_box.classList.remove('d-none');
+                message_box.classList.add('d-block');
+            }
+            return false;
+        }
+
+        function validate_digits(digits)
+        {
+            //if (digits.length != 3) return false;
+            if (!/^([0-9]{3})$/.test(digits)) return false;
+            return true;
+        }
+    </script>
 {% endblock %}

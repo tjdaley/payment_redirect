@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 {% block body %}
-<h1>Clients</h1>
+<span class="h1 my-3">Clients</span><a class="btn btn-primary btn-sm float-right my-3" href="/client/add">ADD</a>
 <table class="table">
     <tr>
         <th>Billing ID</th>
@@ -19,4 +19,5 @@
     </tr>
     {% endfor %}
 </table>
+<a href="/clients/csv" class="btn btn-sm btn-secondary">Download</a>
 {% endblock %}

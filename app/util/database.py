@@ -14,11 +14,14 @@ from datetime import datetime, timedelta
 import json
 import os
 from operator import itemgetter
+import re
 import time
 
 from pymongo import MongoClient, ReturnDocument
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+
+import pandas as pd
 
 from util.logger import get_logger
 
@@ -120,9 +123,28 @@ class Database(object):
         Return a list of client records where the email provided
         is one of the admin_users of the client record.
         """
-        filter_ = {'admin_users': {'$elemMatch': {'$eq': email}}}
+        filter_ = {
+            '$and': [
+                {'admin_users': {'$elemMatch': {'$eq': email}}},
+                {'active_flag': {'$eq': 'Y'}}
+            ]
+        }
         documents = self.dbconn[CLIENTS_TABLE].find(filter_)
         return documents
+
+    def get_clients_as_csv(self, email: str) -> str:
+        """
+        Return the client list as a CSV string.
+        """
+        documents = self.get_clients(email)
+        clients = clients_to_dataframe(documents)
+
+        # Drop columns that don't need to be downloaded
+        clients = clients.drop(columns=['_id', 'admin_users', 'attorney_initials', 'check_digit', 'client_dl', 'client_ssn', 'active_flag'])
+
+        # Create and return CSV file.
+        csv_export = clients.to_csv(sep=",")
+        return csv_export
 
     def get_client(self, client_id) -> dict:
         """
@@ -143,8 +165,8 @@ class Database(object):
         # Create lookup filter
         filter_ = {}
         try:
-            filter_['client_ssn'] = int(ssn)
-            filter_['client_dl'] = int(dl)
+            filter_['client_ssn'] = ssn
+            filter_['client_dl'] = dl
         except ValueError:
             return None
 
@@ -156,4 +178,92 @@ class Database(object):
         """
         Save a client record, if the user is permitted to do so.
         """
-        return {'success': True, 'message': "Client record updated"}
+        doc = multidict2dict(fields)
+        # Convert CSVs to lists
+        doc['attorney_initials'] = fields['attorney_initials'].strip().upper().split(',')
+        doc['admin_users'] = fields['admin_users'].strip().lower().split(',')
+
+        # Clean up dollar amount
+        # This lets user input the number however they want...currency symbols, commas, or not.
+        doc['payment_due'] = re.sub('[^0-9.]', '', doc['payment_due'])
+
+        # Make sure we have the correct check digit
+        doc['check_digit'] = correct_check_digit(doc['client_ssn'], doc['client_dl'])
+
+        # Convert numbers from strings
+        try:
+            doc['payment_due'] = float(doc['payment_due'])
+        except Exception as e:
+            return {'success': False, 'message': f"Invalid payment amount: {str(e)}"}
+
+        # Fix the "active_flag"
+        if 'active_flag' in doc:
+            doc['active_flag'] = 'Y'
+        else:
+            doc['active_flag'] = 'N'
+        for key, value in doc.items():
+            print(f"{key} = {value}")
+
+        # Insert new client record
+        if doc['_id'] == '0':
+            del doc['_id']
+            # Create a reference field
+            doc['reference'] = f"Client ID {doc['billing_id']}"
+            result = self.dbconn[CLIENTS_TABLE].insert_one(doc)
+            if result.inserted_id:
+                message = f"Client record added for {fields['client_name']}"
+                return {'success': True, 'message': message}
+            message = "Failed to add new client record"
+            return {'success': False, 'message': message}
+
+        # Update existing client record
+        filter_ = {'_id': ObjectId(doc['_id'])}
+        del doc['_id']
+        result = self.dbconn[CLIENTS_TABLE].update_one(filter_, {'$set': doc})
+        if result.modified_count == 1:
+            message = f"{fields['client_name']}'s record updated"
+            return {'success': True, 'message': message}
+
+        message = f"{fields['client_name']}'s record failed to update ({result.modified_count})"
+        return {'success': False, 'message': message}
+
+
+def multidict2dict(d) -> dict:
+    """
+    Create a dict from the given multidict.
+    We get multidicts from Flask and have to convert them
+    to dicts to modify them here.
+    """
+    return {key: value for key, value in d.items()}
+
+
+CHECK_DIGITS = os.environ.get('CHECK_DIGITS', 'QPWOEIRUTYALSKDJFHGZMXNCBV')
+CHECK_DIGITS_LENGTH = len(CHECK_DIGITS)
+
+
+def correct_check_digit(ssn: str, dl: str) -> str:
+    s = f'{ssn}{dl}'
+    total = 0
+    try:
+        for letter in s:
+            total += int(letter)
+    except ValueError:
+        return ''
+
+    check_index = total % CHECK_DIGITS_LENGTH
+    return CHECK_DIGITS[check_index]
+
+
+def clients_to_dataframe(documents: dict):
+    """
+    Convert result set to dataframe.
+    """
+    our_pay_url = os.environ.get('OUR_PAY_URL')
+    clients = pd.DataFrame(columns=[])
+    for num, client in enumerate(documents):
+        client_id = str(client['_id'])
+        client['_id'] = client_id
+        client['payment_link'] = f"{our_pay_url}{client['client_ssn']}{client['client_dl']}{client['check_digit']}"
+        series_obj = pd.Series(client, name=client_id)
+        clients = clients.append(series_obj)
+    return clients

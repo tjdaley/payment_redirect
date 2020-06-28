@@ -31,8 +31,10 @@ def is_admin_user(f):
         database.connect()
         admin_record = database.get_admin_record(user_email)
         if admin_record and admin_record['for']:
+            session['is_admin'] = 'Y'
             return f(*args, **kwargs)
         else:
+            session['is_admin'] = 'N'
             flash("Unauthorized - Please Log In As An Administrator", "danger")
             return redirect(url_for(LOGIN_FUNCTION))
     return wrap

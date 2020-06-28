@@ -1,0 +1,25 @@
+<nav class="navbar navbar-expand-md navbar-default">
+    <a class="navbar-brand" href="/"><img title="Attorney CRM" height="30px"
+            src="/static/logo.png" /></a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"><i class="fas fa-bars"></i></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="nav mr-auto">
+            {% if session['is_admin'] == 'Y' %}
+            <li class="nav-item">
+                <a class="nav-link" href="/clients">Clients</a>
+            </li>
+            {% endif %}
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            {% if session.get('user') %}
+            <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+            {% else %}
+            <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>

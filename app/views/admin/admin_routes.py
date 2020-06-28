@@ -6,7 +6,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 import uuid
 import os
 import msal
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for
 import requests
 
 from views.decorators import is_logged_in, is_admin_user
@@ -21,6 +21,7 @@ admin_routes = Blueprint("admin_routes", __name__, template_folder="templates")
 REDIRECT_PATH = os.environ['AZURE_REDIRECT_PATH']
 
 
+@admin_routes.route('/admin')
 @admin_routes.route("/clients", methods=['GET'])
 @is_logged_in
 @is_admin_user
@@ -30,31 +31,67 @@ def list_clients():
     return render_template("clients.html", clients=clients)
 
 
+@admin_routes.route("/clients/csv/", methods=['GET'])
+@is_logged_in
+@is_admin_user
+def download_clients_csv():
+    user_email = session['user']['preferred_username']
+    clients = DATABASE.get_clients_as_csv(user_email)
+    return Response(
+        clients,
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': 'attachment; filename=clients.csv'
+        }
+    )
+
+
+@admin_routes.route("/client/add/", methods=['GET'])
+@is_logged_in
+@is_admin_user
+def add_client(id: str = '0'):
+    form = ClientForm(request.form)
+    client = {'_id': id}
+    return render_template("client.html", client=client, form=form, operation="Add New")
+
+
+@admin_routes.route("/client/save/", methods=['POST'])
+@is_logged_in
+@is_admin_user
+def save_client():
+    form = ClientForm(request.form)
+    fields = request.form
+
+    if form.validate():
+        user_email = session['user']['preferred_username']
+        result = DATABASE.save_client(fields, user_email)
+        if result['success']:
+            css_name = 'success'
+        else:
+            css_name = 'danger'
+        flash(result['message'], css_name)
+        return redirect(url_for('admin_routes.list_clients'))
+    return render_template('client.html', client=fields, form=form, operation="Correct")
+
+
 @admin_routes.route("/client/<string:id>/", methods=['GET', 'POST'])
 @is_logged_in
 @is_admin_user
 def show_client(id):
     form = ClientForm(request.form)
-
-    if request.method == 'POST':
-        if form.validate():
-            user_email = session['user']['preferred_username']
-            fields = request.form
-            result = DATABASE.save_client(fields, user_email)
-            if result['success']:
-                flash(result['message'], 'success')
-                return redirect(url_for('admin_routes.list_clients'))
-
     client = DATABASE.get_client(id)
     cleanup_client(client)
-    return render_template("client.html", client=client, form=form)
+    our_pay_url = os.environ.get('OUR_PAY_URL')
+    return render_template("client.html", client=client, form=form, operation="Update", our_pay_url=our_pay_url)
 
 
 @admin_routes.route('/login', methods=['GET'])
 def login():
     session['state'] = str(uuid.uuid4())
     auth_url = _build_auth_url(scopes=config.AZURE_SCOPE, state=session['state'])
-    return render_template('login.html', auth_url=auth_url, version=msal.__version__)
+    firm_name = os.environ.get('FIRM_NAME', "The Firm")
+    firm_admin_email = os.environ.get('FIRM_ADMIN_EMAIL')
+    return render_template('login.html', firm_name=firm_name, auth_url=auth_url, firm_admin_email=firm_admin_email)
 
 
 # REDIRECT_PATH must match your app's redirect_uri set in AAD
