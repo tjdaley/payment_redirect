@@ -37,7 +37,7 @@
                         {{form.payment_due.label}}
                         <div class="input-group">
                             <div class="input-group-prepend">
-                                <button type="button" class="btn btn-success far fa-lightbulb" id="suggest_button" onclick="suggestPaymentDue()">
+                                <button type="button" class="btn btn-success far fa-lightbulb" id="suggest_button" onclick="suggestPaymentDue('Y')">
                                 </button>
                             </div>
                             {{form.payment_due(class_="form-control", value=client.payment_due)}}
@@ -212,10 +212,10 @@
             showPaymentLinkControls();
             showPaymentLink();
 
-            suggestPaymentDue();
+            suggestPaymentDue('N');
         }
 
-        function suggestPaymentDue()
+        function suggestPaymentDue(override_flag)
         {
             var trial_retainer = getDollarValue('trial_retainer');
             var mediation_retainer = getDollarValue('mediation_retainer');
@@ -243,6 +243,11 @@
                 payment_amount = target_retainer - trust_balance;
                 displayPaymentAmount(payment_amount, 'payment_due');
                 return false;
+            }
+
+            if (override_flag == 'Y')
+            {
+                displayPaymentAmount(0, 'payment_due');
             }
         }
 
