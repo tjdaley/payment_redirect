@@ -4,6 +4,7 @@ ClientForm.py - CRUD form for a client.
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
 from wtforms import Form, StringField, SelectField, validators, BooleanField, DecimalField, ValidationError
+from wtforms.fields.html5 import DateField, EmailField
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
@@ -49,7 +50,7 @@ class ClientForm(Form):
         "ZIP code",
         [validators.DataRequired(), validators.Length(min=5, max=10)]
     )
-    email = StringField(
+    email = EmailField(
         "Client email",
         [validators.DataRequired(), validators.Email()]
     )
@@ -88,8 +89,14 @@ class ClientForm(Form):
     trial_retainer = StringField(
         "Trial retainer", [DollarCleaner(min=0)]
     )
+    trial_date = DateField(
+        "Trial date"
+    )
     mediation_retainer = StringField(
         "Mediation retainer", [DollarCleaner(min=0)]
+    )
+    mediation_date = DateField(
+        "Mediation date"
     )
     trust_balance = StringField(
         "Trust balance", [DollarCleaner()]
