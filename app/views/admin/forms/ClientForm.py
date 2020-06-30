@@ -3,7 +3,13 @@ ClientForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
-from wtforms import Form, StringField, SelectField, validators, BooleanField
+from wtforms import Form, StringField, SelectField, validators, BooleanField, DecimalField, ValidationError
+
+# pylint: disable=no-name-in-module
+# pylint: disable=import-error
+from util.dollarcleaner import DollarCleaner
+# pylint: enable=no-name-in-module
+# pylint: enable=import-error
 
 
 class ClientForm(Form):
@@ -58,8 +64,12 @@ class ClientForm(Form):
         "Admin emails",
         [validators.DataRequired()]
     )
+
     payment_due = StringField(
-        "Payment due"
+        "Payment due",
+        [
+            DollarCleaner(min=0, max=500000)
+        ]
     )
     notes = StringField(
         "Note to client",
@@ -67,5 +77,28 @@ class ClientForm(Form):
     )
     active_flag = BooleanField(
         "Active?",
+        false_values=('N', '')
+    )
+    target_retainer = StringField(
+        "Target retainer", [DollarCleaner(min=0)]
+    )
+    refresh_trigger = StringField(
+        "Refresh trigger", [DollarCleaner(min=0)]
+    )
+    trial_retainer = StringField(
+        "Trial retainer", [DollarCleaner(min=0)]
+    )
+    mediation_retainer = StringField(
+        "Mediation retainer", [DollarCleaner(min=0)]
+    )
+    trust_balance = StringField(
+        "Trust balance", [DollarCleaner()]
+    )
+    trial_retainer_flag = BooleanField(
+        'Trial retainer due?',
+        false_values=('N', '')
+    )
+    mediation_retainer_flag = BooleanField(
+        "Mediation retainer due?",
         false_values=('N', '')
     )

@@ -191,16 +191,23 @@ class Database(object):
         doc['check_digit'] = correct_check_digit(doc['client_ssn'], doc['client_dl'])
 
         # Convert numbers from strings
-        try:
-            doc['payment_due'] = float(doc['payment_due'])
-        except Exception as e:
-            return {'success': False, 'message': f"Invalid payment amount: {str(e)}"}
+        dollar_amounts = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger']
+        for field in dollar_amounts:
+            try:
+                if field in doc and doc[field]:
+                    doc[field] = float(doc[field])
+            except Exception as e:
+                return {'success': False, 'message': f"Invalid {field} amount: {str(e)}"}
 
-        # Fix the "active_flag"
-        if 'active_flag' in doc:
-            doc['active_flag'] = 'Y'
-        else:
-            doc['active_flag'] = 'N'
+        # Fix the flags
+        flag_fields = ['active_flag', 'trial_retainer_flag', 'mediation_retainer_flag']
+        for field in flag_fields:
+            if field in doc:
+                doc[field] = 'Y'
+            else:
+                doc[field] = 'N'
+
+        # Dump the dict before saving it
         for key, value in doc.items():
             print(f"{key} = {value}")
 
@@ -224,7 +231,8 @@ class Database(object):
             message = f"{fields['client_name']}'s record updated"
             return {'success': True, 'message': message}
 
-        message = f"{fields['client_name']}'s record failed to update ({result.modified_count})"
+        client_name = fields['client_name']
+        message = f"{client_name}'s record failed to update ({result.modified_count})"
         return {'success': False, 'message': message}
 
 
