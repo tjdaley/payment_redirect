@@ -3,23 +3,85 @@ admin_routes.py - Handle the administrative routes.
 
 Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
+import json  # for debugging
 import uuid
 import os
 import msal
-from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, jsonify
 import requests
 
 from views.decorators import is_logged_in, is_admin_user
 from .forms.ClientForm import ClientForm
+from .forms.TemplateForm import TemplateForm
 from util.logger import get_logger
+from util.template_manager import TemplateManager
 import config
 
 from util.database import Database
 DATABASE = Database()
 DATABASE.connect()
 
+TEMPLATE_MANAGER = TemplateManager()
+
 admin_routes = Blueprint("admin_routes", __name__, template_folder="templates")
 REDIRECT_PATH = os.environ['AZURE_REDIRECT_PATH']
+
+
+@admin_routes.route('/admin/templates')
+@is_logged_in
+@is_admin_user
+def list_templates():
+    user_email = session['user']['preferred_username']
+    templates = TEMPLATE_MANAGER.get_templates(user_email)
+    return render_template('templates.html', templates=templates)
+
+
+@admin_routes.route('/admin/add_template')
+@is_logged_in
+@is_admin_user
+def add_template():
+    form = TemplateForm(request.form)
+    return render_template('template.html', template={}, form=form)
+
+
+@admin_routes.route('/admin/template/<string:template_name>/')
+@is_logged_in
+@is_admin_user
+def edit_template(template_name):
+    form = TemplateForm(request.form)
+    user_email = session['user']['preferred_username']
+    template = TEMPLATE_MANAGER.get_template(user_email, template_name)
+    print(json.dumps(template, indent=4))
+    return render_template('template.html', template=template, form=form)
+
+
+@admin_routes.route('/admin/save_template/', methods=['POST'])
+@is_logged_in
+@is_admin_user
+def save_template():
+    form = TemplateForm(request.form)
+    fields = request.form
+
+    if form.validate():
+        user_email = session['user']['preferred_username']
+        result = TEMPLATE_MANAGER.save_template(user_email, fields)
+        if result['success']:
+            css_name = 'success'
+        else:
+            css_name = 'danger'
+        flash(result['message'], css_name)
+        return redirect(url_for('admin_routes.list_templates'))
+    return render_template('template.html', template=fields, form=form, operation="Correct")
+
+
+@admin_routes.route('/admin/delete_template/<string:template_name>/')
+@is_logged_in
+@is_admin_user
+def delete_template(template_name):
+    user_email = session['user']['preferred_username']
+    result = TEMPLATE_MANAGER.delete_template(user_email, template_name)
+    templates = TEMPLATE_MANAGER.get_templates(user_email)
+    return render_template('templates.html', templates=templates)
 
 
 @admin_routes.route('/admin')

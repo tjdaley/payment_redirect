@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+{% block body %}
+<span class="h1 my-3">Templates</span><a class="btn btn-primary btn-sm float-right my-3" href="/admin/add_template">ADD</a>
+<table class="table">
+    <tr>
+        <th>Name</th>
+        <th>Date Created</th>
+        <th>Delete</th>
+    </tr>
+    {% for template in templates %}
+    <tr>
+        <td><a href="/admin/template/{{template.Name}}/">{{template.Name}}</a></td>
+        <td>{{template.CreatedTimestamp}}</td>
+        <td><a href="/admin/delete_template/{{template.Name}}/" class="btn btn-danger far fa-trash-alt"></a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
