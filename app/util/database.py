@@ -157,7 +157,7 @@ class Database(object):
                 filter_['$and'].append({'mediation_retainer_flag': {'$eq': 'N'}})
             else:
                 return {}
-        print(json.dumps(filter_, indent=4))
+
         documents = list(self.dbconn[CLIENTS_TABLE].find(filter_))
         return documents
 
