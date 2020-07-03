@@ -224,7 +224,7 @@ class Database(object):
         for field in dollar_amounts:
             try:
                 if field in doc and doc[field]:
-                    doc[field] = re.sub('[^0-9.\-]', '', doc[field])
+                    doc[field] = re.sub(r'[^0-9.\-]', '', doc[field])
                     doc[field] = float(doc[field])
             except Exception as e:
                 return {'success': False, 'message': f"Invalid {field} amount: {str(e)}"}
@@ -310,7 +310,9 @@ def clients_to_dataframe(documents: dict):
     """
     our_pay_url = os.environ.get('OUR_PAY_URL')
     clients = pd.DataFrame(columns=[])
+    # pylint: disable=unused-variable
     for num, client in enumerate(documents):
+        # pylint: enable=unused-variable
         client_id = str(client['_id'])
         client['_id'] = client_id
         client['payment_link'] = f"{our_pay_url}{client['client_ssn']}{client['client_dl']}{client['check_digit']}"

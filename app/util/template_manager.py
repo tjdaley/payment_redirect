@@ -69,7 +69,9 @@ class TemplateManager(object):
             my_template = {key: value for key, value in template.items()}
             my_template['TemplateName'] = re.sub(r'[^A-Za-z0-9\_\-]', '', template['TemplateName'])
             template_name = my_template['TemplateName']
+            # pylint: disable=unused-variable
             response = client.get_template(TemplateName=template_name)
+            # pylint: enable=unused-variable
         except client.exceptions.TemplateDoesNotExistException:
             response = client.create_template(Template=my_template)
             return {'success': True, 'message': "OK"}
@@ -86,5 +88,7 @@ class TemplateManager(object):
             template_name (str): Template name to delete
         """
         client = boto3.client('ses', region_name=AWS_REGION, )
+        # pylint: disable=unused-variable
         response = client.delete_template(TemplateName=template_name)
+        # pylint: enable=unused-variable
         return {'success': True, 'message': "OK"}

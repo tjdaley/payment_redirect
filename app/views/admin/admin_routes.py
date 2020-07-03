@@ -80,7 +80,9 @@ def save_template():
 @is_admin_user
 def delete_template(template_name):
     user_email = session['user']['preferred_username']
+    # pylint: disable=unused-variable
     result = TEMPLATE_MANAGER.delete_template(user_email, template_name)
+    # pylint: enable=unused-variable
     templates = TEMPLATE_MANAGER.get_templates(user_email)
     return render_template('templates.html', templates=templates)
 
