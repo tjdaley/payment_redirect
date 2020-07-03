@@ -71,11 +71,31 @@ def _send_email(from_email: str, clients: list, template: dict):
         DATABASE.save_client(update, from_email)
 
 
+def _due_date(client: dict):
+    now = datetime.now()
+    if client.get('mediation_retainer_flag', 'N') == 'Y':
+        d_day = datetime.strptime(client['mediation_date'], '%Y-%m-%d')
+        payment_due = d_day + timedelta(days=-14)
+        if payment_due < now:
+            payment_due = now + timedelta(days=5)
+        return payment_due
+
+    if client.get('trial_retainer_flag', 'N') == 'Y':
+        d_day = datetime.strptime(client['trial_date'], '%Y-%m-%d')
+        payment_due = d_day + timedelta(days=-45)
+        if payment_due < now:
+            payment_due = now + timedelta(days=5)
+        return payment_due
+
+    return now + timedelta(days=10)
+
+
 def _template_data(client) -> list:
     base_address = os.environ.get('OUR_PAY_URL')
     pay_url = f"{base_address}{client['client_ssn']}{client['client_dl']}{client['check_digit']}"
+    payment_due_date = _due_date(client)
     template_data = {
-            'due_date': _long_date(datetime.now() + timedelta(days=10)),
+            'due_date': _long_date(payment_due_date),
             'mediation_date':  _long_date(datetime.strptime(client['mediation_date'], '%Y-%m-%d')),
             'mediation_retainer':  _dollar(client['mediation_retainer']),
             'notes':  client['notes'],
