@@ -10,7 +10,7 @@ import msal
 from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, jsonify
 import requests
 
-from views.decorators import is_logged_in, is_admin_user
+import views.decorators as DECORATORS
 from .forms.ClientForm import ClientForm
 from .forms.TemplateForm import TemplateForm
 from util.logger import get_logger
@@ -29,8 +29,9 @@ REDIRECT_PATH = os.environ['AZURE_REDIRECT_PATH']
 
 
 @admin_routes.route('/admin/templates')
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
+@DECORATORS.auth_manage_templates
 def list_templates():
     user_email = session['user']['preferred_username']
     templates = TEMPLATE_MANAGER.get_templates(user_email)
@@ -38,16 +39,18 @@ def list_templates():
 
 
 @admin_routes.route('/admin/add_template')
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
+@DECORATORS.auth_manage_templates
 def add_template():
     form = TemplateForm(request.form)
     return render_template('template.html', template={}, form=form)
 
 
 @admin_routes.route('/admin/template/<string:template_name>/')
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
+@DECORATORS.auth_manage_templates
 def edit_template(template_name):
     form = TemplateForm(request.form)
     user_email = session['user']['preferred_username']
@@ -57,8 +60,9 @@ def edit_template(template_name):
 
 
 @admin_routes.route('/admin/save_template/', methods=['POST'])
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
+@DECORATORS.auth_manage_templates
 def save_template():
     form = TemplateForm(request.form)
     fields = request.form
@@ -76,8 +80,9 @@ def save_template():
 
 
 @admin_routes.route('/admin/delete_template/<string:template_name>/')
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
+@DECORATORS.auth_manage_templates
 def delete_template(template_name):
     user_email = session['user']['preferred_username']
     # pylint: disable=unused-variable
@@ -89,11 +94,12 @@ def delete_template(template_name):
 
 @admin_routes.route('/admin')
 @admin_routes.route("/clients", methods=['GET'])
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
 def list_clients():
     user_email = session['user']['preferred_username']
     clients = DATABASE.get_clients(user_email)
+    admin_record = DATABASE.get_admin_record(user_email)
     counter = 0
     for client in clients:
         counter += 1
@@ -126,12 +132,13 @@ def list_clients():
         else:
             type = "No payment due (please verify)"
         client['_type'] = type
-    return render_template("clients.html", clients=clients)
+    return render_template("clients.html", clients=clients, authorizations=list(admin_record.get('authorizations', [])))
 
 
 @admin_routes.route('/admin/send_evergreen', methods=['GET'])
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
+@DECORATORS.auth_send_evergreens
 def send_evergreens():
     user_email = session['user']['preferred_username']
     send_evergreen(user_email)
@@ -139,8 +146,9 @@ def send_evergreens():
 
 
 @admin_routes.route("/clients/csv/", methods=['GET'])
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
+@DECORATORS.auth_download_clients
 def download_clients_csv():
     user_email = session['user']['preferred_username']
     clients = DATABASE.get_clients_as_csv(user_email)
@@ -154,8 +162,8 @@ def download_clients_csv():
 
 
 @admin_routes.route("/client/add/", methods=['GET'])
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
 def add_client(id: str = '0'):
     form = ClientForm(request.form)
     client = {'_id': id}
@@ -163,8 +171,8 @@ def add_client(id: str = '0'):
 
 
 @admin_routes.route("/client/save/", methods=['POST'])
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
 def save_client():
     form = ClientForm(request.form)
     fields = request.form
@@ -182,8 +190,8 @@ def save_client():
 
 
 @admin_routes.route("/client/<string:id>/", methods=['GET', 'POST'])
-@is_logged_in
-@is_admin_user
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
 def show_client(id):
     form = ClientForm(request.form)
     client = DATABASE.get_client(id)

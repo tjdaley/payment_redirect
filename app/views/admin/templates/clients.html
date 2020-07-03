@@ -19,8 +19,12 @@
     </tr>
     {% endfor %}
 </table>
+{% if 'DOWNLOAD_CLIENTS' in authorizations %}
 <a href="/clients/csv" class="btn btn-sm btn-secondary">Download</a>
+{% endif %}
+{% if 'SEND_EVERGREEN' in authorizations %}
 <a href="/admin/send_evergreen" class="btn btn-sm btn-success float-right">Send Evergreen</a>
+{% endif %}
 <script>
     window.addEventListener('load', clients_init);
 

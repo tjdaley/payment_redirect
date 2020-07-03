@@ -38,3 +38,55 @@ def is_admin_user(f):
             flash("Unauthorized - Please Log In As An Administrator", "danger")
             return redirect(url_for(LOGIN_FUNCTION))
     return wrap
+
+
+# Decorator to see is user is a template manager
+def auth_manage_templates(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if 'TEMPLATE_MANAGER' in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized to administer templates", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
+# Decorator to see is user is an evergreen sender
+def auth_send_evergreens(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if 'SEND_EVERGREEN' in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized to send evergreen letters", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
+# Decorator to see if user may download client lists
+def auth_download_clients(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if 'DOWNLOAD_CLIENTS' in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized to download client lists", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
+def _get_authorizations(user_email: str) -> list:
+    database = Database()
+    database.connect()
+    admin_record = database.get_admin_record(user_email)
+    if admin_record:
+        authorizations = admin_record.get('authorizations', [])
+        return authorizations
+    return []
