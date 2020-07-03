@@ -17,6 +17,7 @@
     {% from 'includes/_formhelpers.html' import render_field %}
     <form method='POST' action="/client/save/">
         <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
+        <input type='hidden' name='orig_trust_balance' value='{{client.trust_balance}}'>
         <div class="form-row">
             <div class="form-group col">
                 {{render_field(form.billing_id, class_="form-control", value=client.billing_id)}}

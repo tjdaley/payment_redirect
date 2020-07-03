@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% block body %}
 <span class="h1 my-3">Clients</span><a class="btn btn-primary btn-sm float-right my-3" href="/client/add">ADD</a>
-<table class="table">
+<table class="table table-sm">
     <tr>
         <th>Billing ID</th>
         <th>Client Name</th>
@@ -10,7 +10,7 @@
         <th>Message</th>
     </tr>
     {% for client in clients %}
-    <tr>
+    <tr class="table-{{client._class}}">
         <td><a href="/client/{{client._id}}/">{{client.billing_id}}</a></td>
         <td>{{client.client_name}}</td>
         <td>{{client.email}}</td>
@@ -20,4 +20,5 @@
     {% endfor %}
 </table>
 <a href="/clients/csv" class="btn btn-sm btn-secondary">Download</a>
+<a href="/admin/send_evergreen" class="btn btn-sm btn-success float-right">Send Evergreen</a>
 {% endblock %}

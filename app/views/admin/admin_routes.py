@@ -15,9 +15,10 @@ from .forms.ClientForm import ClientForm
 from .forms.TemplateForm import TemplateForm
 from util.logger import get_logger
 from util.template_manager import TemplateManager
+from util.email_sender import send_evergreen
 import config
 
-from util.database import Database
+from util.database import Database, multidict2dict
 DATABASE = Database()
 DATABASE.connect()
 
@@ -91,7 +92,26 @@ def delete_template(template_name):
 def list_clients():
     user_email = session['user']['preferred_username']
     clients = DATABASE.get_clients(user_email)
+    counter = 0
+    for client in clients:
+        counter += 1
+        client['_class'] = 'info'
+        if 'trust_balance_update' in client:
+            if 'evergreen_sent_date' in client:
+                if client['evergreen_sent_date'] > client['trust_balance_update']:
+                    client['_class'] = 'warning'
+                else:
+                    client['_class'] = 'success'
     return render_template("clients.html", clients=clients)
+
+
+@admin_routes.route('/admin/send_evergreen', methods=['GET'])
+@is_logged_in
+@is_admin_user
+def send_evergreens():
+    user_email = session['user']['preferred_username']
+    send_evergreen(user_email)
+    return redirect(url_for('admin_routes.list_clients'))
 
 
 @admin_routes.route("/clients/csv/", methods=['GET'])
@@ -163,7 +183,8 @@ def authorized():
     if request.args.get('state') != session.get('state'):
         return redirect(url_for(os.environ['LOGIN_FUNCTION']))
     if 'error' in request.args:  # Authentization/Authorization failure
-        flash("Login error - Try Again", 'danger')
+        message = request.args.get('error_description', 'Try Again')
+        flash(f"Login error - {message}", 'danger')
         return render_template("auth_error.html", result=request.args)
     if request.args.get('code'):
         cache = _load_cache()

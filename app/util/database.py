@@ -38,6 +38,11 @@ USER_TABLE = 'users'
 CLIENTS_TABLE = 'clients'
 ADMIN_TABLE = 'admins'
 
+# Flag values for get_clients()
+MEDIATION_RETAINER_DUE = 'M'
+TRIAL_RETAINER_DUE = 'T'
+EVERGREEN_PAYMENT_DUE = 'E'
+
 
 class MissingFieldException(Exception):
     def __init__self(self, message: str):
@@ -118,10 +123,19 @@ class Database(object):
         document = self.dbconn[ADMIN_TABLE].find_one(filter_)
         return document
 
-    def get_clients(self, email: str) -> list:
+    def get_clients(self, email: str, flag: str = None) -> list:
         """
         Return a list of client records where the email provided
         is one of the admin_users of the client record.
+
+        Args:
+            email (str): Email address of user who requested the query
+            flag (str): 'M' for clients who owe a mediation retainer
+                        'T' for clients to who a trial retainer
+                        'E' for clients who just have an evergreen payment due
+                        None for all clients
+        Returns:
+            (list): Of client docs.
         """
         filter_ = {
             '$and': [
@@ -129,7 +143,22 @@ class Database(object):
                 {'active_flag': {'$eq': 'Y'}}
             ]
         }
-        documents = self.dbconn[CLIENTS_TABLE].find(filter_)
+
+        # See if we have a flag to add to the filter
+        if flag:
+            if flag == MEDIATION_RETAINER_DUE:
+                filter_['$and'].append({'mediation_retainer_flag': {'$eq': 'Y'}})
+                filter_['$and'].append({'trial_retainer_flag': {'$eq': 'N'}})
+            elif flag == TRIAL_RETAINER_DUE:
+                filter_['$and'].append({'trial_retainer_flag': {'$eq': 'Y'}})
+                filter_['$and'].append({'mediation_retainer_flag': {'$eq': 'N'}})
+            elif flag == EVERGREEN_PAYMENT_DUE:
+                filter_['$and'].append({'trial_retainer_flag': {'$eq': 'N'}})
+                filter_['$and'].append({'mediation_retainer_flag': {'$eq': 'N'}})
+            else:
+                return {}
+        print(json.dumps(filter_, indent=4))
+        documents = list(self.dbconn[CLIENTS_TABLE].find(filter_))
         return documents
 
     def get_clients_as_csv(self, email: str) -> str:
@@ -177,27 +206,35 @@ class Database(object):
     def save_client(self, fields, user_email) -> dict:
         """
         Save a client record, if the user is permitted to do so.
+        NOTE: if *fields* is missing 'active_flag', it will be set to 'N' (inactive).
         """
         doc = multidict2dict(fields)
         # Convert CSVs to lists
-        doc['attorney_initials'] = fields['attorney_initials'].strip().upper().split(',')
-        doc['admin_users'] = fields['admin_users'].strip().lower().split(',')
-
-        # Clean up dollar amount
-        # This lets user input the number however they want...currency symbols, commas, or not.
-        doc['payment_due'] = re.sub('[^0-9.]', '', doc['payment_due'])
+        if 'attorney_initials' in doc:
+            doc['attorney_initials'] = fields['attorney_initials'].strip().upper().split(',')
+        if 'admin_users' in doc:
+            doc['admin_users'] = fields['admin_users'].strip().lower().split(',')
 
         # Make sure we have the correct check digit
-        doc['check_digit'] = correct_check_digit(doc['client_ssn'], doc['client_dl'])
+        if 'client_ssn' in doc and 'client_dl' in doc:
+            doc['check_digit'] = correct_check_digit(doc['client_ssn'], doc['client_dl'])
 
-        # Convert numbers from strings
-        dollar_amounts = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger']
+        # Clean up dollar amount strings and convert them to numbers
+        dollar_amounts = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger', 'trust_balance', 'orig_trust_balance']
         for field in dollar_amounts:
             try:
                 if field in doc and doc[field]:
+                    doc[field] = re.sub('[^0-9.\-]', '', doc[field])
                     doc[field] = float(doc[field])
             except Exception as e:
                 return {'success': False, 'message': f"Invalid {field} amount: {str(e)}"}
+
+        # Set the trust balance update date/time
+        if 'trust_balance' in doc and 'orig_trust_balance' in doc:
+            if doc['trust_balance'] != doc['orig_trust_balance']:
+                doc['trust_balance_update'] = datetime.now()
+        if 'orig_trust_balance' in doc:
+            del doc['orig_trust_balance']
 
         # Fix the flags
         flag_fields = ['active_flag', 'trial_retainer_flag', 'mediation_retainer_flag']
@@ -211,6 +248,12 @@ class Database(object):
         for key, value in doc.items():
             print(f"{key} = {value}")
 
+        # Determine client name for status message
+        if 'client_name' in doc:
+            client_name = doc['client_name']
+        else:
+            client_name = 'Client'
+
         # Insert new client record
         if doc['_id'] == '0':
             del doc['_id']
@@ -218,7 +261,7 @@ class Database(object):
             doc['reference'] = f"Client ID {doc['billing_id']}"
             result = self.dbconn[CLIENTS_TABLE].insert_one(doc)
             if result.inserted_id:
-                message = f"Client record added for {fields['client_name']}"
+                message = f"Client record added for {client_name}"
                 return {'success': True, 'message': message}
             message = "Failed to add new client record"
             return {'success': False, 'message': message}
@@ -228,10 +271,9 @@ class Database(object):
         del doc['_id']
         result = self.dbconn[CLIENTS_TABLE].update_one(filter_, {'$set': doc})
         if result.modified_count == 1:
-            message = f"{fields['client_name']}'s record updated"
+            message = f"{client_name}'s record updated"
             return {'success': True, 'message': message}
 
-        client_name = fields['client_name']
         message = f"{client_name}'s record failed to update ({result.modified_count})"
         return {'success': False, 'message': message}
 

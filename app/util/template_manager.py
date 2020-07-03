@@ -3,13 +3,16 @@ template_manager.py - Manage email templates.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
+import os
 import json  # for debugging
 import re
 import boto3
 from botocore.exceptions import ClientError
 
+import settings
 
-AWS_REGION = "us-east-1"
+
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 
 class TemplateManager(object):
@@ -30,16 +33,19 @@ class TemplateManager(object):
         return response['TemplatesMetadata']
 
     @staticmethod
-    def get_template(email_address: str, template_name: str) -> dict:
+    def get_template(email_address: str, template_name: str, raw: bool = False) -> dict:
         """
         Retrieve a template by name.
 
         Args:
             email_address (str): Email address of person wanting to retrieve the template.
             template_name (str): Template name to retrieve
+            raw (bool): If True, return exactly what we retrieved, otherwise, trim it down.
         """
         client = boto3.client('ses', region_name=AWS_REGION, )
         response = client.get_template(TemplateName=template_name)
+        if raw:
+            return response
         return response['Template']
 
     @staticmethod
