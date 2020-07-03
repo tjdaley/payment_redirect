@@ -95,13 +95,35 @@ def list_clients():
     counter = 0
     for client in clients:
         counter += 1
-        client['_class'] = 'info'
+        client['_class'] = 'light'
+        message = ''
         if 'trust_balance_update' in client:
             if 'evergreen_sent_date' in client:
-                if client['evergreen_sent_date'] > client['trust_balance_update']:
-                    client['_class'] = 'warning'
-                else:
+                if client['evergreen_sent_date'] < client['trust_balance_update']:
                     client['_class'] = 'success'
+                else:
+                    message += "Trust balance not updated since last evergreen email sent. Update it. "
+                    client['_class'] = 'warning'
+        if client.get('mediation_retainer_flag', 'N') == 'Y' and client.get('trial_retainer_flag', 'N') == 'Y':
+            client['_class'] = 'danger'
+            message += "Mediation retainer and Trial retainer flags cannot both be checked. "
+        try:
+            if float(client.get('payment_due', '0.0')) <= 0.0:
+                client['_class'] = 'danger'
+                message += "Payment due is either missing, zero, or negative. Must be a positive number. "
+        except ValueError:
+            client['_class'] = 'danger'
+            message += "Payment due must be a number. "
+        client['_message'] = message
+        if client.get('mediation_retainer_flag', 'N') == 'Y':
+            type = "Mediation retainer due"
+        elif client.get('trial_retainer_flag', 'N') == 'Y':
+            type = "Trial retainer due"
+        elif float(client.get('payment_due', '0.0')) > 0.0:
+            type = "Trust refresh due"
+        else:
+            type = "No payment due (please verify)"
+        client['_type'] = type
     return render_template("clients.html", clients=clients)
 
 

@@ -11,14 +11,22 @@
     </tr>
     {% for client in clients %}
     <tr class="table-{{client._class}}">
-        <td><a href="/client/{{client._id}}/">{{client.billing_id}}</a></td>
+        <td><a href="/client/{{client._id}}/" data-toggle="tooltip" data-placement="top" title="{{client._message}}">{{client.billing_id}}</a></td>
         <td>{{client.client_name}}</td>
         <td>{{client.email}}</td>
         <td>{{"${:,.2f}".format(client.payment_due)}}</td>
-        <td>{{client.notes}}</td>
+        <td>{{client._type}}</td>
     </tr>
     {% endfor %}
 </table>
 <a href="/clients/csv" class="btn btn-sm btn-secondary">Download</a>
 <a href="/admin/send_evergreen" class="btn btn-sm btn-success float-right">Send Evergreen</a>
+<script>
+    window.addEventListener('load', clients_init);
+
+    function clients_init()
+    {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+</script>
 {% endblock %}
