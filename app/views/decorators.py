@@ -7,6 +7,7 @@ from flask import flash, redirect, session, url_for
 from functools import wraps
 
 from util.database import Database
+import util.authorizations as AUTH
 
 LOGIN_FUNCTION = os.environ.get('LOGIN_FUNCTION', 'admin_routes.login')
 
@@ -46,7 +47,7 @@ def auth_manage_templates(f):
     def wrap(*args, **kwargs):
         user_email = session['user']['preferred_username']
         authorizations = _get_authorizations(user_email)
-        if 'TEMPLATE_MANAGER' in authorizations:
+        if AUTH.AUTH_TEMPLATE_ADMIN in authorizations:
             return f(*args, **kwargs)
         else:
             flash("Your account has not been authorized to administer templates", "danger")
@@ -60,7 +61,7 @@ def auth_send_evergreens(f):
     def wrap(*args, **kwargs):
         user_email = session['user']['preferred_username']
         authorizations = _get_authorizations(user_email)
-        if 'SEND_EVERGREEN' in authorizations:
+        if AUTH.AUTH_SEND_EVERGREEN in authorizations:
             return f(*args, **kwargs)
         else:
             flash("Your account has not been authorized to send evergreen letters", "danger")
@@ -74,7 +75,7 @@ def auth_download_clients(f):
     def wrap(*args, **kwargs):
         user_email = session['user']['preferred_username']
         authorizations = _get_authorizations(user_email)
-        if 'DOWNLOAD_CLIENTS' in authorizations:
+        if AUTH.AUTH_DOWNLOAD_CLIENTS in authorizations:
             return f(*args, **kwargs)
         else:
             flash("Your account has not been authorized to download client lists", "danger")
