@@ -34,8 +34,10 @@ REDIRECT_PATH = os.environ['AZURE_REDIRECT_PATH']
 @DECORATORS.auth_manage_templates
 def list_templates():
     user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
     templates = TEMPLATE_MANAGER.get_templates(user_email)
-    return render_template('templates.html', templates=templates)
+    return render_template('templates.html', templates=templates, authorizations=authorizations)
 
 
 @admin_routes.route('/admin/add_template')
@@ -44,7 +46,10 @@ def list_templates():
 @DECORATORS.auth_manage_templates
 def add_template():
     form = TemplateForm(request.form)
-    return render_template('template.html', template={}, form=form)
+    user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
+    return render_template('template.html', template={}, form=form, authorizations=authorizations)
 
 
 @admin_routes.route('/admin/template/<string:template_name>/')
@@ -54,9 +59,11 @@ def add_template():
 def edit_template(template_name):
     form = TemplateForm(request.form)
     user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
     template = TEMPLATE_MANAGER.get_template(user_email, template_name)
     print(json.dumps(template, indent=4))
-    return render_template('template.html', template=template, form=form)
+    return render_template('template.html', template=template, form=form, authorizations=authorizations)
 
 
 @admin_routes.route('/admin/save_template/', methods=['POST'])
@@ -88,8 +95,7 @@ def delete_template(template_name):
     # pylint: disable=unused-variable
     result = TEMPLATE_MANAGER.delete_template(user_email, template_name)
     # pylint: enable=unused-variable
-    templates = TEMPLATE_MANAGER.get_templates(user_email)
-    return render_template('templates.html', templates=templates)
+    return redirect(url_for('admin_routes.list_templates'))
 
 
 @admin_routes.route('/admin')
@@ -100,6 +106,7 @@ def list_clients():
     user_email = session['user']['preferred_username']
     clients = DATABASE.get_clients(user_email)
     admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
     counter = 0
     for client in clients:
         counter += 1
@@ -132,7 +139,7 @@ def list_clients():
         else:
             type = "No payment due (please verify)"
         client['_type'] = type
-    return render_template("clients.html", clients=clients, authorizations=list(admin_record.get('authorizations', [])))
+    return render_template("clients.html", clients=clients, authorizations=authorizations)
 
 
 @admin_routes.route('/admin/send_evergreen', methods=['GET'])
@@ -166,8 +173,12 @@ def download_clients_csv():
 @DECORATORS.is_admin_user
 def add_client(id: str = '0'):
     form = ClientForm(request.form)
+    user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
+
     client = {'_id': id}
-    return render_template("client.html", client=client, form=form, operation="Add New")
+    return render_template("client.html", client=client, form=form, operation="Add New", authorizations=authorizations)
 
 
 @admin_routes.route("/client/save/", methods=['POST'])
@@ -186,7 +197,11 @@ def save_client():
             css_name = 'danger'
         flash(result['message'], css_name)
         return redirect(url_for('admin_routes.list_clients'))
-    return render_template('client.html', client=fields, form=form, operation="Correct")
+
+    user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
+    return render_template('client.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
 @admin_routes.route("/client/<string:id>/", methods=['GET', 'POST'])
@@ -194,10 +209,14 @@ def save_client():
 @DECORATORS.is_admin_user
 def show_client(id):
     form = ClientForm(request.form)
+    user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
+
     client = DATABASE.get_client(id)
     cleanup_client(client)
     our_pay_url = os.environ.get('OUR_PAY_URL')
-    return render_template("client.html", client=client, form=form, operation="Update", our_pay_url=our_pay_url)
+    return render_template("client.html", client=client, form=form, operation="Update", our_pay_url=our_pay_url, authorizations=authorizations)
 
 
 @admin_routes.route('/login', methods=['GET'])
