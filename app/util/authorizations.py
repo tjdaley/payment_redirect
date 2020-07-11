@@ -3,12 +3,14 @@ authorizatins.py - Provide authorizations information.
 
 Coyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
+AUTH_CRM_USER = "CRM_USER"
 AUTH_DOWNLOAD_CLIENTS = 'DOWNLOAD_CLIENTS'
 AUTH_SEND_EVERGREEN = 'SEND_EVERGREEN'
 AUTH_TEMPLATE_ADMIN = 'TEMPLATE_ADMIN'
 AUTH_USER_ADMIN = "USER_ADMIN"
 
 AUTHORIZATIONS = [
+    {'key': AUTH_CRM_USER, 'description': "Access CRM features"},
     {'key': AUTH_DOWNLOAD_CLIENTS, 'description': "Download client lists"},
     {'key': AUTH_SEND_EVERGREEN, 'description': "Send evergreen letters"},
     {'key': AUTH_TEMPLATE_ADMIN, 'description': "Administer email templates"},

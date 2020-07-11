@@ -97,6 +97,20 @@ def auth_manage_users(f):
     return wrap
 
 
+# Decorator to see if user is authorized to use crm functions
+def auth_crm_user(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if AUTH.AUTH_CRM_USER in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized to access CRM features", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
 def _get_authorizations(user_email: str) -> list:
     database = Database()
     database.connect()
