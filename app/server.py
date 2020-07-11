@@ -20,6 +20,7 @@ import config
 from views.decorators import is_admin_user, is_logged_in
 from util.database import Database
 from views.admin.admin_routes import admin_routes, _build_auth_url
+from views.crm.crm_routes import crm_routes
 from views.payment.payment_routes import payment_routes
 
 
@@ -36,6 +37,7 @@ app.config.from_mapping(
 Session(app)
 
 app.register_blueprint(admin_routes)
+app.register_blueprint(crm_routes)
 app.register_blueprint(payment_routes)
 
 

@@ -1,0 +1,218 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h1>{{operation}} Client</h1>
+    {% from 'includes/_formhelpers.html' import render_field %}
+    <form method='POST' action="/crm/client/save/">
+        <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
+        <input type='hidden' name='orig_trust_balance' value='{{client.trust_balance}}'>
+        <div class="form-row">
+            <div class="form-group col">
+                {{render_field(form.billing_id, class_="form-control", value=client.billing_id)}}
+            </div>
+            <div class="form-group col">
+                {{render_field(form.client_name, class_="form-control", value=client.client_name)}}
+            </div>
+            <div class="form-group col">
+                {{render_field(form.salutation, class_="form-control", value=client.salutation)}}
+            </div>
+        </div>
+
+        <!--NAVIGATION TABS-->
+        <ul class="nav nav-tabs" id="client_tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="address-tab" data-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true">Address</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact"
+                    aria-selected="false">Contact</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="case-tab" data-toggle="tab" href="#case" role="tab" aria-controls="case"
+                    aria-selected="false">Case</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="billing-tab" data-toggle="tab" href="#billing" role="tab" aria-controls="billing"
+                    aria-selected="true">Billing</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="id-tab" data-toggle="tab" href="#id" role="tab" aria-controls="id"
+                    aria-selected="true">ID</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="marketing-tab" data-toggle="tab" href="#marketing" role="tab" aria-controls="marketing"
+                    aria-selected="true">Marketing</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="access-tab" data-toggle="tab" href="#access" role="tab" aria-controls="access"
+                    aria-selected="true">Access</a>
+            </li>
+        </ul>
+
+        <!--TAB CONTENT-->
+        <div class="tab-content" id="client_tab_content">
+            <!--ADDRESS TAB-->
+            <div class="tab-pane fade show active" id="address" role="tabpanel" aria-labelledby="address-tab">
+                <div class="card border-primary my-3">
+                    <div class="card-header alert-primary">Address</div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col">
+                                {{render_field(form.address1, class_="form-control", value=client.address1)}}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col">
+                                {{render_field(form.city, class_="form-control", value=client.city)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.state, class_="form-control", value=client.state)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.postal_code, class_="form-control", value=client.postal_code)}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--CONTACT TAB-->
+            <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                <div class="card border-primary my-3">
+                    <div class="card-header alert-primary">Contact</div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col">
+                                {{render_field(form.email, class_="form-control", value=client.email)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.telephone, class_="form-control", value=client.telephone)}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--CASE TAB-->
+            <div class="tab-pane fade" id="case" role="tabpanel" aria-labelledby="case-tab">
+            
+            </div>
+
+            <!--MARKETING TAB-->
+            <div class="tab-pane fade" id="marketing" role="tabpanel" aria-labelledby="marketing-tab">
+            
+            </div>
+
+            <!--ACCESS TAB-->
+            <div class="tab-pane face" id="access" role="tabpanel" aria-labelledby="access-tab">
+                <div class="card border-danger my-3">
+                    <div class="card-header alert-danger">Administrative Access</div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-11">
+                                {{render_field(form.attorney_initials, class_="form-control", value=client.attorney_initials)}}
+                            </div>
+                            <div class="form-group col">
+                                {% if client.active_flag == 'Y' %}
+                                {{render_field(form.active_flag, class_="form-control", value='Y', checked='Y')}}
+                                {% else %}
+                                {{render_field(form.active_flag, class_="form-control", value='Y')}}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{render_field(form.admin_users, class_="form-control", value=client.admin_users)}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--ID TAB-->
+            <div class="tab-pane fade" id="id" role="tabpanel" aria-labelledby="id-tab">
+                <div class="card border-primary my-3">
+                    <div class="card-header alert-primary">User Login</div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col">
+                                {{render_field(form.client_ssn, class_="form-control", value=client.client_ssn, onchange="hidePaymentLink()")}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.client_dl, class_="form-control", value=client.client_dl, onchange="hidePaymentLink()")}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.check_digit, class_="form-control", value=client.check_digit, readonly="Y")}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--BILLING TAB-->
+            <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
+                <div class="card border-success my-3">
+                    <div class="card-header alert-success">Payment Threshholds</div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col">
+                                {{render_field(form.target_retainer, class_="form-control", value=client.target_retainer)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.refresh_trigger, class_="form-control", value=client.refresh_trigger)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.trust_balance, class_="form-control", value=client.trust_balance)}}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col">
+                                {{form.mediation_retainer.label}}
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">
+                                            {% if client.mediation_retainer_flag == 'Y' %}
+                                            {{form.mediation_retainer_flag(value="Y", checked="Y")}}
+                                            {% else %}
+                                            {{form.mediation_retainer_flag(value="Y")}}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {{form.mediation_retainer(class_="form-control", value=client.mediation_retainer)}}
+                                </div>
+                            </div>
+                            <div class="form-group col">
+                                {{form.trial_retainer.label}}
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">
+                                            {% if client.trial_retainer_flag == 'Y' %}
+                                            {{form.trial_retainer_flag(value='Y', checked='Y')}}
+                                            {% else %}
+                                            {{form.trial_retainer_flag(value='Y')}}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {{form.trial_retainer(class_="form-control", value=client.trial_retainer)}}
+                                </div>
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.payment_due, class_="form-control", value=client.trial_retainer or 0.00)}}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col">
+                                {{render_field(form.mediation_date, class_="form-control", value=client.mediation_date)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.trial_date, class_="form-control", value=client.trial_date)}}
+                            </div>
+                            <div class="form-group col">
+                                &nbsp;
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary my-3" type="submit">Save</button>
+        <a href="/clients" class="btn btn-secondary my-3 mx-3">Cancel</a>
+    </form>
+{% endblock %}

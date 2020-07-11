@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% block body %}
+<span class="h1 my-3">Clients</span><a class="btn btn-primary btn-sm float-right my-3" href="/crm/client/add">ADD</a>
+<table class="table table-sm">
+    <tr>
+        <th>Billing ID</th>
+        <th>Client Name</th>
+        <th>Email</th>
+        <th>Telephone</th>
+        <th>Mediation Date</th>
+        <th>Trial Date</th>
+        <th class="text-right">Trust Balance</th>
+        <th class="text-right">Requested Payment</th>
+    </tr>
+    {% for client in clients %}
+    <tr class="table-{{client._class}}">
+        <td><a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a></td>
+        <td>{{client.client_name}}</td>
+        <td>{{client.email}}</td>
+        <td>{{client.telephone}}</td>
+        <td>{{client.mediation_date}}</td>
+        <td>{{client.trial_date}}</td>
+        <td class="text-right">{{"${:,.2f}".format(client.trust_balance or 0)}}</td>
+        <td class="text-right">{{"${:,.2f}".format(client.payment_due or 0)}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% if 'DOWNLOAD_CLIENTS' in authorizations %}
+<a href="/clients/csv" class="btn btn-sm btn-secondary">Download</a>
+{% endif %}
+{% endblock %}

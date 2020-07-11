@@ -11,6 +11,22 @@
 {% endif %}
 {% endwith %}
 
+{% if form and form.errors %}
+{% for field, messages in form.errors.items() %}
+<div class="alert alert-dismissible fade show alert-warning">
+    {{field}}
+    <ul>
+        {% for m in messages %}
+        <li>{{m}}</li>
+        {% endfor %}
+    </ul>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% endfor %}
+{% endif %}
+
 {% if error %}
 <div class="alert alert-dismissible fade show alert-danger">
     {{error}}

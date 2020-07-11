@@ -4,11 +4,12 @@ ClientForm.py - CRUD form for a client.
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
 from wtforms import Form, StringField, SelectField, validators, BooleanField, DecimalField, ValidationError
-from wtforms.fields.html5 import DateField, EmailField
+from wtforms.fields.html5 import DateField, EmailField, TelField
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
 from util.dollarcleaner import DollarCleaner
+from util.us_states import US_STATES
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 
@@ -42,9 +43,9 @@ class ClientForm(Form):
         "City",
         [validators.DataRequired(), validators.Length(min=3, max=50)]
     )
-    state = StringField(
+    state = SelectField(
         "State",
-        [validators.DataRequired(), validators.Length(min=2, max=2)]
+        choices=US_STATES
     )
     postal_code = StringField(
         "ZIP code",
@@ -53,6 +54,10 @@ class ClientForm(Form):
     email = EmailField(
         "Client email",
         [validators.DataRequired(), validators.Email()]
+    )
+    telephone = TelField(
+        "Telephone",
+        [validators.DataRequired()]
     )
     check_digit = StringField(
         "Check digit"

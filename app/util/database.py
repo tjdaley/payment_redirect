@@ -135,16 +135,18 @@ class Database(object):
         admin_record = self.get_admin_record(email)
         return list(admin_record.get('authorizations', []))
 
-    def get_users(self, email: str, groups: list) -> list:
+    def get_users(self, email: str) -> list:
         """
         Return a list of users whom the user is authorized to manage.
 
         Args:
             email (str): Email address of user who requested the query
-            groups (list): List of groups in this admin's record
         Returns:
             (list): Of admins docs.
         """
+        admin_record = self.get_admin_record(email)
+        groups = list(admin_record.get('groups', []))
+
         filter_ = {
             '$and': [
                 {'groups': {'$in': groups}},
@@ -155,17 +157,19 @@ class Database(object):
         documents = list(self.dbconn[ADMIN_TABLE].find(filter_).sort([('last_name', ASCENDING), ('first_name', ASCENDING), ('email', ASCENDING)]))
         return documents
 
-    def get_user(self, email: str, groups: list, user_id: str) -> dict:
+    def get_user(self, email: str, user_id: str) -> dict:
         """
         Return an admin record given an ID.
 
         Args:
             email (str): Email address of user who requested the query
-            groups (list): List of groups in this admin's record
             user_id (str): _id of admin record to retrieve
         Returns:
             (dict): Admins record or None
         """
+        admin_record = self.get_admin_record(email)
+        groups = list(admin_record.get('groups', []))
+
         # Create lookup filter
         # Select admin with given ID *if* the admin is active and
         # the requesting user is permitted to retrieve the record
@@ -374,7 +378,7 @@ class Database(object):
             message = f"{client_name}'s record updated"
             return {'success': True, 'message': message}
 
-        message = f"{client_name}'s record failed to update ({result.modified_count})"
+        message = f"No updates applied to {client_name}'s record({result.modified_count})"
         return {'success': False, 'message': message}
 
 
