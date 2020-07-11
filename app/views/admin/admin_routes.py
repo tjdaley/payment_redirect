@@ -13,6 +13,7 @@ import requests
 import views.decorators as DECORATORS
 from .forms.ClientForm import ClientForm
 from .forms.TemplateForm import TemplateForm
+from .forms.UserForm import UserForm
 from util.logger import get_logger
 from util.template_manager import TemplateManager
 from util.email_sender import send_evergreen
@@ -96,6 +97,72 @@ def delete_template(template_name):
     result = TEMPLATE_MANAGER.delete_template(user_email, template_name)
     # pylint: enable=unused-variable
     return redirect(url_for('admin_routes.list_templates'))
+
+
+@admin_routes.route('/admin/users')
+@DECORATORS.is_logged_in
+@DECORATORS.auth_manage_users
+def list_users():
+    user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
+    users = DATABASE.get_users(user_email, admin_record['groups'])
+    return render_template('users.html', users=users, authorizations=authorizations)
+
+
+@admin_routes.route('/admin/user/add/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_manage_users
+def add_user():
+    form = UserForm(request.form)
+    user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
+    user = {'_id': '0'}
+    return render_template("user.html", user=user, form=form, operation="Add New", authorizations=authorizations)
+
+
+@admin_routes.route("/admin/user/save/", methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_manage_users
+def save_user():
+    form = UserForm(request.form)
+    fields = dict(request.form)
+    fields['attorneys'] = request.form.getlist('attorneys')
+    fields['groups'] = request.form.getlist('groups')
+    fields['authorizations'] = request.form.getlist('authorizations')
+
+    if form.validate():
+        result = DATABASE.save_user(fields)
+        if result['success']:
+            css_name = 'success'
+        else:
+            css_name = 'danger'
+        flash(result['message'], css_name)
+        return redirect(url_for('admin_routes.list_users'))
+
+    user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
+    form.groups.data = request.form['groups']
+    form.attorneys.data = request.form['attorneys']
+    form.authorizations.data = request.form['authorizations']
+    return render_template('user.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
+
+
+@admin_routes.route('/admin/user/<string:user_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_manage_users
+def show_user(user_id):
+    user_email = session['user']['preferred_username']
+    admin_record = DATABASE.get_admin_record(user_email)
+    authorizations = list(admin_record.get('authorizations', []))
+    user = DATABASE.get_user(user_email, admin_record['groups'], user_id=user_id)
+    form = UserForm(request.form)
+    form.groups.data = user['groups']
+    form.attorneys.data = user['attorneys']
+    form.authorizations.data = user['authorizations']
+    return render_template('user.html', user=user, authorizations=authorizations, form=form)
 
 
 @admin_routes.route('/admin')

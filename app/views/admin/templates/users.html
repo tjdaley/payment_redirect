@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+{% block body %}
+<span class="h1 my-3">Users</span><a class="btn btn-primary btn-sm float-right my-3" href="/admin/user/add/">ADD</a>
+<table class="table table-sm">
+    <tr>
+        <th>Client Name</th>
+        <th>Email</th>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td><a href="/admin/user/{{user._id}}/">{{user.last_name}}, {{user.first_name}}</a></td>
+        <td>{{user.email}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
