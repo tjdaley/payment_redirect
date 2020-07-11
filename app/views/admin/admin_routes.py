@@ -101,7 +101,7 @@ def delete_template(template_name):
 def list_users():
     user_email = session['user']['preferred_username']
     authorizations = DATABASE.get_authorizations(user_email)
-    users = DATABASE.get_users(user_email, admin_record['groups'])
+    users = DATABASE.get_users(user_email)
     return render_template('users.html', users=users, authorizations=authorizations)
 
 
@@ -149,7 +149,7 @@ def save_user():
 def show_user(user_id):
     user_email = session['user']['preferred_username']
     authorizations = DATABASE.get_authorizations(user_email)
-    user = DATABASE.get_user(user_email, admin_record['groups'], user_id=user_id)
+    user = DATABASE.get_user(user_email, user_id=user_id)
     form = UserForm(request.form)
     form.groups.data = user['groups']
     form.attorneys.data = user['attorneys']
