@@ -35,8 +35,7 @@ REDIRECT_PATH = os.environ['AZURE_REDIRECT_PATH']
 @DECORATORS.auth_manage_templates
 def list_templates():
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     templates = TEMPLATE_MANAGER.get_templates(user_email)
     return render_template('templates.html', templates=templates, authorizations=authorizations)
 
@@ -48,8 +47,7 @@ def list_templates():
 def add_template():
     form = TemplateForm(request.form)
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     return render_template('template.html', template={}, form=form, authorizations=authorizations)
 
 
@@ -60,10 +58,8 @@ def add_template():
 def edit_template(template_name):
     form = TemplateForm(request.form)
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     template = TEMPLATE_MANAGER.get_template(user_email, template_name)
-    print(json.dumps(template, indent=4))
     return render_template('template.html', template=template, form=form, authorizations=authorizations)
 
 
@@ -104,8 +100,7 @@ def delete_template(template_name):
 @DECORATORS.auth_manage_users
 def list_users():
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     users = DATABASE.get_users(user_email, admin_record['groups'])
     return render_template('users.html', users=users, authorizations=authorizations)
 
@@ -116,8 +111,7 @@ def list_users():
 def add_user():
     form = UserForm(request.form)
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     user = {'_id': '0'}
     return render_template("user.html", user=user, form=form, operation="Add New", authorizations=authorizations)
 
@@ -142,8 +136,7 @@ def save_user():
         return redirect(url_for('admin_routes.list_users'))
 
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     form.groups.data = request.form['groups']
     form.attorneys.data = request.form['attorneys']
     form.authorizations.data = request.form['authorizations']
@@ -155,8 +148,7 @@ def save_user():
 @DECORATORS.auth_manage_users
 def show_user(user_id):
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     user = DATABASE.get_user(user_email, admin_record['groups'], user_id=user_id)
     form = UserForm(request.form)
     form.groups.data = user['groups']
@@ -172,8 +164,7 @@ def show_user(user_id):
 def list_clients():
     user_email = session['user']['preferred_username']
     clients = DATABASE.get_clients(user_email)
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     counter = 0
     for client in clients:
         counter += 1
@@ -241,8 +232,7 @@ def download_clients_csv():
 def add_client(id: str = '0'):
     form = ClientForm(request.form)
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
 
     client = {'_id': id}
     return render_template("client.html", client=client, form=form, operation="Add New", authorizations=authorizations)
@@ -266,8 +256,7 @@ def save_client():
         return redirect(url_for('admin_routes.list_clients'))
 
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
     return render_template('client.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
@@ -277,8 +266,7 @@ def save_client():
 def show_client(id):
     form = ClientForm(request.form)
     user_email = session['user']['preferred_username']
-    admin_record = DATABASE.get_admin_record(user_email)
-    authorizations = list(admin_record.get('authorizations', []))
+    authorizations = DATABASE.get_authorizations(user_email)
 
     client = DATABASE.get_client(id)
     cleanup_client(client)
