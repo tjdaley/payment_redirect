@@ -17,7 +17,7 @@ from operator import itemgetter
 import re
 import time
 
-from pymongo import MongoClient, ReturnDocument
+from pymongo import ASCENDING, DESCENDING, MongoClient, ReturnDocument
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 
@@ -55,13 +55,14 @@ class Database(object):
     database product or implementation, e.g. mongo, mysql, dynamodb, flat
     files, etc.
     """
+    database_connection = None
 
     def __init__(self):
         """
         Instance initializer.
         """
         self.client = None
-        self.dbconn = None
+        self.dbconn = Database.database_connection
         self.logger = get_logger('database')
         self.last_inserted_id = None
 
@@ -72,6 +73,9 @@ class Database(object):
         Returns:
             (bool): True if successful, otherwise False.
         """
+        if self.dbconn:
+            return
+
         success = False
 
         try:
@@ -84,6 +88,7 @@ class Database(object):
             dbconn = client[DB_NAME]
             self.client = client
             self.dbconn = dbconn
+            Database.database_connection = dbconn
             self.logger.info("Connected to database.")
             success = True
         except Exception as e:
@@ -122,6 +127,98 @@ class Database(object):
         # Locate matching admin record
         document = self.dbconn[ADMIN_TABLE].find_one(filter_)
         return document
+
+    def get_users(self, email: str, groups: list) -> list:
+        """
+        Return a list of users whom the user is authorized to manage.
+
+        Args:
+            email (str): Email address of user who requested the query
+            groups (list): List of groups in this admin's record
+        Returns:
+            (list): Of admins docs.
+        """
+        filter_ = {
+            '$and': [
+                {'groups': {'$in': groups}},
+                {'active_flag': {'$eq': 'Y'}}
+            ]
+        }
+
+        documents = list(self.dbconn[ADMIN_TABLE].find(filter_).sort([('last_name', ASCENDING), ('first_name', ASCENDING), ('email', ASCENDING)]))
+        return documents
+
+    def get_user(self, email: str, groups: list, user_id: str) -> dict:
+        """
+        Return an admin record given an ID.
+
+        Args:
+            email (str): Email address of user who requested the query
+            groups (list): List of groups in this admin's record
+            user_id (str): _id of admin record to retrieve
+        Returns:
+            (dict): Admins record or None
+        """
+        # Create lookup filter
+        # Select admin with given ID *if* the admin is active and
+        # the requesting user is permitted to retrieve the record
+        filter_ = {
+            '$and': [
+                {'groups': {'$in': groups}},
+                {'active_flag': {'$eq': 'Y'}},
+                {'_id': {'$eq': ObjectId(user_id)}}
+            ]
+        }
+
+        # Locate matching admin document
+        document = self.dbconn[ADMIN_TABLE].find_one(filter_)
+        return document
+
+    def save_user(self, fields) -> dict:
+        """
+        Save an admin record
+        NOTE: if *fields* is missing 'active_flag', it will be set to 'N' (inactive).
+        """
+        doc = multidict2dict(fields)
+
+        # Fix the flags
+        flag_fields = ['active_flag']
+        for field in flag_fields:
+            if field in doc:
+                doc[field] = 'Y'
+            else:
+                doc[field] = 'N'
+
+        # Dump the dict before saving it
+        for key, value in doc.items():
+            print(f"{key} = {value}")
+
+        # Determine client name for status message
+        if 'first_name' in doc:
+            client_name = doc['first_name']
+        else:
+            client_name = 'User'
+
+        # Insert new admin record
+        if doc['_id'] == '0':
+            del doc['_id']
+            result = self.dbconn[ADMIN_TABLE].insert_one(doc)
+            if result.inserted_id:
+                message = f"User record added for {client_name}"
+                return {'success': True, 'message': message}
+            message = "Failed to add new user record"
+            return {'success': False, 'message': message}
+
+        # Update existing client record
+        filter_ = {'_id': ObjectId(doc['_id'])}
+        del doc['_id']
+        result = self.dbconn[ADMIN_TABLE].update_one(filter_, {'$set': doc})
+        if result.modified_count == 1:
+            message = f"{client_name}'s record updated"
+            return {'success': True, 'message': message}
+
+        message = f"{client_name}'s record did not update ({result.modified_count})"
+        return {'success': False, 'message': message}
 
     def get_clients(self, email: str, flag: str = None) -> list:
         """
@@ -243,10 +340,6 @@ class Database(object):
                 doc[field] = 'Y'
             else:
                 doc[field] = 'N'
-
-        # Dump the dict before saving it
-        for key, value in doc.items():
-            print(f"{key} = {value}")
 
         # Determine client name for status message
         if 'client_name' in doc:
