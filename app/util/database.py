@@ -128,6 +128,13 @@ class Database(object):
         document = self.dbconn[ADMIN_TABLE].find_one(filter_)
         return document
 
+    def get_authorizations(self, email: str) -> list:
+        """
+        Retrieve a list of authorizations for the user identified by *email*.
+        """
+        admin_record = self.get_admin_record(email)
+        return list(admin_record.get('authorizations', []))
+
     def get_users(self, email: str, groups: list) -> list:
         """
         Return a list of users whom the user is authorized to manage.
