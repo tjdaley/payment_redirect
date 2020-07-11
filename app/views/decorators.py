@@ -31,7 +31,7 @@ def is_admin_user(f):
         database = Database()
         database.connect()
         admin_record = database.get_admin_record(user_email)
-        if admin_record and admin_record['for']:
+        if admin_record and admin_record['attorneys']:
             session['is_admin'] = 'Y'
             return f(*args, **kwargs)
         else:
@@ -79,6 +79,20 @@ def auth_download_clients(f):
             return f(*args, **kwargs)
         else:
             flash("Your account has not been authorized to download client lists", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
+# Decorator to see if user may manage users
+def auth_manage_users(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if AUTH.AUTH_USER_ADMIN in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized to administer users", "danger")
             return redirect(url_for(LOGIN_FUNCTION))
     return wrap
 
