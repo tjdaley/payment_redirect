@@ -94,7 +94,25 @@
 
             <!--CASE TAB-->
             <div class="tab-pane fade" id="case" role="tabpanel" aria-labelledby="case-tab">
-            
+                <div class="card border-primary my-3">
+                    <div class="card-header alert-primary">Case Information</div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col">
+                                {{render_field(form.case_county, class_="form-control", value=client.case_county)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.court_type, class_="form-control", value=client.court_type)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.court_name, class_="form-control", value=client.court_name)}}
+                            </div>
+                            <div class="form-group col">
+                                {{render_field(form.cause_number, class_="form-control", value=client.cause_number)}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!--MARKETING TAB-->
@@ -213,6 +231,80 @@
             </div>
         </div>
         <button class="btn btn-primary my-3" type="submit">Save</button>
-        <a href="/clients" class="btn btn-secondary my-3 mx-3">Cancel</a>
+        <a href="/crm" class="btn btn-secondary my-3 mx-3">Cancel</a>
     </form>
+    <script>
+        window.addEventListener('load', init);
+        /**
+         * Form initialization.
+         * Set up listeners and prepopulate select inputs.
+         */
+        function init() {
+            var e = document.getElementById('case_county');
+            if (!e) {
+                alert('case_county control missing');
+            }
+            else {
+                e.addEventListener("change", county_change);
+            }
+
+            e = document.getElementById('court_type');
+            if (!e) {
+                alert('court_type control missing');
+            }
+            else {
+                e.addEventListener("change", court_type_change);
+            }
+        }
+
+        /**
+         * Gets a list of court types for the given county when
+         * the case_county value changes.
+         */
+        function county_change(ev) {
+            $('#court_type').empty();
+            $('#court_name').empty();
+            var county = document.getElementById('case_county').value;
+            var url = '/crm/data/court_types/' + county + '/';
+            jQuery.get(
+                url,
+                function(data){update_select_options('#court_type', data);}
+            );
+        }
+
+        /**
+         * Gets a list of courts for the given county and court type when
+         * the court_type value changes.
+         */
+        function court_type_change(ev) {
+            $('#court_name').empty();
+            var county = document.getElementById('case_county').value;
+            var court_type = document.getElementById('court_type').value;
+            var url = '/crm/data/court_names/' + county + '/' + court_type + '/';
+            jQuery.get(
+                url,
+                function(data){update_select_options('#court_name', data);}
+            );
+        }
+
+        /**
+         * Update the options in a given select control.
+         */
+        function update_select_options(selector, result) {
+            var select = $(selector);
+            select.empty();
+            select.append(make_options(result));
+        }
+
+        /*
+         * Make an <option> string from an array.
+         */
+        function make_options(arr) {
+            var options = '';
+            arr.forEach(element => {
+                options += '<option value="' + element + '">' + element + '</option>';
+            });
+            return options;
+        }
+    </script>
 {% endblock %}

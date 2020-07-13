@@ -3,18 +3,21 @@ ClientForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
-from wtforms import Form, StringField, SelectField, validators, BooleanField, DecimalField, ValidationError
+from wtforms import Form, StringField, validators, BooleanField, DecimalField, SelectField, ValidationError
 from wtforms.fields.html5 import DateField, EmailField, TelField
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
 from util.dollarcleaner import DollarCleaner
 from util.us_states import US_STATES
+from util.court_directory import CourtDirectory
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 
 
 class ClientForm(Form):
+    directory = CourtDirectory()
+
     billing_id = StringField(
         "Billing ID",
         [validators.DataRequired(), validators.Length(min=4, max=5, message="Enter the client's billing ID without the matter suffix.")]
@@ -53,7 +56,7 @@ class ClientForm(Form):
     )
     email = EmailField(
         "Client email",
-        [validators.DataRequired(), validators.Email()]
+        [validators.DataRequired()]
     )
     telephone = TelField(
         "Telephone",
@@ -114,3 +117,16 @@ class ClientForm(Form):
         "Mediation retainer due?",
         false_values=('N', '')
     )
+    case_county = SelectField(
+        "County",
+        choices=directory.get_county_tuples()
+    )
+    court_type = SelectField(
+        "Court type",
+        validate_choice=False
+    )
+    court_name = SelectField(
+        "Court name",
+        validate_choice=False
+    )
+    cause_number = StringField("Cause number")

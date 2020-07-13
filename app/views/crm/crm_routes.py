@@ -5,7 +5,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
 import os
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
 import random
 import settings
 import urllib.parse
@@ -15,11 +15,16 @@ import urllib.parse
 from util.logger import get_logger
 from util.database import Database, correct_check_digit
 import views.decorators as DECORATORS
+from util.court_directory import CourtDirectory
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 from views.admin.forms.ClientForm import ClientForm
 DATABASE = Database()
 DATABASE.connect()
+
+# Refresh court directory information on restart
+CourtDirectory.process()
+DIRECTORY = CourtDirectory()
 
 crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
 print("Blueprint root path:", crm_routes.root_path)
@@ -70,9 +75,29 @@ def show_client(id):
     form = ClientForm(request.form)
     user_email = session['user']['preferred_username']
     client = DATABASE.get_client(id)
+    _cleanup_client(client)
     form.state.data = client['state']
+    form.case_county.data = client['case_county']
+    form.court_type.choices = DIRECTORY.get_court_type_tuples(client['case_county'])
+    form.court_type.data = client['court_type']
+    form.court_name.choices = DIRECTORY.get_court_tuples(client['case_county'], client['court_type'])
+    form.court_name.data = client['court_name']
     authorizations = DATABASE.get_authorizations(user_email)
     return render_template('crm/client.html', client=client, authorizations=authorizations, form=form)
+
+
+@crm_routes.route('/crm/data/court_types/<string:county>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def get_court_types(county):
+    return jsonify(DIRECTORY.get_court_types(county))
+
+
+@crm_routes.route('/crm/data/court_names/<string:county>/<string:court_type>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def get_court_names(county, court_type):
+    return jsonify(DIRECTORY.get_courts(county, court_type))
 
 
 def _client_row_class(client: dict) -> str:
@@ -88,6 +113,14 @@ def _client_row_class(client: dict) -> str:
     if client['trust_balance'] > client['refresh_trigger']:
         return 'success'
     return 'danger'
+
+
+def _cleanup_client(client: dict):
+    """
+    Turn arrays into CSV lists for human editing.
+    """
+    client['attorney_initials'] = ",".join(client['attorney_initials'])
+    client['admin_users'] = ",".join(client['admin_users'])
 
 
 def _get_greeting():

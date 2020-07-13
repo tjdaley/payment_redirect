@@ -24,7 +24,7 @@ class UserForm(Form):
     )
     email = EmailField(
         "Email",
-        [validators.DataRequired(), validators.Email()]
+        [validators.DataRequired()]
     )
     attorneys = SelectMultipleField(
         "Attorneys",
@@ -37,9 +37,9 @@ class UserForm(Form):
     groups = SelectMultipleField(
         "Groups",
         choices=[
+            ('collin', "Collin"),
             ('dallas', "Dallas"),
             ('denton', "Denton"),
-            ('plano', "Plano"),
             ('southlake', "South Lake")
         ]
     )
