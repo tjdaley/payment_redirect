@@ -26,9 +26,9 @@ print("Blueprint root path:", crm_routes.root_path)
 print("Template path:", crm_routes.template_folder)
 
 
+@crm_routes.route('/crm', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
-@crm_routes.route('/crm', methods=['GET'])
 def list_clients():
     user_email = session['user']['preferred_username']
     clients = DATABASE.get_clients(user_email)
@@ -63,9 +63,9 @@ def save_client():
     return render_template('/crm/client.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
+@crm_routes.route('/crm/client/<string:id>/', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
-@crm_routes.route('/crm/client/<string:id>/', methods=['GET'])
 def show_client(id):
     form = ClientForm(request.form)
     user_email = session['user']['preferred_username']
