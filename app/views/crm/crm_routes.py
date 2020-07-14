@@ -122,8 +122,12 @@ def _client_row_class(client: dict) -> str:
         if col not in client:
             return 'light'
 
-    if client['trust_balance'] > client['refresh_trigger']:
-        return 'success'
+    try:
+        if client['trust_balance'] > client['refresh_trigger']:
+            return 'success'
+    except TypeError:
+        return 'light'
+
     return 'danger'
 
 
