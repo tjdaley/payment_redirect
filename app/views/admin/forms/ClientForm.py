@@ -132,3 +132,4 @@ class ClientForm(Form):
         validate_choice=False
     )
     cause_number = StringField("Cause number")
+    oag_number = StringField("OAG Number")
