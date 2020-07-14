@@ -95,19 +95,21 @@ class ClientForm(Form):
         "Refresh trigger", [DollarCleaner(min=0)]
     )
     trial_retainer = StringField(
-        "Trial retainer", [DollarCleaner(min=0)]
+        "Trial retainer", [validators.Optional(), DollarCleaner(min=0)]
     )
     trial_date = DateField(
-        "Trial date"
+        "Trial date",
+        validators=[validators.Optional()]
     )
     mediation_retainer = StringField(
-        "Mediation retainer", [DollarCleaner(min=0)]
+        "Mediation retainer", [validators.Optional(), DollarCleaner(min=0)]
     )
     mediation_date = DateField(
-        "Mediation date"
+        "Mediation date",
+        validators=[validators.Optional()]
     )
     trust_balance = StringField(
-        "Trust balance", [DollarCleaner()]
+        "Trust balance", [validators.Optional(), DollarCleaner()]
     )
     trial_retainer_flag = BooleanField(
         'Trial retainer due?',
