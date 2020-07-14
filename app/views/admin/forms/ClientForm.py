@@ -60,7 +60,7 @@ class ClientForm(Form):
     )
     telephone = TelField(
         "Telephone",
-        [validators.DataRequired()]
+        [validators.Optional()]
     )
     check_digit = StringField(
         "Check digit"
@@ -121,7 +121,8 @@ class ClientForm(Form):
     )
     case_county = SelectField(
         "County",
-        choices=directory.get_county_tuples()
+        choices=directory.get_county_tuples(),
+        validators=[validators.Optional()]
     )
     court_type = SelectField(
         "Court type",
