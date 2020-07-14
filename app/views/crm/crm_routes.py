@@ -43,9 +43,21 @@ def list_clients():
     return render_template('crm/clients.html', clients=clients, authorizations=authorizations)
 
 
+@crm_routes.route("/crm/client/add/", methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def add_client(id: str = '0'):
+    form = ClientForm(request.form)
+    user_email = session['user']['preferred_username']
+    authorizations = DATABASE.get_authorizations(user_email)
+
+    client = {'_id': id}
+    return render_template("crm/client.html", client=client, form=form, operation="Add New", authorizations=authorizations)
+
+
 @crm_routes.route("/crm/client/save/", methods=['POST'])
 @DECORATORS.is_logged_in
-@DECORATORS.is_admin_user
+@DECORATORS.auth_crm_user
 def save_client():
     form = ClientForm(request.form)
     fields = request.form
