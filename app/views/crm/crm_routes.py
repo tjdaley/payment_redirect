@@ -88,12 +88,13 @@ def show_client(id):
     user_email = session['user']['preferred_username']
     client = DATABASE.get_client(id)
     _cleanup_client(client)
-    form.state.data = client['state']
-    form.case_county.data = client['case_county']
+
+    form.state.data = client.get('state', None)
+    form.case_county.data = client.get('case_county', None)
     form.court_type.choices = DIRECTORY.get_court_type_tuples(client['case_county'])
-    form.court_type.data = client['court_type']
+    form.court_type.data = client.get('court_type', None)
     form.court_name.choices = DIRECTORY.get_court_tuples(client['case_county'], client['court_type'])
-    form.court_name.data = client['court_name']
+    form.court_name.data = client.get('court_name', None)
     authorizations = DATABASE.get_authorizations(user_email)
     return render_template('crm/client.html', client=client, authorizations=authorizations, form=form)
 
