@@ -4,18 +4,15 @@ crm_routes.py - Direct a client to the payment page
 Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
-import os
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
 import random
-import settings
-import urllib.parse
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
-from util.logger import get_logger
-from util.database import Database, correct_check_digit
+from util.database import Database
 import views.decorators as DECORATORS
 from util.court_directory import CourtDirectory
+from util.dialer import Dialer
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 from views.admin.forms.ClientForm import ClientForm
@@ -97,6 +94,39 @@ def show_client(id):
     form.court_name.data = client.get('court_name', None)
     authorizations = DATABASE.get_authorizations(user_email)
     return render_template('crm/client.html', client=client, authorizations=authorizations, form=form)
+
+
+@crm_routes.route('/crm/util/dial/<string:to_number>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def dial_number(to_number):
+    user_email = session['user']['preferred_username']
+    user = DATABASE.get_admin_record(user_email)
+    response = Dialer.dial(
+        user['ring_central_username'],
+        to_number,
+        user['ring_central_username'],
+        user['ring_central_extension'],
+        user['ring_central_password']
+    )
+    return jsonify(response)
+
+
+@crm_routes.route('/crm/util/send_message/<string:to_number>/<string:message>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def send_sms_message(to_number, message):
+    user_email = session['user']['preferred_username']
+    user = DATABASE.get_admin_record(user_email)
+    response = Dialer.message(
+        user['ring_central_username'],
+        to_number,
+        user['ring_central_username'],
+        user['ring_central_extension'],
+        user['ring_central_password'],
+        message
+    )
+    return jsonify(response)
 
 
 @crm_routes.route('/crm/data/court_types/<string:county>/', methods=['GET'])
