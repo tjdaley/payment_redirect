@@ -3,7 +3,7 @@ UserForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
-from wtforms import Form, StringField, SelectMultipleField, validators, BooleanField, ValidationError
+from wtforms import Form, StringField, SelectMultipleField, validators, BooleanField, ValidationError, PasswordField
 from wtforms.fields.html5 import EmailField
 
 # pylint: disable=no-name-in-module
@@ -50,4 +50,13 @@ class UserForm(Form):
     active_flag = BooleanField(
         "Active?",
         false_values=('N', '')
+    )
+    ring_central_username = StringField(
+        "Ring Central username"
+    )
+    ring_central_extension = StringField(
+        "Ring Central extension"
+    )
+    ring_central_password = StringField(
+        "Ring Central password"
     )
