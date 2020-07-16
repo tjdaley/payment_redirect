@@ -133,4 +133,29 @@ class ClientForm(Form):
         validate_choice=False
     )
     cause_number = StringField("Cause number")
-    oag_number = StringField("OAG Number")
+    oag_number = StringField("OAG number")
+    case_style = StringField("Style")
+    client_dob = DateField(
+        "Client's DOB",
+        validators=[validators.Optional()]
+    )
+    marriage_date = DateField(
+        "Date of Marriage",
+        validators=[validators.Optional()]
+    )
+    separation_date = DateField(
+        "Date of Separation",
+        validators=[validators.Optional()]
+    )
+    retained_date = DateField(
+        "Retained on",
+        validators=[validators.Optional()]
+    )
+    filed_date = DateField(
+        "Filed on",
+        validators=[validators.Optional()]
+    )
+    completion_date = DateField(
+        "Completed on",
+        validators=[validators.Optional()]
+    )

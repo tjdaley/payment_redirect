@@ -151,13 +151,13 @@ def _client_row_class(client: dict) -> str:
     required_cols = ['trust_balance', 'refresh_trigger']
     for col in required_cols:
         if col not in client:
-            return 'light'
+            return 'dark'
 
     try:
         if client['trust_balance'] > client['refresh_trigger']:
             return 'success'
     except TypeError:
-        return 'light'
+        return 'dark'
 
     return 'danger'
 

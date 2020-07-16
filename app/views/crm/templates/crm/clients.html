@@ -23,8 +23,10 @@
         <th class="text-right">Requested Payment</th>
     </tr>
     {% for client in clients %}
-    <tr class="table-{{client._class}}">
-        <td><a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a></td>
+    <tr class="text-{{client._class}}">
+        <td>
+            <a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a>
+        </td>
         <td class="highlightable">
             {{client.client_name}}
         </td>
