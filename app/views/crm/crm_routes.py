@@ -6,6 +6,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 import datetime as dt
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
 import random
+import os
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
@@ -93,7 +94,8 @@ def show_client(id):
     form.court_name.choices = DIRECTORY.get_court_tuples(client['case_county'], client['court_type'])
     form.court_name.data = client.get('court_name', None)
     authorizations = DATABASE.get_authorizations(user_email)
-    return render_template('crm/client.html', client=client, authorizations=authorizations, form=form)
+    our_pay_url = os.environ.get('OUR_PAY_URL', None)
+    return render_template('crm/client.html', client=client, authorizations=authorizations, form=form, our_pay_url=our_pay_url)
 
 
 @crm_routes.route('/crm/util/dial/<string:to_number>/', methods=['GET'])
