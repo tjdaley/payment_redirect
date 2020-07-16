@@ -1,6 +1,9 @@
 """
 court_directory.py - Download and cache a court directory for Texas
 
+Build URLs at:
+https://card.txcourts.gov/DirectorySearch.aspx
+
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 import csv
