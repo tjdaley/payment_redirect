@@ -16,7 +16,7 @@ from util.court_directory import CourtDirectory
 from util.dialer import Dialer
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
-from views.admin.forms.ClientForm import ClientForm
+from views.admin.forms.ClientForm import ClientForm, ContactForm
 DATABASE = Database()
 DATABASE.connect()
 
@@ -27,6 +27,29 @@ DIRECTORY = CourtDirectory()
 crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
 print("Blueprint root path:", crm_routes.root_path)
 print("Template path:", crm_routes.template_folder)
+
+
+@crm_routes.route('/crm/contacts', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def list_contacts():
+    user_email = session['user']['preferred_username']
+    contacts = DATABASE.get_contacts(user_email)
+    authorizations = DATABASE.get_authorizations(user_email)
+    return render_template('crm/contacts.html', contacts=contacts, authorizations=authorizations)
+
+
+@crm_routes.route('/crm/contact/<string:id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def show_contact(id: str):
+    form = ContactForm(request.form)
+    user_email = session['user']['preferred_username']
+    contact = DATABASE.get_contact(id)
+    form.name.title.data = contact.get('name', {}).get('title', None)
+    form.address.state.data = contact.get('address', {}).get('state', None)
+    authorizations = DATABASE.get_authorizations(user_email)
+    return render_template('crm/contact.html', contact=contact, authorizations=authorizations, form=form)
 
 
 @crm_routes.route('/crm', methods=['GET'])

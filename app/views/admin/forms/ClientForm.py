@@ -3,7 +3,7 @@ ClientForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
-from wtforms import Form, StringField, validators, BooleanField, DecimalField, SelectField, ValidationError
+from wtforms import Form, FormField, validators, BooleanField, DecimalField, SelectField, ValidationError, FieldList, StringField
 from wtforms.fields.html5 import DateField, EmailField, TelField
 
 # pylint: disable=no-name-in-module
@@ -13,6 +13,44 @@ from util.us_states import US_STATES
 from util.court_directory import CourtDirectory
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
+
+
+COURTESY_TITLES = [
+    ('Mr.', "Mr."),
+    ('Ms.', "Ms."),
+    ('Dr.', "Dr."),
+    ('Hon.', "Hon.")
+]
+
+
+class ContactName(Form):
+    title = SelectField("Title", choices=COURTESY_TITLES)
+    first_name = StringField("First name")
+    middle_name = StringField("Middle name")
+    last_name = StringField("Last name")
+    suffix = StringField("Suffix")
+
+
+class ContactAddress(Form):
+    street = StringField("Street")
+    city = StringField("City")
+    state = SelectField("State", choices=US_STATES)
+    postal_code = StringField("ZIP")
+
+
+class ContactForm(Form):
+    name = FormField(ContactName)
+    address = FormField(ContactAddress)
+    office_phone = TelField("Office phone")
+    cell_phone = TelField("Cell phone")
+    fax = TelField("Fax")
+    email = EmailField("Email")
+    organization = StringField("Organization name")
+    job_title = StringField("Job title")
+
+
+class ContactsForm(Form):
+    contacts = FieldList(ContactForm)
 
 
 class ClientForm(Form):

@@ -3,11 +3,6 @@ database.py - Class for access our persistent data store for publicdataws.
 
 @author Thomas J. Daley, J.D.
 @version 0.0.1
-@Copyright (c) 2019 by Thomas J. Daley, J.D. All Rights Reserved.
-TODO: This needs to operate as a singleton.
-      At this time, we have lots of individual database connections--one for
-      each time this class is imported.
-
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 from datetime import datetime, timedelta
@@ -36,6 +31,7 @@ except KeyError as e:
 DB_NAME = 'payment_redirect'
 USER_TABLE = 'users'
 CLIENTS_TABLE = 'clients'
+CONTACTS_TABLE = 'contacts'
 ADMIN_TABLE = 'admins'
 
 # Flag values for get_clients()
@@ -134,6 +130,31 @@ class Database(object):
         """
         admin_record = self.get_admin_record(email)
         return list(admin_record.get('authorizations', []))
+
+    def get_contact(self, id: str) -> dict:
+        """
+        Return a contact record given an ID.
+
+        Args:
+            id (str): The mongodb ID of the contact to retrieve
+        Returns:
+            (dict): The located document or None
+        """
+        filter_ = {'_id': ObjectId(id)}
+        document = self.dbconn[CONTACTS_TABLE].find_one(filter_)
+        return document
+
+    def get_contacts(self, email: str) -> list:
+        """
+        Retrieve a list of contacts viewable by this admin user.
+
+        Args:
+            email (str): Email address of admin user.
+        Returns:
+            (list): List of documents from 'contacts' or None
+        """
+        contacts = self.dbconn[CONTACTS_TABLE].find({})
+        return list(contacts)
 
     def get_users(self, email: str) -> list:
         """
