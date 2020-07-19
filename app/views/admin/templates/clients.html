@@ -12,7 +12,7 @@
     {% for client in clients %}
     <tr class="table-{{client._class}}">
         <td><a href="/client/{{client._id}}/" data-toggle="tooltip" data-placement="top" title="{{client._message}}">{{client.billing_id}}</a></td>
-        <td>{{client.client_name}}</td>
+        <td>{{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}</td>
         <td>{{client.email}}</td>
         <td>{{"${:,.2f}".format(client.payment_due)}}</td>
         <td>{{client._type}}</td>

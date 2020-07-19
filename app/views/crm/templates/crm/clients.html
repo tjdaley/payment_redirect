@@ -28,7 +28,7 @@
             <a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a>
         </td>
         <td class="highlightable">
-            {{client.client_name}}
+            {{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}
         </td>
         {% if client.email %}
         <td>

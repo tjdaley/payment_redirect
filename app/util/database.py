@@ -188,7 +188,13 @@ class Database(object):
             ]
         }
 
-        documents = list(self.dbconn[ADMIN_TABLE].find(filter_).sort([('last_name', ASCENDING), ('first_name', ASCENDING), ('email', ASCENDING)]))
+        order_by = [
+            ('name.last_name', ASCENDING),
+            ('name.first_name', ASCENDING),
+            ('email', ASCENDING)
+        ]
+
+        documents = list(self.dbconn[ADMIN_TABLE].find(filter_).sort(order_by))
         return documents
 
     def get_user(self, email: str, user_id: str) -> dict:
@@ -294,7 +300,13 @@ class Database(object):
             else:
                 return {}
 
-        documents = list(self.dbconn[CLIENTS_TABLE].find(filter_))
+        order_by = [
+            ('name.last_name', ASCENDING),
+            ('name.first_name', ASCENDING),
+            ('email', ASCENDING)
+        ]
+
+        documents = list(self.dbconn[CLIENTS_TABLE].find(filter_).sort(order_by))
         return documents
 
     def get_clients_as_csv(self, email: str) -> str:
