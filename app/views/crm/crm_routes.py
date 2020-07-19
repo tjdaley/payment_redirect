@@ -10,7 +10,7 @@ import os
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
-from util.database import Database
+from util.database import Database, multidict2dict
 import views.decorators as DECORATORS
 from util.court_directory import CourtDirectory
 from util.dialer import Dialer
@@ -74,12 +74,14 @@ def list_clients():
 @crm_routes.route("/crm/client/add/", methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
-def add_client(id: str = '0'):
+def add_client():
     form = ClientForm(request.form)
     user_email = session['user']['preferred_username']
     authorizations = DATABASE.get_authorizations(user_email)
 
-    client = {'_id': id}
+    client = {'_id': '0'}
+    client['address'] = {}
+    client['name'] = {}
     return render_template("crm/client.html", client=client, form=form, operation="Add New", authorizations=authorizations)
 
 
@@ -88,10 +90,11 @@ def add_client(id: str = '0'):
 @DECORATORS.auth_crm_user
 def save_client():
     form = ClientForm(request.form)
-    fields = request.form
+    fields = multidict2dict(request.form)
 
     if form.validate():
         user_email = session['user']['preferred_username']
+        _update_compound_fields(fields, ['name', 'address'])
         result = DATABASE.save_client(fields, user_email)
         if result['success']:
             css_name = 'success'
@@ -117,7 +120,7 @@ def show_client(id):
     client = DATABASE.get_client(id)
     _cleanup_client(client)
 
-    form.state.data = client.get('state', None)
+    form.address.state.data = client.get('address', {}).get('state', None)
     form.case_county.data = client.get('case_county', None)
     form.court_type.choices = DIRECTORY.get_court_type_tuples(client['case_county'])
     form.court_type.data = client.get('court_type', None)
@@ -223,3 +226,21 @@ def _get_day_time():
     if hour < 17:
         return "Afternoon"
     return "Evening"
+
+
+def _update_compound_fields(fields, field_list):
+    new_fields = {f: {} for f in field_list}
+    del_fields = []
+
+    for field in fields:
+        name_parts = str(field).split('-', 2)
+        if len(name_parts) == 2:
+            if name_parts[0] in field_list:
+                new_fields[name_parts[0]][name_parts[1]] = fields[field]
+                del_fields.append(field)
+
+    for key, value in new_fields.items():
+        fields[key] = value
+
+    for field in del_fields:
+        del fields[field]

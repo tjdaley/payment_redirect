@@ -476,3 +476,22 @@ def set_missing_flags(doc: dict, flag_fields: list):
             doc[field] = 'Y'
         else:
             doc[field] = 'N'
+
+
+def upgrade_clients_collection():
+    db = Database()
+    db.connect()
+    db.logger.info("Updating clients table . . .")
+    clients = db.dbconn[CLIENTS_TABLE].find({})
+    for client in clients:
+        client['name']['salutation'] = client['salutation']
+
+        where = {'_id': client['_id']}
+        del client['_id']
+        update = {'$set': client}
+        db.dbconn[CLIENTS_TABLE].update_one(filter=where, update=update)
+
+
+def do_upgrades():
+    # upgrade_clients_collection()
+    pass

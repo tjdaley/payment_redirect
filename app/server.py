@@ -6,19 +6,13 @@ app.py - Flask-based server.
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
 import os
-import random
-from flask import Flask, render_template, request, flash, redirect, url_for, session, jsonify
+from flask import Flask, render_template, redirect, url_for
 from flask_session import Session
-import msal
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
-
-from functools import wraps
 
 import settings  # Loads .env into os.environ
 import config
 
-from views.decorators import is_admin_user, is_logged_in
-from util.database import Database
+from util.database import Database, do_upgrades
 from views.admin.admin_routes import admin_routes, _build_auth_url
 from views.crm.crm_routes import crm_routes
 from views.payment.payment_routes import payment_routes
@@ -26,6 +20,7 @@ from views.payment.payment_routes import payment_routes
 
 DATABASE = Database()
 DATABASE.connect()
+do_upgrades()
 
 DEBUG = int(os.environ.get('DEBUG', '0'))
 

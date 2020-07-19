@@ -22,11 +22,33 @@
             <div class="form-group col-md">
                 {{render_field(form.billing_id, class_="form-control", value=client.billing_id)}}
             </div>
-            <div class="form-group col-md">
-                {{render_field(form.client_name, class_="form-control", value=client.client_name)}}
-            </div>
-            <div class="form-group col-md">
-                {{render_field(form.salutation, class_="form-control", value=client.salutation)}}
+        </div>
+
+        <div class="card border-success my-3">
+            <div class="card-header alert-primary">Name</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group col-md-1">
+                        {{render_field(form.name.title, class_="form-control", value=client.name.title)}}
+                    </div>
+                    <div class="form-group col-md">
+                        {{render_field(form.name.first_name, class_="form-control", value=client.name.first_name)}}
+                    </div>
+                    <div class="form-group col-md">
+                        {{render_field(form.name.middle_name, class_="form-control", value=client.name.middle_name)}}
+                    </div>
+                    <div class="form-group col-md">
+                        {{render_field(form.name.last_name, class_="form-control", value=client.name.last_name)}}
+                    </div>
+                    <div class="form-group col-md-2">
+                        {{render_field(form.name.suffix, class_="form-control", value=client.name.suffix)}}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md">
+                        {{render_field(form.name.salutation, class_="form-control", value=client.name.salutation)}}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -146,19 +168,19 @@
             <div class="card-body">
                 <div class="form-row">
                     <div class="form-group col-md">
-                        {{render_field(form.address1, class_="form-control", value=client.address1)}}
+                        {{render_field(form.address.street, class_="form-control", value=client.address.street)}}
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group col-md">
-                        {{render_field(form.city, class_="form-control", value=client.city)}}
+                        {{render_field(form.address.city, class_="form-control", value=client.address.city)}}
                     </div>
                     <div class="form-group col-md">
-                        {{render_field(form.state, class_="form-control", value=client.state)}}
+                        {{render_field(form.address.state, class_="form-control", value=client.address.state)}}
                     </div>
                     <div class="form-group col-md">
-                        {{render_field(form.postal_code, class_="form-control", value=client.postal_code)}}
+                        {{render_field(form.address.postal_code, class_="form-control", value=client.address.postal_code)}}
                     </div>
                 </div>
             </div>

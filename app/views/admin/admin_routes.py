@@ -7,7 +7,7 @@ import json  # for debugging
 import uuid
 import os
 import msal
-from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, jsonify
+from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for
 import requests
 
 import views.decorators as DECORATORS
@@ -229,12 +229,14 @@ def download_clients_csv():
 @admin_routes.route("/client/add/", methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.is_admin_user
-def add_client(id: str = '0'):
+def add_client():
     form = ClientForm(request.form)
     user_email = session['user']['preferred_username']
     authorizations = DATABASE.get_authorizations(user_email)
 
-    client = {'_id': id}
+    client = {'_id': '0'}
+    client['address'] = {}
+    client['name'] = {}
     return render_template("client.html", client=client, form=form, operation="Add New", authorizations=authorizations)
 
 
@@ -243,10 +245,11 @@ def add_client(id: str = '0'):
 @DECORATORS.is_admin_user
 def save_client():
     form = ClientForm(request.form)
-    fields = request.form
+    fields = multidict2dict(request.form)
 
     if form.validate():
         user_email = session['user']['preferred_username']
+        _update_compound_fields(fields, ['name', 'address'])
         result = DATABASE.save_client(fields, user_email)
         if result['success']:
             css_name = 'success'
@@ -269,7 +272,7 @@ def show_client(id):
     authorizations = DATABASE.get_authorizations(user_email)
 
     client = DATABASE.get_client(id)
-    form.state.data = client['state']
+    form.address.state.data = client['address']['state']
     cleanup_client(client)
     our_pay_url = os.environ.get('OUR_PAY_URL')
     return render_template("client.html", client=client, form=form, operation="Update", our_pay_url=our_pay_url, authorizations=authorizations)
@@ -375,3 +378,21 @@ def _get_users():
         headers={'Authorization': 'Bearer ' + token['access_token']},
     ).json()
     return graph_data
+
+
+def _update_compound_fields(fields, field_list):
+    new_fields = {f: {} for f in field_list}
+    del_fields = []
+
+    for field in fields:
+        name_parts = str(field).split('-', 2)
+        if len(name_parts) == 2:
+            if name_parts[0] in field_list:
+                new_fields[name_parts[0]][name_parts[1]] = fields[field]
+                del_fields.append(field)
+
+    for key, value in new_fields.items():
+        fields[key] = value
+
+    for field in del_fields:
+        del fields[field]

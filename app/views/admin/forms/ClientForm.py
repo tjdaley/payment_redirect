@@ -61,14 +61,9 @@ class ClientForm(Form):
         "Billing ID",
         [validators.DataRequired(), validators.Length(min=4, max=5, message="Enter the client's billing ID without the matter suffix.")]
     )
-    client_name = StringField(
-        "Client name",
-        [validators.DataRequired(), validators.Length(min=3, max=50)]
-    )
-    salutation = StringField(
-        "Salutation",
-        [validators.DataRequired(), validators.Length(min=3, max=50)]
-    )
+
+    name = FormField(ContactName)
+
     client_ssn = StringField(
         "Client SSN",
         [validators.DataRequired(), validators.Length(min=3, max=3)]
@@ -77,22 +72,7 @@ class ClientForm(Form):
         "Client Driver's License",
         [validators.DataRequired(), validators.Length(min=3, max=3)]
     )
-    address1 = StringField(
-        "Street",
-        [validators.DataRequired(), validators.Length(min=3, max=50)]
-    )
-    city = StringField(
-        "City",
-        [validators.DataRequired(), validators.Length(min=3, max=50)]
-    )
-    state = SelectField(
-        "State",
-        choices=US_STATES
-    )
-    postal_code = StringField(
-        "ZIP code",
-        [validators.DataRequired(), validators.Length(min=5, max=10)]
-    )
+    address = FormField(ContactAddress)
     email = EmailField(
         "Client email",
         [validators.DataRequired()]

@@ -81,10 +81,10 @@ def enrich_url(base_url, client_doc) -> str:
     try:
         params = f'{params}?reference={client_doc["reference"]}'
         params = f'{params}&name={client_doc["client_name"]}'
-        params = f'{params}&address1={client_doc["address1"]}'
-        params = f'{params}&city={client_doc["city"]}'
-        params = f'{params}&state={client_doc["state"]}'
-        params = f'{params}&postal_code={client_doc["postal_code"]}'
+        params = f'{params}&address1={client_doc["address"]["street"]}'
+        params = f'{params}&city={client_doc["address"]["city"]}'
+        params = f'{params}&state={client_doc["address"]["state"]}'
+        params = f'{params}&postal_code={client_doc["address"]["postal_code"]}'
         params = f'{params}&amount={client_doc["payment_due"]}'
         params = f'{params}&email={client_doc["email"]}'
     except KeyError as e:
