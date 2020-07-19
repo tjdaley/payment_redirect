@@ -292,7 +292,7 @@
                             <div class="form-group md-col">
                                 {{render_field(form.trial_date, class_="form-control", value=client.trial_date)}}
                             </div>
-                            <div class="form-group md-col">
+                            <div class="form-group md-col sm-col-12">
                                 <label for="payment_url">Payment URL</label>
                                 <span id="payment_url" class="border border-primary rounded p-1">{{our_pay_url}}{{client.client_ssn}}{{client.client_dl}}{{client.check_digit}}</span>
                                 <div class="small">Must be updated if SSN or DL change.</div>
