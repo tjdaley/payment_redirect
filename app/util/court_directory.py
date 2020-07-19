@@ -20,7 +20,30 @@ CACHE_FILE = 'util/data/court_directory_cache.tsv'
 
 class Entry(object):
     def __init__(self, fields: list) -> dict:
+        """
+        Initialize all properties to None because not every *fields* list will
+        have all the indices we reference. Some rows from the data source are
+        mal-formed or at least not regularly-formed. The try/except will prevent
+        us from blowing up on a missing index, but we need to initialize everything
+        to None so that every instance of this class has every field defined.
+        """
         try:
+            self.court_type = None
+            self.court = None
+            self.county = None
+            self.prefix = None
+            self.first_name = None
+            self.middle_name = None
+            self.last_name = None
+            self.suffix = None
+            self.title = None
+            self.address = None
+            self.city = None
+            self.state = "TX"
+            self.postal_code = None
+            self.telephone = None
+            self.email = None
+
             self.court_type = fields[0]
             self.court = fields[1]
             self.county = fields[2]
