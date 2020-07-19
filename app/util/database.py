@@ -6,6 +6,7 @@ database.py - Class for access our persistent data store for publicdataws.
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 from datetime import datetime
+import json
 import os
 import re
 
@@ -225,18 +226,6 @@ class Database(object):
         """
         doc = multidict2dict(fields)
 
-        # Fix the flags
-        flag_fields = ['active_flag']
-        for field in flag_fields:
-            if field in doc:
-                doc[field] = 'Y'
-            else:
-                doc[field] = 'N'
-
-        # Dump the dict before saving it
-        for key, value in doc.items():
-            print(f"{key} = {value}")
-
         # Determine client name for status message
         if 'first_name' in doc:
             client_name = doc['first_name']
@@ -246,6 +235,11 @@ class Database(object):
         # Insert new admin record
         if doc['_id'] == '0':
             del doc['_id']
+
+            # Fix the flags
+            flag_fields = ['active_flag']
+            set_missing_flags(doc, flag_fields)
+
             result = self.dbconn[ADMIN_TABLE].insert_one(doc)
             if result.inserted_id:
                 message = f"User record added for {client_name}"
@@ -256,6 +250,7 @@ class Database(object):
         # Update existing client record
         filter_ = {'_id': ObjectId(doc['_id'])}
         del doc['_id']
+        doc['active_flag'] = 'Y'
         result = self.dbconn[ADMIN_TABLE].update_one(filter_, {'$set': doc})
         if result.modified_count == 1:
             message = f"{client_name}'s record updated"
@@ -280,7 +275,7 @@ class Database(object):
         """
         filter_ = {
             '$and': [
-                {'admin_users': {'$elemMatch': {'$eq': email}}},
+                {'admin_users': {'$elemMatch': {'$eq': email.lower()}}},
                 {'active_flag': {'$eq': 'Y'}}
             ]
         }
@@ -350,6 +345,7 @@ class Database(object):
         NOTE: if *fields* is missing 'active_flag', it will be set to 'N' (inactive).
         """
         doc = multidict2dict(fields)
+        print(json.dumps(doc, indent=4))
         csv_to_list(doc, ['attorney_initials', 'admin_users'])
 
         # Make sure we have the correct check digit
@@ -366,19 +362,24 @@ class Database(object):
         if 'orig_trust_balance' in doc:
             del doc['orig_trust_balance']
 
-        # Fix the flags
-        flag_fields = ['active_flag', 'trial_retainer_flag', 'mediation_retainer_flag']
-        set_missing_flags(doc, flag_fields)
-
         # Determine client name for status message
         if 'client_name' in doc:
             client_name = doc['client_name']
         else:
             client_name = 'Client'
 
+        # Fix the flags
+        flag_fields = ['trial_retainer_flag', 'mediation_retainer_flag']
+        set_missing_flags(doc, flag_fields)
+
         # Insert new client record
         if doc['_id'] == '0':
             del doc['_id']
+
+            doc['active_flag'] = 'Y'
+            if user_email.lower() not in doc['admin_users']:
+                doc['admin_users'].append(user_email.lower())
+
             # Create a reference field
             doc['reference'] = f"Client ID {doc['billing_id']}"
             result = self.dbconn[CLIENTS_TABLE].insert_one(doc)
@@ -397,7 +398,7 @@ class Database(object):
             return {'success': True, 'message': message}
 
         message = f"No updates applied to {client_name}'s record({result.modified_count})"
-        return {'success': False, 'message': message}
+        return {'success': True, 'message': message}
 
 
 def multidict2dict(d) -> dict:
@@ -450,7 +451,7 @@ def csv_to_list(doc: dict, csv_fields: list):
     """
     for field in csv_fields:
         if field in doc:
-            doc[field] = doc[field].strip().upper().split(',')
+            doc[field] = doc[field].strip().lower().split(',')
 
 
 def str_to_dollars(doc: dict, dollar_fields: list):
