@@ -8,13 +8,13 @@
             <div class="card-header alert-primary">Name</div>
             <div class="card-body">
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.email, class_="form-control", value=user.email)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.first_name, class_="form-control", value=user.first_name)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.last_name, class_="form-control", value=user.last_name)}}
                     </div>
                 </div>
@@ -25,13 +25,13 @@
             <div class="card-header alert-primary">Access</div>
             <div class="card-body">
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.groups, class_="form-control")}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.attorneys, class_="form-control")}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.authorizations, class_="form-control")}}
                     </div>
                 </div>
@@ -42,16 +42,16 @@
             <div class="card-header alert-danger">Flags</div>
             <div class="card-body">
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.ring_central_username, class_="form-control", value=user.ring_central_username)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.ring_central_extension, class_="form-control", value=user.ring_central_extension)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.ring_central_password, class_="form-control", value=user.ring_central_password)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {% if user.active_flag == 'Y' %}
                         {{render_field(form.active_flag, class_="form-control", value='Y', checked='Y')}}
                         {% else %}

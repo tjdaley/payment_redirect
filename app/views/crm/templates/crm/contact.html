@@ -8,27 +8,27 @@
         <div class="card-header alert-primary">Name</div>
         <div class="card-body">
             <div class="form-row">
-                <div class="form-group col-1">
+                <div class="form-group md-col-1">
                     {{render_field(form.name.title, class_="form-control", value=contact.name.title)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.name.first_name, class_="form-control", value=contact.name.first_name)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.name.middle_name, class_="form-control", value=contact.name.middle_name)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.name.last_name, class_="form-control", value=contact.name.last_name)}}
                 </div>
-                <div class="form-group col-2">
+                <div class="form-group md-col-2">
                     {{render_field(form.name.suffix, class_="form-control", value=contact.name.suffix)}}
                 </div>
             </div>
             <div class="form-row">
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.organization, class_="form-control", value=contact.organization)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.job_title, class_="form-control", value=contact.job_title)}}
                 </div>
             </div>
@@ -39,32 +39,32 @@
         <div class="card-header alert-primary">Contact</div>
         <div class="card-body">
             <div class="form-row">
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.office_phone, class_="form-control", value=contact.office_phone)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.cell_phone, class_="form-control", value=contact.cell_phone)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.email, class_="form-control", value=contact.email)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.fax, class_="form-control", value=contact.fax)}}
                 </div>
             </div>
             <div class="form-row">
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.address.street, class_="form-control", value=contact.address.street)}}
                 </div>
             </div>
             <div class="form-row">
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.address.city, class_="form-control", value=contact.address.city)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.address.state, class_="form-control", value=contact.address.state)}}
                 </div>
-                <div class="form-group col">
+                <div class="form-group md-col">
                     {{render_field(form.address.postal_code, class_="form-control", value=contact.address.postal_code)}}
                 </div>
             </div>

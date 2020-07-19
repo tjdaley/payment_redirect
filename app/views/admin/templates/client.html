@@ -19,13 +19,13 @@
         <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
         <input type='hidden' name='orig_trust_balance' value='{{client.trust_balance}}'>
         <div class="form-row">
-            <div class="form-group col">
+            <div class="form-group md-col">
                 {{render_field(form.billing_id, class_="form-control", value=client.billing_id)}}
             </div>
-            <div class="form-group col">
+            <div class="form-group md-col">
                 {{render_field(form.client_name, class_="form-control", value=client.client_name)}}
             </div>
-            <div class="form-group col">
+            <div class="form-group md-col">
                 {{render_field(form.salutation, class_="form-control", value=client.salutation)}}
             </div>
         </div>
@@ -34,7 +34,7 @@
             <div class="card-header alert-primary">Payment</div>
             <div class="card-body">
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{form.payment_due.label}}
                         <div class="input-group">
                             <div class="input-group-prepend">
@@ -44,10 +44,10 @@
                             {{form.payment_due(class_="form-control", value=client.payment_due)}}
                         </div>
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.notes, class_="form-control", value=client.notes)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.email, class_="form-control", value=client.email)}}
                     </div>
                 </div>
@@ -65,18 +65,18 @@
             <div class="card-header alert-success">Payment Threshholds</div>
             <div class="card-body">
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.target_retainer, class_="form-control", value=client.target_retainer)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.refresh_trigger, class_="form-control", value=client.refresh_trigger)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.trust_balance, class_="form-control", value=client.trust_balance)}}
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{form.mediation_retainer.label}}
                         <div class="input-group">
                             <div class="input-group-prepend">
@@ -91,7 +91,7 @@
                             {{form.mediation_retainer(class_="form-control", value=client.mediation_retainer)}}
                         </div>
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{form.trial_retainer.label}}
                         <div class="input-group">
                             <div class="input-group-prepend">
@@ -106,18 +106,18 @@
                             {{form.trial_retainer(class_="form-control", value=client.trial_retainer)}}
                         </div>
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         &nbsp;
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.mediation_date, class_="form-control", value=client.mediation_date)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.trial_date, class_="form-control", value=client.trial_date)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         &nbsp;
                     </div>
                 </div>
@@ -128,13 +128,13 @@
             <div class="card-header alert-primary">User Login</div>
             <div class="card-body">
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.client_ssn, class_="form-control", value=client.client_ssn, onchange="hidePaymentLink()")}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.client_dl, class_="form-control", value=client.client_dl, onchange="hidePaymentLink()")}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.check_digit, class_="form-control", value=client.check_digit, readonly="Y")}}
                     </div>
                 </div>
@@ -145,19 +145,19 @@
             <div class="card-header alert-primary">Cardholder Address</div>
             <div class="card-body">
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.address1, class_="form-control", value=client.address1)}}
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.city, class_="form-control", value=client.city)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.state, class_="form-control", value=client.state)}}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group md-col">
                         {{render_field(form.postal_code, class_="form-control", value=client.postal_code)}}
                     </div>
                 </div>
