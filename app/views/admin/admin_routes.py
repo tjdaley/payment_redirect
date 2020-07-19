@@ -269,6 +269,7 @@ def show_client(id):
     authorizations = DATABASE.get_authorizations(user_email)
 
     client = DATABASE.get_client(id)
+    form.state.data = client['state']
     cleanup_client(client)
     our_pay_url = os.environ.get('OUR_PAY_URL')
     return render_template("client.html", client=client, form=form, operation="Update", our_pay_url=our_pay_url, authorizations=authorizations)
