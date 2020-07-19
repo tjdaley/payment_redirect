@@ -30,7 +30,7 @@
         </td>
         {% if contact.email %}
         <td>
-            <a href="mailto://{{contact.email}}" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
+            <a href="mailto:{{contact.email}}?body=Dear%20{{contact.name.salutation}}:" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
                 data-placement="top" title="Send Email to {{contact.email}}" role="button">
             </a>
         </td>

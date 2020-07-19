@@ -29,6 +29,7 @@ class ContactName(Form):
     middle_name = StringField("Middle name")
     last_name = StringField("Last name")
     suffix = StringField("Suffix")
+    salutation = StringField("Salutation")
 
 
 class ContactAddress(Form):
