@@ -30,13 +30,20 @@ print("Template path:", crm_routes.template_folder)
 
 
 @crm_routes.route('/crm/contacts', methods=['GET'])
+@crm_routes.route('/crm/contacts/<int:page_num>/', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
-def list_contacts():
+def list_contacts(page_num: int = 1):
     user_email = session['user']['preferred_username']
-    contacts = DATABASE.get_contacts(user_email)
+    contacts = DATABASE.get_contacts(user_email, page_num)
     authorizations = DATABASE.get_authorizations(user_email)
-    return render_template('crm/contacts.html', contacts=contacts, authorizations=authorizations)
+    return render_template(
+        'crm/contacts.html',
+        contacts=contacts,
+        authorizations=authorizations,
+        prev_page_num=page_num - 1,
+        next_page_num=page_num + 1
+    )
 
 
 @crm_routes.route('/crm/contact/<string:id>/', methods=['GET'])

@@ -55,9 +55,24 @@
     </tr>
     {% endfor %}
 </table>
-{% if 'DOWNLOAD_CONTACTSS' in authorizations %}
-<a href="/crm/contacts/csv" class="btn btn-sm btn-secondary">Download</a>
-{% endif %}
+<div>
+    {% if 'DOWNLOAD_CONTACTS' in authorizations %}
+    <a href="/crm/contacts/csv" class="btn btn-sm btn-primary">Download</a>
+    {% endif %}
+    <span class="float-right">
+    <a
+        {% if prev_page_num > 0 %}
+        href="/crm/contacts/{{prev_page_num}}"
+        class="btn btn-sm btn-primary"
+        {% else %}
+        href="#"
+        class="btn btn-sm btn-secondary"
+        {% endif %}
+    ><i class="fa fa-caret-left" aria-hidden="true"></i> Prev</a>
+    <a href="/crm/contacts/{{next_page_num}}" class="btn btn-sm btn-primary">Next <i class="fa fa-caret-right" aria-hidden="true"></i></a>
+    </span>
+</div>
+<br />
 
 <div class="modal fade" id="smsMessageModal" tabindex="-1" role="dialog" aria-labelledby="smsModalLabel"
     aria-hidden="true">

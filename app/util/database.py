@@ -5,16 +5,12 @@ database.py - Class for access our persistent data store for publicdataws.
 @version 0.0.1
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 import os
-from operator import itemgetter
 import re
-import time
 
-from pymongo import ASCENDING, DESCENDING, MongoClient, ReturnDocument
+from pymongo import ASCENDING, MongoClient
 from bson.objectid import ObjectId
-from bson.errors import InvalidId
 
 import pandas as pd
 
@@ -144,16 +140,32 @@ class Database(object):
         document = self.dbconn[CONTACTS_TABLE].find_one(filter_)
         return document
 
-    def get_contacts(self, email: str) -> list:
+    def get_contacts(self, email: str, page_num: int = 1, page_size: int = 25) -> list:
         """
         Retrieve a list of contacts viewable by this admin user.
+        This method supports pagination.
 
         Args:
             email (str): Email address of admin user.
+            page_num (int): Which page number is going to be displayed? (default=1)
+            page_size (int): Number of documents per page (default=25)
         Returns:
             (list): List of documents from 'contacts' or None
         """
-        contacts = self.dbconn[CONTACTS_TABLE].find({})
+
+        skips = page_size * (page_num - 1)
+
+        order_by = [
+            ('name.last_name', ASCENDING),
+            ('name.first_name', ASCENDING),
+            ('organization', ASCENDING)
+        ]
+
+        contacts = self.dbconn[CONTACTS_TABLE].find({}).sort(order_by).skip(skips).limit(page_size)
+
+        if not contacts:
+            return None, None
+
         return list(contacts)
 
     def get_users(self, email: str) -> list:
@@ -338,40 +350,25 @@ class Database(object):
         NOTE: if *fields* is missing 'active_flag', it will be set to 'N' (inactive).
         """
         doc = multidict2dict(fields)
-        # Convert CSVs to lists
-        if 'attorney_initials' in doc:
-            doc['attorney_initials'] = fields['attorney_initials'].strip().upper().split(',')
-        if 'admin_users' in doc:
-            doc['admin_users'] = fields['admin_users'].strip().lower().split(',')
+        csv_to_list(doc, ['attorney_initials', 'admin_users'])
 
         # Make sure we have the correct check digit
         if 'client_ssn' in doc and 'client_dl' in doc:
             doc['check_digit'] = correct_check_digit(doc['client_ssn'], doc['client_dl'])
 
         # Clean up dollar amount strings and convert them to numbers
-        dollar_amounts = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger', 'trust_balance', 'orig_trust_balance']
-        for field in dollar_amounts:
-            try:
-                if field in doc and doc[field]:
-                    doc[field] = re.sub(r'[^0-9.\-]', '', doc[field])
-                    doc[field] = float(doc[field])
-            except Exception as e:
-                return {'success': False, 'message': f"Invalid {field} amount: {str(e)}"}
+        dollar_fields = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger', 'trust_balance', 'orig_trust_balance']
+        str_to_dollars(doc, dollar_fields)
 
         # Set the trust balance update date/time
-        if 'trust_balance' in doc and 'orig_trust_balance' in doc:
-            if doc['trust_balance'] != doc['orig_trust_balance']:
-                doc['trust_balance_update'] = datetime.now()
+        if 'trust_balance' in doc and 'orig_trust_balance' in doc and doc['trust_balance'] != doc['orig_trust_balance']:
+            doc['trust_balance_update'] = datetime.now()
         if 'orig_trust_balance' in doc:
             del doc['orig_trust_balance']
 
         # Fix the flags
         flag_fields = ['active_flag', 'trial_retainer_flag', 'mediation_retainer_flag']
-        for field in flag_fields:
-            if field in doc:
-                doc[field] = 'Y'
-            else:
-                doc[field] = 'N'
+        set_missing_flags(doc, flag_fields)
 
         # Determine client name for status message
         if 'client_name' in doc:
@@ -444,3 +441,37 @@ def clients_to_dataframe(documents: dict):
         series_obj = pd.Series(client, name=client_id)
         clients = clients.append(series_obj)
     return clients
+
+
+def csv_to_list(doc: dict, csv_fields: list):
+    """
+    Convert the fields where a user can type a comma-separated-list into
+    an actual list.
+    """
+    for field in csv_fields:
+        if field in doc:
+            doc[field] = doc[field].strip().upper().split(',')
+
+
+def str_to_dollars(doc: dict, dollar_fields: list):
+    """
+    Convert strings to dollar amounts.
+    """
+    for field in dollar_fields:
+        try:
+            if field in doc and doc[field]:
+                doc[field] = re.sub(r'[^0-9.\-]', '', doc[field])
+                doc[field] = float(doc[field])
+        except Exception as e:
+            return {'success': False, 'message': f"Invalid {field} amount: {str(e)}"}
+
+
+def set_missing_flags(doc: dict, flag_fields: list):
+    """
+    Set missing flags to 'N'
+    """
+    for field in flag_fields:
+        if field in doc:
+            doc[field] = 'Y'
+        else:
+            doc[field] = 'N'
