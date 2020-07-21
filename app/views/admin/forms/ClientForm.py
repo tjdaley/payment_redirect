@@ -130,6 +130,16 @@ class ClientForm(Form):
     trust_balance = StringField(
         "Trust balance", [validators.Optional(), DollarCleaner()]
     )
+    unbilled_fees = StringField(
+        "Unbilled fees", [validators.Optional(), DollarCleaner(min=0)]
+    )
+    unbilled_costs = StringField(
+        "Unbilled costs", [validators.Optional(), DollarCleaner(min=0)]
+    )
+    final_bill_flag = BooleanField(
+        "Final bill?",
+        false_values=('N', '')
+    )
     trial_retainer_flag = BooleanField(
         'Trial retainer due?',
         false_values=('N', '')

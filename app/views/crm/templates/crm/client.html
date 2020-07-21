@@ -32,23 +32,23 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="billing-tab" data-toggle="tab" href="#billing" role="tab" aria-controls="billing"
-                    aria-selected="true">Billing</a>
+                    aria-selected="false">Billing</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="id-tab" data-toggle="tab" href="#id" role="tab" aria-controls="id"
-                    aria-selected="true">ID</a>
+                    aria-selected="false">ID</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="id-tab" data-toggle="tab" href="#dates" role="tab" aria-controls="dates"
-                    aria-selected="true">Dates</a>
+                <a class="nav-link" id="dates-tab" data-toggle="tab" href="#dates" role="tab" aria-controls="dates"
+                    aria-selected="false">Dates</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="marketing-tab" data-toggle="tab" href="#marketing" role="tab" aria-controls="marketing"
-                    aria-selected="true">Marketing</a>
+                    aria-selected="false">Marketing</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="access-tab" data-toggle="tab" href="#access" role="tab" aria-controls="access"
-                    aria-selected="true">Access</a>
+                    aria-selected="false">Access</a>
             </li>
         </ul>
 
@@ -176,8 +176,16 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md">
+                                {{render_field(form.retained_date, class_="form-control", value=client.retained_date)}}
+                            </div>
+                            <div class="form-group col-md">
                                 {{render_field(form.filed_date, class_="form-control", value=client.filed_date)}}
                             </div>
+                            <div class="form-group col-md">
+                                {{render_field(form.completion_date, class_="form-control", value=client.completion_date)}}
+                            </div>
+                        </div>
+                        <div class="form-row">
                             <div class="form-group col-md">
                                 {{form.mediation_date.label}}
                                 <div class="border border-primary rounded p-1">
@@ -201,28 +209,21 @@
                                 <div class="small">(modified on BILLING tab)</div>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group col-md">
-                                {{render_field(form.completion_date, class_="form-control", value=client.completion_date)}}
-                            </div>
-                            <div class="form-group col-md">
-                                
-                            </div>
-                            <div class="form-group col-md">
-                                
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
 
             <!--MARKETING TAB-->
             <div class="tab-pane fade" id="marketing" role="tabpanel" aria-labelledby="marketing-tab">
-            
+                <div class="card border-primary my-3">
+                    <div class="card-header alert-primary">Marketing</div>
+                    <div class="card-body">
+                    </div>
+                </div>
             </div>
 
             <!--ACCESS TAB-->
-            <div class="tab-pane face" id="access" role="tabpanel" aria-labelledby="access-tab">
+            <div class="tab-pane fade" id="access" role="tabpanel" aria-labelledby="access-tab">
                 <div class="card border-danger my-3">
                     <div class="card-header alert-danger">Administrative Access</div>
                     <div class="card-body">
@@ -268,8 +269,19 @@
             <!--BILLING TAB-->
             <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
                 <div class="card border-success my-3">
-                    <div class="card-header alert-success">Payment Threshholds</div>
+                    <div class="card-header alert-success">Billing Summary</div>
                     <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md">
+                                {{render_field(form.trust_balance, class_="form-control", value=client.trust_balance)}}
+                            </div>
+                            <div class="form-group col-md">
+                                {{render_field(form.unbilled_fees, class_="form-control", value=client.unbilled_fees)}}
+                            </div>
+                            <div class="form-group col-md">
+                                {{render_field(form.unbilled_costs, class_="form-control", value=client.unbilled_costs)}}
+                            </div>
+                        </div>
                         <div class="form-row">
                             <div class="form-group col">
                                 {{render_field(form.target_retainer, class_="form-control", value=client.target_retainer)}}
@@ -278,7 +290,7 @@
                                 {{render_field(form.refresh_trigger, class_="form-control", value=client.refresh_trigger)}}
                             </div>
                             <div class="form-group col-md">
-                                {{render_field(form.trust_balance, class_="form-control", value=client.trust_balance)}}
+                                &nbsp;
                             </div>
                         </div>
                         <div class="form-row">
@@ -313,7 +325,22 @@
                                 </div>
                             </div>
                             <div class="form-group col-md">
-                                {{render_field(form.payment_due, class_="form-control", value=client.trial_retainer or 0.00)}}
+                                {{form.payment_due.label}}
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <button class="btn btn-success far fa-lightbulb" title="Suggest a payment amount" type="button" onclick="suggestPaymentDue('Y')"></button>
+                                    </div>
+                                    {{form.payment_due(class_="form-control", value=client.payment_due or 0.00)}}
+                                    <div class="input-group-append">
+                                        <div class="input-group-text" title="Check for Final Bill">
+                                            {% if client.final_bill_flag == 'Y' %}
+                                            {{form.final_bill_flag(value="Y", checked="Y")}}
+                                            {% else %}
+                                            {{form.final_bill_flag(value="Y")}}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="form-row">
@@ -409,5 +436,65 @@
             });
             return options;
         }
+
+        /**
+         * Suggest a payment due based on all the inputs in the billing tab.
+         */
+        function suggestPaymentDue() {
+            var payment_due = computePaymentDue().toFixed(2);
+            var field = document.getElementById('payment_due');
+            field.value = payment_due;
+            field.textContent = payment_due;
+        }
+
+        function computePaymentDue(){
+            var trust_balance = getDollarAmount('trust_balance');
+            var unbilled_fees = getDollarAmount('unbilled_fees');
+            var unbilled_costs = getDollarAmount('unbilled_costs');
+            var target_retainer = getDollarAmount('target_retainer');
+            var refresh_trigger = getDollarAmount('refresh_trigger');
+            var mediation_retainer = getDollarAmount('mediation_retainer');
+            var trial_retainer = getDollarAmount('trial_retainer');
+
+            var mediation_retainer_flag = document.getElementById('mediation_retainer_flag').checked;
+            var trial_retainer_flag = document.getElementById('trial_retainer_flag').checked;
+            var final_bill_flag = document.getElementById('final_bill_flag').checked;
+
+            var account_balance = trust_balance - unbilled_fees - unbilled_costs;
+
+            // FINAL BILL
+            if (final_bill_flag) {
+                return account_balance < 0 ? Math.abs(account_balance) : 0.00;
+            }
+
+            if (mediation_retainer_flag) {
+                target_retainer = mediation_retainer;
+            }
+
+            if (trial_retainer_flag) {
+                target_retainer = trial_retainer;
+            }
+
+            if (target_retainer > account_balance) {
+                return target_retainer - account_balance;
+            }
+
+            return 0.00;
+        }
+
+        function getDollarAmount(element_id) {
+            var e = document.getElementById(element_id);
+            if (!e) return 0.00;
+            var v = e.value;
+            try {
+                v = parseFloat(v);
+            }
+            catch{
+                v = 0.00;
+            }
+            if (isNaN(v)) v = 0.00
+            return v;
+        }
+        
     </script>
 {% endblock %}
