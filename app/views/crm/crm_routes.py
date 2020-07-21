@@ -35,7 +35,67 @@ print("Template path:", crm_routes.template_folder)
 @DECORATORS.auth_crm_user
 def list_contacts(page_num: int = 1):
     user_email = session['user']['preferred_username']
-    contacts = DATABASE.get_contacts(user_email, page_num)
+    contacts = DATABASE.get_contacts(user_email, page_num=page_num)
+    authorizations = DATABASE.get_authorizations(user_email)
+    return render_template(
+        'crm/contacts.html',
+        contacts=contacts,
+        authorizations=authorizations,
+        prev_page_num=page_num - 1,
+        next_page_num=page_num + 1
+    )
+
+
+@crm_routes.route('/crm/contact/add/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def add_contact():
+    form = ContactForm(request.form)
+    user_email = session['user']['preferred_username']
+    contact = {'_id': '0'}
+    contact['address'] = {}
+    contact['name'] = {}
+    form.address.state.data = "TX"
+    authorizations = DATABASE.get_authorizations(user_email)
+    return render_template("crm/contact.html", contact=contact, form=form, operation="Add New", authorizations=authorizations)
+
+
+@crm_routes.route('/crm/contact/save/', methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def save_contact():
+    form = ContactForm(request.form)
+    fields = multidict2dict(request.form)
+
+    if form.validate():
+        user_email = session['user']['preferred_username']
+        _update_compound_fields(fields, ['name', 'address'])
+        result = DATABASE.save_contact(user_email, fields)
+        if result['success']:
+            css_name = 'success'
+        else:
+            css_name = 'danger'
+        flash(result['message'], css_name)
+        return redirect(url_for('crm_routes.list_contacts'))
+
+    user_email = session['user']['preferred_username']
+    authorizations = DATABASE.get_authorizations(user_email)
+    if form.errors:
+        for key, value in form.errors.items():
+            print(key, value)
+    return render_template('/crm/client.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
+
+
+@crm_routes.route('/crm/contact/search/<int:page_num>/', methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def search_contacts(page_num: int = 1):
+    user_email = session['user']['preferred_username']
+    query = request.form.get('query', None)
+    if query:
+        contacts = DATABASE.search_contacts(user_email, query=query, page_num=page_num)
+    else:
+        contacts = DATABASE.get_contacts(user_email, page_num=page_num)
     authorizations = DATABASE.get_authorizations(user_email)
     return render_template(
         'crm/contacts.html',

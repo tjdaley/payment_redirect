@@ -9,7 +9,23 @@
         background-color: inherit;
     }
 </style>
-<span class="h1 my-3">Contacts</span><a class="btn btn-primary btn-sm float-right my-3" href="/crm/contact/add">ADD</a>
+<div class="row">
+    <div class="col">
+        <span class="h1 my-3">Contacts</span>
+    </div>
+    <div class="col">
+        <a class="btn btn-primary btn-sm float-right my-3" href="{{url_for('crm_routes.add_contact')}}">ADD</a>
+    </div>
+</div>
+<form method='POST' action="{{url_for('crm_routes.search_contacts', page_num=1)}}">
+    <div class="input-group mb-3">
+        <input type="search" class="form-control" id="search" name="query" />
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary fa fa-search" type="submit"></button>
+        </div>
+    </div>
+</form>
+
 <table class="table table-sm table-hover">
     <tr>
         <th>Name</th>
@@ -130,6 +146,7 @@
     function dial(to_number) {
         jQuery.get('/crm/util/dial/' + to_number + '/');
     }
+
     function send_message() {
         var telephone = encodeURIComponent($('#recipient-telephone').val());
         var message = encodeURIComponent($('#message-text').val());
