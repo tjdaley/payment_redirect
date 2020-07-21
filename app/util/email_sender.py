@@ -7,16 +7,15 @@ import json
 import os
 from datetime import datetime, timedelta
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError  # NOQA
 
-import settings
+import settings  # NOQA
 
 from util.template_manager import TemplateManager
-import config
+import config  # NOQA
 
 from util.database import Database, TRIAL_RETAINER_DUE, MEDIATION_RETAINER_DUE, EVERGREEN_PAYMENT_DUE
 DATABASE = Database()
-DATABASE.connect()
 
 TEMPLATE_MANAGER = TemplateManager()
 AWS_REGION = os.environ.get('AWS_REGION')

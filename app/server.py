@@ -9,17 +9,16 @@ import os
 from flask import Flask, render_template, redirect, url_for
 from flask_session import Session
 
-import settings  # Loads .env into os.environ
-import config
+import settings  # NOQA
+import config # NOQA
 
 from util.database import Database, do_upgrades
-from views.admin.admin_routes import admin_routes, _build_auth_url
+from views.admin.admin_routes import admin_routes
 from views.crm.crm_routes import crm_routes
 from views.payment.payment_routes import payment_routes
 
 
 DATABASE = Database()
-DATABASE.connect()
 do_upgrades()
 
 DEBUG = int(os.environ.get('DEBUG', '0'))

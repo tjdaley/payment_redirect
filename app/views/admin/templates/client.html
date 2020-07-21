@@ -260,52 +260,69 @@
 
             showPaymentLinkControls();
             showPaymentLink();
-
-            suggestPaymentDue('N');
         }
 
-        function suggestPaymentDue(override_flag)
+        function suggestPaymentDue()
         {
-            var trial_retainer = getDollarValue('trial_retainer');
-            var mediation_retainer = getDollarValue('mediation_retainer');
-            var trust_balance = getDollarValue('trust_balance');
-            var target_retainer = getDollarValue('target_retainer');
-            var refresh_trigger = getDollarValue('refresh_trigger');
-            var trial_retainer_due = getBooleanValue('trial_retainer_flag');
-            var mediation_retainer_due = getBooleanValue('mediation_retainer_flag');
-            var payment_amount = 0.00;
-
-            if (mediation_retainer_due)
-            {
-                payment_amount += mediation_retainer - trust_balance;
-                displayPaymentAmount(payment_amount, 'payment_due');
-                return false;
-            }
-
-            if (trial_retainer_due) {
-                payment_amount = trial_retainer - trust_balance;
-                displayPaymentAmount(payment_amount, 'payment_due');
-                return false;
-            }
-            
-            if (trust_balance < refresh_trigger) {
-                payment_amount = target_retainer - trust_balance;
-                displayPaymentAmount(payment_amount, 'payment_due');
-                return false;
-            }
-
-            if (override_flag == 'Y')
-            {
-                displayPaymentAmount(0, 'payment_due');
-            }
+            var payment_due = computePaymentDue().toFixed(2);
+            var field = document.getElementById('payment_due');
+            field.value = payment_due;
+            field.textContent = payment_due;
         }
 
+        function computePaymentDue() {
+            var trust_balance = getDollarAmount('trust_balance');
+            var unbilled_fees = getDollarAmount('unbilled_fees');
+            var unbilled_costs = getDollarAmount('unbilled_costs');
+            var target_retainer = getDollarAmount('target_retainer');
+            var refresh_trigger = getDollarAmount('refresh_trigger');
+            var mediation_retainer = getDollarAmount('mediation_retainer');
+            var trial_retainer = getDollarAmount('trial_retainer');
+
+            var mediation_retainer_flag = document.getElementById('mediation_retainer_flag').checked;
+            var trial_retainer_flag = document.getElementById('trial_retainer_flag').checked;
+            var final_bill_flag = document.getElementById('final_bill_flag').checked;
+
+            var account_balance = trust_balance - unbilled_fees - unbilled_costs;
+
+            // FINAL BILL
+            if (final_bill_flag) {
+                return account_balance < 0 ? Math.abs(account_balance) : 0.00;
+            }
+
+            if (mediation_retainer_flag) {
+                target_retainer = mediation_retainer;
+            }
+
+            if (trial_retainer_flag) {
+                target_retainer = trial_retainer;
+            }
+
+            if (target_retainer > account_balance) {
+                return target_retainer - account_balance;
+            }
+
+            return 0.00;
+        }
+
+        function getDollarAmount(element_id) {
+            var e = document.getElementById(element_id);
+            if (!e) return 0.00;
+            var v = e.value;
+            try {
+                v = parseFloat(v);
+            }
+            catch{
+                v = 0.00;
+            }
+            if (isNaN(v)) v = 0.00
+            return v;
+        }
+
+        // Code Debt . . .
         function getDollarValue(field_id)
         {
-            var field = document.getElementById(field_id);
-            if (!field) return 0;
-            var field_value = parseFloat(field.value);
-            return field_value;
+            return getDollarAmount(field_id);
         }
 
         function getBooleanValue(field_id)

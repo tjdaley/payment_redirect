@@ -7,18 +7,17 @@ import datetime as dt
 import os
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 import random
-import settings
+import settings  # NOQA
 import urllib.parse
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
 from util.logger import get_logger
 from views.payment.forms.ClientIdForm import ClientIdForm
-from util.database import Database, correct_check_digit
+from util.db_clients import DbClients, correct_check_digit
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
-DATABASE = Database()
-DATABASE.connect()
+DBCLIENTS = DbClients()
 
 payment_routes = Blueprint("payment_routes", __name__, template_folder="templates")
 
@@ -41,7 +40,7 @@ def route_client(id: str):
         flash("Invalid client id.", "danger")
         return redirect(url_for('payment_routes.identify_client'))
 
-    client = DATABASE.get_client_by_ssn(ssn, dl)
+    client = DBCLIENTS.get_by_ssn(ssn, dl)
     if not client:
         flash(f"Could not find client record. SSN {ssn} DL {dl}", "info")
         return redirect(url_for('payment_routes.identify_client'))
@@ -60,7 +59,7 @@ def identify_client():
         fields = request.form
         ssn = fields['client_ssn']
         dl = fields['client_dl']
-        client = DATABASE.get_client_by_ssn(ssn, dl)
+        client = DBCLIENTS.get_by_ssn(ssn, dl)
         if not client:
             flash("Could not find your information. Please try again.", 'warning')
             return redirect(url_for('payment_routes.identify_client'))

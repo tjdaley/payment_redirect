@@ -6,7 +6,7 @@ import os
 from flask import flash, redirect, session, url_for
 from functools import wraps
 
-from util.database import Database
+from util.db_admins import DbAdmins
 import util.authorizations as AUTH
 
 LOGIN_FUNCTION = os.environ.get('LOGIN_FUNCTION', 'admin_routes.login')
@@ -28,9 +28,8 @@ def is_admin_user(f):
     @wraps(f)
     def wrap(*args, **kwargs):
         user_email = session['user']['preferred_username']
-        database = Database()
-        database.connect()
-        admin_record = database.get_admin_record(user_email)
+        database = DbAdmins()
+        admin_record = database.admin_record(user_email)
         if admin_record and admin_record['attorneys']:
             session['is_admin'] = 'Y'
             return f(*args, **kwargs)
@@ -112,10 +111,5 @@ def auth_crm_user(f):
 
 
 def _get_authorizations(user_email: str) -> list:
-    database = Database()
-    database.connect()
-    admin_record = database.get_admin_record(user_email)
-    if admin_record:
-        authorizations = admin_record.get('authorizations', [])
-        return authorizations
-    return []
+    database = DbAdmins()
+    return database.authorizations(user_email)

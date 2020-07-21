@@ -3,7 +3,7 @@ ClientForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
-from wtforms import Form, FormField, validators, BooleanField, DecimalField, SelectField, ValidationError, FieldList, StringField
+from wtforms import Form, FormField, validators, BooleanField, SelectField, FieldList, StringField
 from wtforms.fields.html5 import DateField, EmailField, TelField
 
 # pylint: disable=no-name-in-module
