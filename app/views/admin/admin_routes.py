@@ -3,12 +3,12 @@ admin_routes.py - Handle the administrative routes.
 
 Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
-import json
 import uuid
 import os
 import msal
 from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for
 import requests
+import urllib
 
 import views.decorators as DECORATORS
 from .forms.ClientForm import ClientForm
@@ -17,6 +17,7 @@ from .forms.UserForm import UserForm
 from util.logger import get_logger
 from util.template_manager import TemplateManager
 from util.email_sender import send_evergreen
+from util.dialer import Dialer
 import config
 
 from util.db_admins import DbAdmins
@@ -178,13 +179,13 @@ def list_clients():
                 else:
                     message += "Trust balance not updated since last evergreen email sent. Update it. "
                     client['_class'] = 'warning'
-        if client.get('mediation_retainer_flag', 'N') == 'Y' and client.get('trial_retainer_flag', 'N') == 'Y':
-            client['_class'] = 'danger'
-            message += "Mediation retainer and Trial retainer flags cannot both be checked. "
+        else:
+            client['_class'] = 'warning'
+            message += "Trust balance needs to be updated. "
         try:
-            if float(client.get('payment_due', '0.0')) <= 0.0:
+            if float(client.get('payment_due', '0.0')) < 0.0:
                 client['_class'] = 'danger'
-                message += "Payment due is either missing, zero, or negative. Must be a positive number. "
+                message += "Payment due is either missing or negative. Must be a positive number. "
         except ValueError:
             client['_class'] = 'danger'
             message += "Payment due must be a number. "
@@ -279,6 +280,46 @@ def show_client(id):
     return render_template("client.html", client=client, form=form, operation="Update", our_pay_url=our_pay_url, authorizations=authorizations)
 
 
+# Login Route for RingCentral's Identity Service
+# This is only used for RingCentral Integration, such as for initiating calls and sending text reminders
+@admin_routes.route('/rclogin', methods=['GET'])
+def ring_central_login():
+    base_url = os.environ.get('RING_CENTRAL_SERVER', None)
+    if base_url is None:
+        flash('RING_CENTRAL_SERVER is not defined', 'danger')
+        return redirect(url_for('admin_routes.list_clients'))
+    params = (
+        ('resposne_type', 'code'),
+        ('redirect_url', url_for('admin_routes.ring_central_authorized')),
+        ('client_id', os.environ.get('RING_CENTRAL_CLIENTID')),
+        ('state', 'initialState')
+    )
+    auth_url = base_url + '?' + urllib.parse.urlencode(params)
+    firm_name = os.environ.get('FIRM_NAME', "The Firm")
+    firm_admin_email = os.environ.get('FIRM_ADMIN_EMAIL')
+    return render_template('rc_login.html', firm_name=firm_name, auth_url=auth_url, firm_admin_email=firm_admin_email)
+
+
+# OAuth Redirect for RingCentral's Identity Service
+@admin_routes.route('/rcoath2callback')
+def ring_central_authorized():
+    auth_code = request.values.get('code')
+    redirect_url = url_for('admin_routes.ring_central_authorized')
+    tokens = Dialer.get_oauth_tokens(auth_code, redirect_url)
+    session['rcSessionAccessToken'] = tokens
+    return redirect(url_for('admin_routes.list_clients'))
+
+
+# OAuth Logout for RingCentral's Identity Service
+@admin_routes.route('/rclogout')
+def ring_central_logout():
+    token = session['rcSessionAccessToken']
+    Dialer.logout(token)
+    return redirect(url_for('admin_routes.list_clients'))
+
+
+# Login Route for Microsoft's Identity service
+# This is our applications login.
 @admin_routes.route('/login', methods=['GET'])
 def login():
     session['state'] = str(uuid.uuid4())
@@ -289,6 +330,7 @@ def login():
 
 
 # REDIRECT_PATH must match your app's redirect_uri set in AAD
+# OAuth Redirect for Microsoft's Identity Service
 @admin_routes.route('/getAToken')
 def authorized():
     if request.args.get('state') != session.get('state'):

@@ -13,6 +13,7 @@ import os
 from util.db_admins import DbAdmins
 from util.database import multidict2dict
 from util.db_clients import DbClients
+from util.db_client_notes import DbClientNotes
 from util.db_contacts import DbContacts
 import views.decorators as DECORATORS
 from util.court_directory import CourtDirectory
@@ -23,6 +24,7 @@ from views.admin.forms.ClientForm import ClientForm, ContactForm
 DBADMINS = DbAdmins()
 DBCONTACTS = DbContacts()
 DBCLIENTS = DbClients()
+DBNOTES = DbClientNotes()
 
 
 # Refresh court directory information on restart
@@ -184,6 +186,7 @@ def show_client(id):
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(id)
     _cleanup_client(client)
+    notes = DBNOTES.get_list(user_email, id)
 
     form.address.state.data = client.get('address', {}).get('state', None)
     form.case_county.data = client.get('case_county', None)
@@ -193,7 +196,7 @@ def show_client(id):
     form.court_name.data = client.get('court_name', None)
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
-    return render_template('crm/client.html', client=client, authorizations=authorizations, form=form, our_pay_url=our_pay_url)
+    return render_template('crm/client.html', client=client, notes=notes, authorizations=authorizations, form=form, our_pay_url=our_pay_url)
 
 
 @crm_routes.route('/crm/util/dial/<string:to_number>/', methods=['GET'])
@@ -209,6 +212,8 @@ def dial_number(to_number):
         user['ring_central_extension'],
         user['ring_central_password']
     )
+    if response.get('rc_login_needed', False):
+        return redirect(url_for('admin_routes.ring_central_login'))
     return jsonify(response)
 
 
@@ -226,6 +231,8 @@ def send_sms_message(to_number, message):
         user['ring_central_password'],
         message
     )
+    if response.get('rc_login_needed', False):
+        return redirect(url_for('admin_routes.ring_central_login'))
     return jsonify(response)
 
 
@@ -241,6 +248,21 @@ def get_court_types(county):
 @DECORATORS.auth_crm_user
 def get_court_names(county, court_type):
     return jsonify(DIRECTORY.get_courts(county, court_type))
+
+
+@crm_routes.route('/crm/data/save_note/<string:text>/<string:tags>/<string:client_id>/<string:note_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def save_note(text, tags, client_id, note_id):
+    user_email = session['user']['preferred_username']
+    note = {
+        'text': text,
+        'tags': tags,
+        'clients_id': client_id,
+        '_id': note_id
+    }
+
+    return jsonify(DBNOTES.save(user_email, note))
 
 
 def _client_row_class(client: dict) -> str:

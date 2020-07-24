@@ -13,9 +13,47 @@ class Dialer(object):
     RING_CENTRAL_CLIENTID = os.environ.get('RING_CENTRAL_CLIENTID')
     RING_CENTRAL_CLIENTSECRET = os.environ.get('RING_CENTRAL_CLIENTSECRET')
     RING_CENTRAL_SERVER = os.environ.get('RING_CENTRAL_SERVER')
+    RING_CENTRAL_AUTH_METHOD = os.environ.get('RING_CENTRAL_AUTH_METHOD', 'password')
 
     RING_OUT_ENDPOINT = '/restapi/v1.0/account/~/extension/~/ring-out'
     SMS_ENDPOINT = '/restapi/v1.0/account/~/extension/~/sms'
+
+    rcsdk = SDK(RING_CENTRAL_CLIENTID, RING_CENTRAL_CLIENTSECRET, RING_CENTRAL_SERVER)
+
+    @staticmethod
+    def get_oauth_tokens(auth_code: str, redirect_url: str):
+        """
+        Get OAuth Tokens for application login.
+        """
+        platform = Dialer.rcsdk.platform()
+        platform.login('', '', '', auth_code, redirect_url)
+        tokens = platform.auth().data()
+        return tokens
+
+    @staticmethod
+    def logout(session_access_token):
+        """
+        Logout of RingCentral's OAuth Service.
+        """
+        platform = Dialer.rcsdk.platform()
+        platform.auth().set_data(session_access_token)
+        if platform.logged_in():
+            platform.logout()
+
+    @staticmethod
+    def logged_in(session_access_token: str):
+        """
+        Return True if logged in OR if auth method is not OAUTH
+        """
+        if Dialer.RING_CENTRAL_AUTH_METHOD != 'OAUTH':
+            return True
+
+        if session_access_token is None:
+            return False
+
+        platform = Dialer.rcsdk.platform()
+        platform.auth().set_data(session_access_token)
+        return platform.logged_in()
 
     @staticmethod
     def dial(
@@ -24,7 +62,8 @@ class Dialer(object):
         username: str,
         extension: str,
         password: str,
-        play_prompt: bool = True
+        play_prompt: bool = True,
+        session_access_token: str = None
     ):
         """
         Dial a number on behalf of our user.
@@ -36,17 +75,21 @@ class Dialer(object):
             extension (str): Ringcentral extension for our user
             password (str): Ringcentral password for our user
             play_prompt (bool): Whether to prompt our user to press 1 before connecting the call (default=True)
+            session_access_token (str): Saved to sessoin when using OAuth vs. password authorization
 
         Returns:
             None
         """
+        if not Dialer.logged_in(session_access_token):
+            return {'success': False, 'message': 'Need to login to RingCentral', 'rc_login_needed': True}
+
         try:
-            step = "Instantiating SDK"
-            if Dialer.DEBUG:
-                print("Params:", Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
-            rcsdk = SDK(Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
+            # step = "Instantiating SDK"
+            # if Dialer.DEBUG:
+            #     print("Params:", Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
+            # rcsdk = SDK(Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
             step = "Instantiating Platform"
-            platform = rcsdk.platform()
+            platform = Dialer.rcsdk.platform()
             step = "Logging in to platform"
             if Dialer.DEBUG:
                 print("Params:", username, extension, password)
@@ -73,7 +116,8 @@ class Dialer(object):
         username: str,
         extension: str,
         password: str,
-        message: str
+        message: str,
+        session_access_token: str = None
     ):
         """
         Dial a number on behalf of our user.
@@ -85,17 +129,21 @@ class Dialer(object):
             extension (str): Ringcentral extension for our user
             password (str): Ringcentral password for our user
             message (text): Message text to send
+            session_access_token (str): Saved to sessoin when using OAuth vs. password authorization
 
         Returns:
             None
         """
+        if not Dialer.logged_in(session_access_token):
+            return {'success': False, 'message': 'Need to login to RingCentral', 'rc_login_needed': True}
+
         try:
-            step = "Instantiating SDK"
-            if Dialer.DEBUG:
-                print("Params:", Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
-            rcsdk = SDK(Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
+            # step = "Instantiating SDK"
+            # if Dialer.DEBUG:
+            #     print("Params:", Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
+            # rcsdk = SDK(Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
             step = "Instantiating Platform"
-            platform = rcsdk.platform()
+            platform = Dialer.rcsdk.platform()
             step = "Logging in to platform"
             if Dialer.DEBUG:
                 print("Params:", username, extension, password)
