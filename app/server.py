@@ -8,6 +8,7 @@ Copyright (c) 2020 by Thomas J. Daley, J.D.
 import os
 from flask import Flask, render_template, redirect, url_for
 from flask_session import Session
+from waitress import serve
 
 import settings  # NOQA
 import config # NOQA
@@ -56,4 +57,7 @@ if __name__ == "__main__":
     # tjd 06/28/2020
     # app.jinja_env.globals.update(_build_auth_url=_build_auth_url)
     port = int(os.environ.get('LISTEN_PORT', '8088'))
-    app.run(debug=DEBUG, port=port)
+    if DEBUG == 1:
+        app.run(debug=DEBUG, port=port)
+    else:
+        serve(app, host='0.0.0.0', port=port)
