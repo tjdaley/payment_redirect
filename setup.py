@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="attorneycrm-pkg-tjdaley",
-    version="0.0.1",
+    version="0.0.2",
     author="Thomas J. Daley, J.D.",
     author_email="tom@powerdaley.com",
     description="Attorney Client Relationship Management App",
