@@ -159,7 +159,7 @@ def show_user(user_id):
     return render_template('user.html', user=user, authorizations=authorizations, form=form)
 
 
-@admin_routes.route('/admin')
+@admin_routes.route('/admin')  # noqa
 @admin_routes.route("/clients", methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.is_admin_user
