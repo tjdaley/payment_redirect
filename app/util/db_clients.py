@@ -6,7 +6,7 @@ database.py - Class for access our persistent data store for clients.
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 from datetime import datetime
-import json
+import json  # noqa
 import os
 
 from pymongo import ASCENDING
@@ -120,7 +120,6 @@ class DbClients(Database):
         NOTE: if *fields* is missing 'active_flag', it will be set to 'N' (inactive).
         """
         doc = multidict2dict(fields)
-        # print(json.dumps(doc, indent=4))
         cleanup(doc)
 
         # Determine client name for status message

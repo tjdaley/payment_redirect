@@ -6,7 +6,7 @@ db_client_notes.py - Class for access our persistent data store for client notes
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 from datetime import datetime
-import json
+import json  # noqa
 from pymongo import ASCENDING
 from bson.objectid import ObjectId
 
@@ -91,7 +91,7 @@ class DbClientNotes(Database):
                 conditions.append({search_field: {'$regex': regex, '$options': 'i'}})
 
         where = {'$or': conditions}
-        print(json.dumps(where, indent=4))
+
         return self.get_list(
             email=email,
             clients_id=clients_id,

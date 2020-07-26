@@ -5,7 +5,7 @@ db_contacts.py - Class for access our persistent data store for contacts.
 @version 0.0.1
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
-import json
+import json  # noqa
 import os
 from pymongo import ASCENDING
 from bson.objectid import ObjectId
@@ -101,7 +101,7 @@ class DbContacts(Database):
                 conditions.append({search_field: {'$regex': regex, '$options': 'i'}})
 
         where = {'$or': conditions}
-        print(json.dumps(where, indent=4))
+
         return self.get_list(
             email=email,
             where=where,

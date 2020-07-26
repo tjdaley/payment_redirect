@@ -25,6 +25,8 @@ class Dialer(object):
 
     rcsdk = SDK(RING_CENTRAL_CLIENTID, RING_CENTRAL_CLIENTSECRET, RING_CENTRAL_SERVER)
 
+    LOGGER = get_logger('.dialer')
+
     @staticmethod
     def get_oauth_tokens(auth_code: str, redirect_url: str):
         """
@@ -94,7 +96,7 @@ class Dialer(object):
             platform = Dialer.rcsdk.platform()
             step = "Logging in to platform"
             if Dialer.DEBUG:
-                print("Params:", username, extension, password)
+                Dialer.LOGGER.debug("Params: Username=%s  x=%s  pwd=%s", username, extension, password)
             if Dialer.RING_CENTRAL_AUTH_METHOD != 'OAUTH':
                 platform.login(username, extension, password)
             # else:
@@ -109,7 +111,7 @@ class Dialer(object):
                 }
             )
             if Dialer.DEBUG:
-                print("RESPONSE:", json.dumps(response.json_dict(), indent=4))
+                Dialer.LOGGER.debug("RESPONSE: %s", json.dumps(response.json_dict(), indent=4))
         except http.api_exception.ApiException as e:
             status = {'success': False, 'message': str(e), 'step': step, 'rc_login_needed': True}
             return status
@@ -152,7 +154,7 @@ class Dialer(object):
             platform = Dialer.rcsdk.platform()
             step = "Logging in to platform"
             if Dialer.DEBUG:
-                print("Params:", username, extension, password)
+                Dialer.LOGGER.debug("Params: Username=%s  x=%s  pwd=%s", username, extension, password)
             if Dialer.RING_CENTRAL_AUTH_METHOD != 'OAUTH':
                 platform.login(username, extension, password)
             # else:
@@ -167,7 +169,7 @@ class Dialer(object):
                 }
             )
             if Dialer.DEBUG:
-                print("RESPONSE:", json.dumps(response.json_dict(), indent=4))
+                Dialer.LOGGER.debug("RESPONSE: %s", json.dumps(response.json_dict(), indent=4))
         except http.api_exception.ApiException as e:
             status = {'success': False, 'message': str(e), 'step': step, 'rc_login_needed': True}
             return status

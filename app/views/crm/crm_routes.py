@@ -33,8 +33,6 @@ CourtDirectory.process()
 DIRECTORY = CourtDirectory()
 
 crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
-print("Blueprint root path:", crm_routes.root_path)
-print("Template path:", crm_routes.template_folder)
 
 
 @crm_routes.route('/crm/contacts', methods=['GET'])
@@ -88,9 +86,6 @@ def save_contact():
 
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    if form.errors:
-        for key, value in form.errors.items():
-            print(key, value)
     return render_template('/crm/client.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
@@ -173,9 +168,6 @@ def save_client():
 
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    if form.errors:
-        for key, value in form.errors.items():
-            print(key, value)
     return render_template('/crm/client.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
@@ -217,7 +209,6 @@ def dial_number(to_number):
     )
     if response.get('rc_login_needed', False):
         response['redirect'] = url_for('admin_routes.ring_central_login')
-    print(json.dumps(response, indent=4))
     return jsonify(response)
 
 
@@ -239,7 +230,6 @@ def send_sms_message(to_number, message):
     )
     if response.get('rc_login_needed', False):
         response['redirect'] = url_for('admin_routes.ring_central_login')
-    print(json.dumps(response, indent=4))
     return jsonify(response)
 
 
