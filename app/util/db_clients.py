@@ -14,7 +14,7 @@ from bson.objectid import ObjectId
 
 import pandas as pd
 
-from util.database import Database, multidict2dict, csv_to_list, str_to_dollars, set_missing_flags
+from util.database import Database, multidict2dict, csv_to_list, str_to_dollars, set_missing_flags, normalize_telephone_number
 
 COLLECTION_NAME = 'clients'
 
@@ -120,32 +120,14 @@ class DbClients(Database):
         NOTE: if *fields* is missing 'active_flag', it will be set to 'N' (inactive).
         """
         doc = multidict2dict(fields)
-        print(json.dumps(doc, indent=4))
-        csv_to_list(doc, ['attorney_initials', 'admin_users'])
-
-        # Make sure we have the correct check digit
-        if 'client_ssn' in doc and 'client_dl' in doc:
-            doc['check_digit'] = correct_check_digit(doc['client_ssn'], doc['client_dl'])
-
-        # Clean up dollar amount strings and convert them to numbers
-        dollar_fields = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger', 'trust_balance', 'orig_trust_balance']
-        str_to_dollars(doc, dollar_fields)
-
-        # Set the trust balance update date/time
-        if 'trust_balance' in doc and 'orig_trust_balance' in doc and doc['trust_balance'] != doc['orig_trust_balance']:
-            doc['trust_balance_update'] = datetime.now()
-        if 'orig_trust_balance' in doc:
-            del doc['orig_trust_balance']
+        # print(json.dumps(doc, indent=4))
+        cleanup(doc)
 
         # Determine client name for status message
         if 'client_name' in doc:
             client_name = doc['client_name']
         else:
             client_name = 'Client'
-
-        # Fix the flags
-        flag_fields = ['trial_retainer_flag', 'mediation_retainer_flag']
-        set_missing_flags(doc, flag_fields)
 
         # Insert new client record
         if doc['_id'] == '0':
@@ -208,3 +190,39 @@ def clients_to_dataframe(documents: dict):
         series_obj = pd.Series(client, name=client_id)
         clients = clients.append(series_obj)
     return clients
+
+
+def cleanup(doc: dict):
+    """
+    Clean up some fields before saving.
+    """
+    # Convert the fields that are CSV to the user but lists in the database
+    csv_to_list(doc, ['attorney_initials', 'admin_users'])
+
+    # Make sure we have the correct check digit
+    if 'client_ssn' in doc and 'client_dl' in doc:
+        doc['check_digit'] = correct_check_digit(doc['client_ssn'], doc['client_dl'])
+
+    # Clean up dollar amount strings and convert them to numbers
+    dollar_fields = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger', 'trust_balance', 'orig_trust_balance']
+    str_to_dollars(doc, dollar_fields)
+
+    # Normalize the emai address
+    if 'email' in doc:
+        doc['email'] = doc['email'].strip().lower()
+
+    # Normalize telephone numbers
+    phone_number_fields = ['telephone']
+    for field in phone_number_fields:
+        if field in doc:
+            doc[field] = normalize_telephone_number(doc[field])
+
+    # Set the trust balance update date/time
+    if 'trust_balance' in doc and 'orig_trust_balance' in doc and doc['trust_balance'] != doc['orig_trust_balance']:
+        doc['trust_balance_update'] = datetime.now()
+    if 'orig_trust_balance' in doc:
+        del doc['orig_trust_balance']
+
+    # Fix the flags
+    flag_fields = ['trial_retainer_flag', 'mediation_retainer_flag']
+    set_missing_flags(doc, flag_fields)

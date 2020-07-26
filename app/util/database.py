@@ -8,6 +8,7 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 import os
 import re
 
+import phonenumbers
 from pymongo import MongoClient
 
 from util.logger import get_logger
@@ -143,6 +144,43 @@ def set_missing_flags(doc: dict, flag_fields: list):
             doc[field] = 'Y'
         else:
             doc[field] = 'N'
+
+
+def normalize_telephone_number(telephone_number: str) -> str:
+    """
+    Create an international dialing string from a phone number.
+    User may have entered a phone number in any number of formats.
+    This method normalizes the telephone number formar for database
+    storage. The format used is E164.
+
+    Args:
+        telephone_number (str): Number to be cleaned up.
+    Returns:
+        (str): Normalized telephone number string
+    """
+    if not telephone_number:
+        return telephone_number
+
+    tn = None
+    try:
+        tn = phonenumbers.parse(telephone_number)
+    except Exception:
+        pass
+
+    # If parsing failed, try putting a country code in front of the number
+    # Assuming a US country code.
+    if tn is None:
+        try:
+            tn = phonenumbers.parse(f'+1{telephone_number}')
+        except Exception:
+            pass
+
+    # If parsing still failed, then send back the same string we received.
+    if tn is None:
+        return telephone_number
+
+    normalized_number = phonenumbers.format_number(tn, phonenumbers.PhoneNumberFormat.E164)
+    return normalized_number
 
 
 def do_upgrades():

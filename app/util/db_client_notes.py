@@ -1,38 +1,30 @@
 """
-db_contacts.py - Class for access our persistent data store for contacts.
+db_client_notes.py - Class for access our persistent data store for client notes.
 
 @author Thomas J. Daley, J.D.
 @version 0.0.1
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
+from datetime import datetime
 import json
-import os
 from pymongo import ASCENDING
 from bson.objectid import ObjectId
 
-from util.logger import get_logger
-from util.database import Database, normalize_telephone_number
-try:
-    DB_URL = os.environ["DB_URL"]
-except KeyError as e:
-    get_logger('db_admins').fatal(
-            "Database connection string environment variable is not set: %s",
-            str(e))
-    exit()
+from util.database import Database
 
-COLLECTION_NAME = 'contacts'
+COLLECTION_NAME = 'notes'
 
 
-class DbContacts(Database):
+class DbClientNotes(Database):
     """
-    Encapsulates a database accessor for contacts
+    Encapsulates a database accessor for client notes
     """
     def get_one(self, id: str) -> dict:
         """
-        Return a contact record given an ID.
+        Return a notes record given an ID.
 
         Args:
-            id (str): The mongodb ID of the contact to retrieve
+            id (str): The mongodb ID of the note document to retrieve
         Returns:
             (dict): The located document or None
         """
@@ -40,27 +32,33 @@ class DbContacts(Database):
         document = self.dbconn[COLLECTION_NAME].find_one(filter_)
         return document
 
-    def get_list(self, email: str, where: dict = {}, page_num: int = 1, page_size: int = 25) -> list:
+    def get_list(self, email: str, clients_id: str, where: dict = {}, page_num: int = 1, page_size: int = 25) -> list:
         """
-        Retrieve a list of contacts viewable by this admin user.
+        Retrieve a list of notes viewable by this admin user.
         This method supports pagination.
 
         Args:
             email (str): Email address of admin user.
+            clients_id (str): ID of client for whom to retrieve notes
             where (dict): Filter
             page_num (int): Which page number is going to be displayed? (default=1)
             page_size (int): Number of documents per page (default=25)
         Returns:
-            (list): List of documents from 'contacts' or None
+            (list): List of documents from 'notes' or None
         """
 
         skips = page_size * (page_num - 1)
 
         order_by = [
-            ('name.last_name', ASCENDING),
-            ('name.first_name', ASCENDING),
-            ('organization', ASCENDING)
+            ('created_date', ASCENDING)
         ]
+
+        where = {
+            '$and': [
+                where,
+                {'client_id': ObjectId(clients_id)}
+            ]
+        }
 
         contacts = self.dbconn[COLLECTION_NAME].find(where).sort(order_by).skip(skips).limit(page_size)
 
@@ -69,12 +67,13 @@ class DbContacts(Database):
 
         return list(contacts)
 
-    def search(self, email: str, query: str, page_num: int = 1, page_size: int = 25) -> list:
+    def search(self, email: str, clients_id: str, query: str, page_num: int = 1, page_size: int = 25) -> list:
         """
-        Search for contacts matching the words in *query*.
+        Search for notes matching the words in *query*.
 
         Args:
             email (str): Email of user performing the search.
+            clients_id (str): ID of client for whom to retrieve notes
             query (str): Query string from user
             page_num (int): Which page number is going to be displayed? (default=1)
             page_size (int): Number of documents per page (default=25)
@@ -82,17 +81,8 @@ class DbContacts(Database):
             (list): List of docs or None
         """
         search_fields = [
-            'name.first_name',
-            'name.last_name',
-            'name.middle_name',
-            'name.suffix',
-            'organization',
-            'job_title',
-            'email',
-            'office_phone',
-            'cell_phone',
-            'address.street',
-            'address.city']
+            'text',
+            'tags']
         search_words = query.split()
         conditions = []
         for search_field in search_fields:
@@ -104,6 +94,7 @@ class DbContacts(Database):
         print(json.dumps(where, indent=4))
         return self.get_list(
             email=email,
+            clients_id=clients_id,
             where=where,
             page_num=page_num,
             page_size=page_size
@@ -111,31 +102,23 @@ class DbContacts(Database):
 
     def save(self, email: str, doc: dict) -> dict:
         """
-        Save a contact record
+        Save a notes record
         """
-        # Determine client name for status message
-        contact_name = f"{doc['name']['first_name']} {doc['name']['middle_name']} {doc['name']['last_name']} {doc['name']['suffix']}"
-        contact_name = ' '.join(contact_name.split())
-
-        # Cleanup telephone numbers
-        phone_number_fields = ['office_phone', 'cell_phone', 'fax']
-        for field in phone_number_fields:
-            if field in doc:
-                doc[field] = normalize_telephone_number(doc[field])
-
-        # Cleanup email
-        if 'email' in doc:
-            doc['email'] = doc['email'].strip().lower()
+        doc['clients_id'] = ObjectId(doc['clients_id'])
+        doc['last_editor'] = email
+        doc['last_edit_date'] = datetime.now()
 
         # Insert new contact record
         if doc['_id'] == '0':
             del doc['_id']
+            doc['created_by'] = email
+            doc['created_date'] = datetime.now()
 
             result = self.dbconn[COLLECTION_NAME].insert_one(doc)
             if result.inserted_id:
-                message = f"Contact record added for {contact_name}"
+                message = "Note added"
                 return {'success': True, 'message': message}
-            message = "Failed to add new contact record"
+            message = "Failed to add new note"
             return {'success': False, 'message': message}
 
         # Update existing contact record
@@ -143,8 +126,8 @@ class DbContacts(Database):
         del doc['_id']
         result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
         if result.modified_count == 1:
-            message = f"{contact_name}'s record updated"
+            message = "Note updated"
             return {'success': True, 'message': message}
 
-        message = f"No updates applied to {contact_name}'s record ({result.modified_count})"
+        message = f"Note did not update ({result.modified_count})"
         return {'success': False, 'message': message}

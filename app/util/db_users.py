@@ -8,8 +8,9 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 from pymongo import ASCENDING
 from bson.objectid import ObjectId
 
-from util.database import Database, multidict2dict, set_missing_flags
+from util.database import Database, multidict2dict, set_missing_flags, normalize_telephone_number
 from util.db_admins import DbAdmins
+from util.logger import get_logger
 
 
 COLLECTION_NAME = 'admins'
@@ -84,11 +85,21 @@ class DbUsers(Database):
         """
         doc = multidict2dict(fields)
 
-        # Determine client name for status message
+        # Determine user's name for status message
         if 'first_name' in doc:
-            client_name = doc['first_name']
+            user_name = doc['first_name']
         else:
-            client_name = 'User'
+            user_name = 'User'
+
+        # Clean up fields
+        try:
+            if 'email' in doc:
+                doc['email'] = doc['email'].strip().lower()
+            if 'ring_central_username' in doc:
+                doc['ring_central_username'] = normalize_telephone_number(doc['ring_central_username'])
+        except Exception as e:
+            get_logger('.database.users').warn("Error during clean up: %s", str(e))
+            get_logger('.database.users').exception(e)
 
         # Insert new admin record
         if doc['_id'] == '0':
@@ -100,7 +111,7 @@ class DbUsers(Database):
 
             result = self.dbconn[COLLECTION_NAME].insert_one(doc)
             if result.inserted_id:
-                message = f"User record added for {client_name}"
+                message = f"User record added for {user_name}"
                 return {'success': True, 'message': message}
             message = "Failed to add new user record"
             return {'success': False, 'message': message}
@@ -111,8 +122,8 @@ class DbUsers(Database):
         doc['active_flag'] = 'Y'
         result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
         if result.modified_count == 1:
-            message = f"{client_name}'s record updated"
+            message = f"{user_name}'s record updated"
             return {'success': True, 'message': message}
 
-        message = f"{client_name}'s record did not update ({result.modified_count})"
+        message = f"No updates applied to {user_name}'s record ({result.modified_count})"
         return {'success': False, 'message': message}
