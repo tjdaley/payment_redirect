@@ -144,7 +144,17 @@
     }
 
     function dial(to_number) {
-        jQuery.get('/crm/util/dial/' + to_number + '/');
+        jQuery.get(
+            '/crm/util/dial/' + to_number + '/',
+            function (data) {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return false;
+                }
+                if (!data.success) {
+                    alert(data.message);
+                }
+            });
     }
 
     function send_message() {
@@ -154,6 +164,10 @@
         jQuery.get(
             '/crm/util/send_message/' + telephone + '/' + message + '/',
             function (data) {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return false;
+                }
                 $('#message-result').html(data.message);
                 $('#message-text').val('');
             });

@@ -81,7 +81,9 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="smsModalLabel">Send Text Message</h5>
+                <div class="modal-title" id="smsModalLabel">
+                    <h5 class="main-title">Send Text Message</h5>
+                </div>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -97,6 +99,7 @@
                         <textarea class="form-control" id="message-text" rows="5"></textarea>
                     </div>
                     <div class="alert alert-primary" id="message-result"></div>
+                    <p class="alert alert-warning">Your Direct Dial Telephone Number Will Be Revealed</p>
                 </form>
             </div>
             <div class="modal-footer">
@@ -121,7 +124,7 @@
             var recipient = button.data('name');
             var telephone = button.data('telephone');
             var modal = $(this);
-            modal.find('.modal-title').text('Send Message to ' + recipient);
+            modal.find('.main-title').text('Send Message to ' + recipient);
             modal.find('.modal-body input').val(telephone);
             modal.find('.modal-body textarea').val('');
             $('#message-result').html('');
@@ -130,8 +133,19 @@
     }
 
     function dial(to_number) {
-        jQuery.get('/crm/util/dial/' + to_number + '/');
+        jQuery.get(
+            '/crm/util/dial/' + to_number + '/',
+            function (data) {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return false;
+                }
+                if (!data.success) {
+                    alert(data.message);
+                }
+            });
     }
+
     function send_message() {
         var telephone = encodeURIComponent($('#recipient-telephone').val());
         var message = encodeURIComponent($('#message-text').val());
@@ -139,6 +153,10 @@
         jQuery.get(
             '/crm/util/send_message/' + telephone + '/' + message + '/',
             function(data){
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return false;
+                }
                 $('#message-result').html(data.message);
                 $('#message-text').val('');
             });

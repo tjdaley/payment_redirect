@@ -44,12 +44,15 @@
                 <div class="form-row">
                     <div class="form-group col-md">
                         {{render_field(form.ring_central_username, class_="form-control", value=user.ring_central_username)}}
+                        <small class="text-muted">This is your direct dial phone number, not the main office number.</small>
                     </div>
                     <div class="form-group col-md">
                         {{render_field(form.ring_central_extension, class_="form-control", value=user.ring_central_extension)}}
+                        <small class="text-muted">Usually left blank</small>
                     </div>
                     <div class="form-group col-md">
                         {{render_field(form.ring_central_password, class_="form-control", value=user.ring_central_password)}}
+                        <small class="text-muted">Password for logging into RingCentral Office or AT&T Office At Hand</small>
                     </div>
                     <div class="form-group col-md">
                         {% if user.active_flag == 'Y' %}

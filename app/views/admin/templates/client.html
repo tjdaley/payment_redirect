@@ -62,6 +62,11 @@
                 <div class="form-row">
                     <div class="form-group col-md">
                         {{render_field(form.trust_balance, class_="form-control", value=client.trust_balance)}}
+                        {% if 'trust_balance_update' in client %}
+                        <small>
+                            Last updated {{client.trust_balance_update}}
+                        </small>
+                        {% endif %}
                     </div>
                     <div class="form-group col-md">
                         {{render_field(form.unbilled_fees, class_="form-control", value=client.unbilled_fees)}}
