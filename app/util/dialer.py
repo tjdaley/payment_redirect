@@ -5,7 +5,6 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 import json
 import os
-import time
 from ringcentral import SDK, http
 from util.logger import get_logger
 
@@ -159,16 +158,14 @@ class Dialer(object):
             # else:
             #    platform.auth().set_data(session_access_token)
             step = "Connecting to Rint-Out End Point"
-            for i in range(25):
-                response = platform.post(
-                    Dialer.SMS_ENDPOINT,
-                    {
-                        'from': {'phoneNumber': username},
-                        'to': [{'phoneNumber': to_number}],
-                        'text': f"{message} # {str(i)}"
-                    }
-                )
-                time.sleep(6)
+            response = platform.post(
+                Dialer.SMS_ENDPOINT,
+                {
+                    'from': {'phoneNumber': username},
+                    'to': [{'phoneNumber': to_number}],
+                    'text': message
+                }
+            )
             if Dialer.DEBUG:
                 print("RESPONSE:", json.dumps(response.json_dict(), indent=4))
         except http.api_exception.ApiException as e:
