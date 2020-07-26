@@ -5,6 +5,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
+import json
 import random
 import os
 
@@ -190,9 +191,9 @@ def show_client(id):
 
     form.address.state.data = client.get('address', {}).get('state', None)
     form.case_county.data = client.get('case_county', None)
-    form.court_type.choices = DIRECTORY.get_court_type_tuples(client['case_county'])
+    form.court_type.choices = DIRECTORY.get_court_type_tuples(client.get('case_county'))
     form.court_type.data = client.get('court_type', None)
-    form.court_name.choices = DIRECTORY.get_court_tuples(client['case_county'], client['court_type'])
+    form.court_name.choices = DIRECTORY.get_court_tuples(client.get('case_county'), client.get('court_type'))
     form.court_name.data = client.get('court_name', None)
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
@@ -205,15 +206,18 @@ def show_client(id):
 def dial_number(to_number):
     user_email = session['user']['preferred_username']
     user = DBADMINS.admin_record(user_email)
+    token = session.get(Dialer.RING_CENTRAL_SESSION_KEY, None)
     response = Dialer.dial(
         user['ring_central_username'],
         to_number,
         user['ring_central_username'],
         user['ring_central_extension'],
-        user['ring_central_password']
+        user['ring_central_password'],
+        session_access_token=token
     )
     if response.get('rc_login_needed', False):
-        return redirect(url_for('admin_routes.ring_central_login'))
+        response['redirect'] = url_for('admin_routes.ring_central_login')
+    print(json.dumps(response, indent=4))
     return jsonify(response)
 
 
@@ -223,16 +227,19 @@ def dial_number(to_number):
 def send_sms_message(to_number, message):
     user_email = session['user']['preferred_username']
     user = DBADMINS.admin_record(user_email)
+    token = session.get(Dialer.RING_CENTRAL_SESSION_KEY, None)
     response = Dialer.message(
         user['ring_central_username'],
         to_number,
         user['ring_central_username'],
         user['ring_central_extension'],
         user['ring_central_password'],
-        message
+        message,
+        session_access_token=token
     )
     if response.get('rc_login_needed', False):
-        return redirect(url_for('admin_routes.ring_central_login'))
+        response['redirect'] = url_for('admin_routes.ring_central_login')
+    print(json.dumps(response, indent=4))
     return jsonify(response)
 
 

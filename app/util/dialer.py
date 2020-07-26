@@ -5,7 +5,9 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 import json
 import os
-from ringcentral import SDK
+import time
+from ringcentral import SDK, http
+from util.logger import get_logger
 
 
 class Dialer(object):
@@ -14,6 +16,10 @@ class Dialer(object):
     RING_CENTRAL_CLIENTSECRET = os.environ.get('RING_CENTRAL_CLIENTSECRET')
     RING_CENTRAL_SERVER = os.environ.get('RING_CENTRAL_SERVER')
     RING_CENTRAL_AUTH_METHOD = os.environ.get('RING_CENTRAL_AUTH_METHOD', 'password')
+
+    # Index into session where we'll find the RingCentral access token from OAuth
+    RING_CENTRAL_SESSION_KEY = os.environ.get('RING_CENTRAL_ACESS_TOKEN_SESSION_KEY', 'rcSessionAccessToken')
+    RING_CENTRAL_AUTH_KEY = os.environ.get('RING_CENTRAL_AUTH_CODE_KEY', 'rcAuthCode')
 
     RING_OUT_ENDPOINT = '/restapi/v1.0/account/~/extension/~/ring-out'
     SMS_ENDPOINT = '/restapi/v1.0/account/~/extension/~/sms'
@@ -53,6 +59,7 @@ class Dialer(object):
 
         platform = Dialer.rcsdk.platform()
         platform.auth().set_data(session_access_token)
+
         return platform.logged_in()
 
     @staticmethod
@@ -84,17 +91,16 @@ class Dialer(object):
             return {'success': False, 'message': 'Need to login to RingCentral', 'rc_login_needed': True}
 
         try:
-            # step = "Instantiating SDK"
-            # if Dialer.DEBUG:
-            #     print("Params:", Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
-            # rcsdk = SDK(Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
             step = "Instantiating Platform"
             platform = Dialer.rcsdk.platform()
             step = "Logging in to platform"
             if Dialer.DEBUG:
                 print("Params:", username, extension, password)
-            platform.login(username, extension, password)
-            step = "Connecting to Rint-Out End Point"
+            if Dialer.RING_CENTRAL_AUTH_METHOD != 'OAUTH':
+                platform.login(username, extension, password)
+            # else:
+            #    platform.auth().set_data(session_access_token)
+            step = "Connecting to Ring-Out End Point"
             response = platform.post(
                 Dialer.RING_OUT_ENDPOINT,
                 {
@@ -105,8 +111,13 @@ class Dialer(object):
             )
             if Dialer.DEBUG:
                 print("RESPONSE:", json.dumps(response.json_dict(), indent=4))
+        except http.api_exception.ApiException as e:
+            status = {'success': False, 'message': str(e), 'step': step, 'rc_login_needed': True}
+            return status
         except Exception as e:
-            return {'success': False, 'message': str(e), 'step': step}
+            status = {'success': False, 'message': str(e), 'step': step}
+            get_logger('.dialer.dial').exception(e)
+            return status
         return {'success': True, 'message': "Call in progress"}
 
     @staticmethod
@@ -129,7 +140,7 @@ class Dialer(object):
             extension (str): Ringcentral extension for our user
             password (str): Ringcentral password for our user
             message (text): Message text to send
-            session_access_token (str): Saved to sessoin when using OAuth vs. password authorization
+            session_access_token (str): Saved to session when using OAuth vs. password authorization
 
         Returns:
             None
@@ -138,27 +149,33 @@ class Dialer(object):
             return {'success': False, 'message': 'Need to login to RingCentral', 'rc_login_needed': True}
 
         try:
-            # step = "Instantiating SDK"
-            # if Dialer.DEBUG:
-            #     print("Params:", Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
-            # rcsdk = SDK(Dialer.RING_CENTRAL_CLIENTID, Dialer.RING_CENTRAL_CLIENTSECRET, Dialer.RING_CENTRAL_SERVER)
             step = "Instantiating Platform"
             platform = Dialer.rcsdk.platform()
             step = "Logging in to platform"
             if Dialer.DEBUG:
                 print("Params:", username, extension, password)
-            platform.login(username, extension, password)
+            if Dialer.RING_CENTRAL_AUTH_METHOD != 'OAUTH':
+                platform.login(username, extension, password)
+            # else:
+            #    platform.auth().set_data(session_access_token)
             step = "Connecting to Rint-Out End Point"
-            response = platform.post(
-                Dialer.SMS_ENDPOINT,
-                {
-                    'from': {'phoneNumber': username},
-                    'to': [{'phoneNumber': to_number}],
-                    'text': message
-                }
-            )
+            for i in range(25):
+                response = platform.post(
+                    Dialer.SMS_ENDPOINT,
+                    {
+                        'from': {'phoneNumber': username},
+                        'to': [{'phoneNumber': to_number}],
+                        'text': f"{message} # {str(i)}"
+                    }
+                )
+                time.sleep(6)
             if Dialer.DEBUG:
                 print("RESPONSE:", json.dumps(response.json_dict(), indent=4))
+        except http.api_exception.ApiException as e:
+            status = {'success': False, 'message': str(e), 'step': step, 'rc_login_needed': True}
+            return status
         except Exception as e:
-            return {'success': False, 'message': str(e), 'step': step}
+            status = {'success': False, 'message': str(e), 'step': step}
+            get_logger('.dialer.message').exception(e)
+            return status
         return {'success': True, 'message': "Message sent"}

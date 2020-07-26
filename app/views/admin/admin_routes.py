@@ -288,9 +288,10 @@ def ring_central_login():
     if base_url is None:
         flash('RING_CENTRAL_SERVER is not defined', 'danger')
         return redirect(url_for('admin_routes.list_clients'))
+    base_url += '/restapi/oauth/authorize'
     params = (
-        ('resposne_type', 'code'),
-        ('redirect_url', url_for('admin_routes.ring_central_authorized')),
+        ('response_type', 'code'),
+        ('redirect_url', os.environ.get('RING_CENTRAL_REDIRECT_PATH')),
         ('client_id', os.environ.get('RING_CENTRAL_CLIENTID')),
         ('state', 'initialState')
     )
@@ -301,21 +302,21 @@ def ring_central_login():
 
 
 # OAuth Redirect for RingCentral's Identity Service
-@admin_routes.route('/rcoath2callback')
+@admin_routes.route('/rcoauth2callback', methods=['GET'])
 def ring_central_authorized():
     auth_code = request.values.get('code')
-    redirect_url = url_for('admin_routes.ring_central_authorized')
+    redirect_url = os.environ.get('RING_CENTRAL_REDIRECT_PATH')
     tokens = Dialer.get_oauth_tokens(auth_code, redirect_url)
-    session['rcSessionAccessToken'] = tokens
-    return redirect(url_for('admin_routes.list_clients'))
+    session[Dialer.RING_CENTRAL_SESSION_KEY] = tokens
+    return redirect(url_for('crm_routes.list_clients'))
 
 
 # OAuth Logout for RingCentral's Identity Service
 @admin_routes.route('/rclogout')
 def ring_central_logout():
-    token = session['rcSessionAccessToken']
+    token = session[Dialer.RING_CENTRAL_SESSION_KEY]
     Dialer.logout(token)
-    return redirect(url_for('admin_routes.list_clients'))
+    return redirect(url_for('crm_routes.list_clients'))
 
 
 # Login Route for Microsoft's Identity service
