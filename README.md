@@ -24,6 +24,20 @@ redirected to a payment URL with the amount pre-filled.
 ## Installation
 ```
 git clone https://github.com/tjdaley/payment_redirect
+python3 -m venv env
+./env/bin/activate
+pip3 install -r requirements.txt
+```
+
+After the installtion scripts run, you'll need to create ```.env``` in the ```app``` folder:
+```
+$ cd app
+$ vi .env
+```
+
+## Startup
+```python
+python3 server.py
 ```
 
 ## Implemented Utilities
@@ -33,6 +47,11 @@ git clone https://github.com/tjdaley/payment_redirect
 Authenticates an administrative user and let's the user CRUD client
 records including payment due amount and date. Authentication is
 performed through Microsoft's identity provider service API.
+
+### /crm
+
+A client relationship management view of the database, with RingCentral integration
+for SMS messaging and phone calls and Amazon SES integration for bulk email.
 
 ### /pay
 
