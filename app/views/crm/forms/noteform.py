@@ -17,6 +17,12 @@ class NoteForm(Form):
     clients_id = HiddenField(
         "Client ID"
     )
+    create_date = HiddenField(
+        "Date"
+    )
+    created_by = HiddenField(
+        "Created by"
+    )
     _id = HiddenField(
         "Note ID"
     )
