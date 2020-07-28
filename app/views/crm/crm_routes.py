@@ -5,7 +5,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
-import json
+import json  # noqa
 import random
 import os
 
@@ -153,7 +153,7 @@ def add_client():
 @DECORATORS.auth_crm_user
 def save_client():
     form = ClientForm(request.form)
-    fields = multidict2dict(request.form)
+    fields = multidict2dict(request.form, ClientForm.get())
 
     if form.validate():
         user_email = session['user']['preferred_username']
@@ -190,6 +190,67 @@ def show_client(id):
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
     return render_template('crm/client.html', client=client, notes=notes, authorizations=authorizations, form=form, our_pay_url=our_pay_url)
+
+
+@crm_routes.route('/crm/notes/add/', methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def add_note():
+    fields = multidict2dict(request.form)
+    client_id = fields.get('clients_id', None)
+    client = DBCLIENTS.get_one(client_id)
+    print(client)
+    if not client:
+        return jsonify({'success': False, 'message': 'Invalid Client ID'})
+
+    user_email = session['user']['preferred_username']
+    fields['created_by'] = user_email
+    result = DBNOTES.save(user_email, fields)
+    return jsonify(result)
+
+
+@crm_routes.route('/crm/notes/search/<int:page_num>/', methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def search_notes(page_num: int = 1):
+    user_email = session['user']['preferred_username']
+    query = request.form.get('query', None)
+    clients_id = request.form.get('clients_id', None)
+    client_name = DBCLIENTS.get_client_name(clients_id)
+    if query:
+        notes = DBNOTES.search(user_email, clients_id, query, page_num)
+    else:
+        notes = DBNOTES.get_list(user_email, clients_id, page_num=page_num)
+    authorizations = _get_authorizations(user_email)
+    return render_template(
+        'crm/notes.html',
+        notes=notes,
+        client_id=clients_id,
+        client_name=client_name,
+        prev_page_num=page_num - 1,
+        next_page_num=page_num + 1,
+        authorizations=authorizations
+    )
+
+
+@crm_routes.route('/crm/notes/<string:clients_id>/', methods=['GET'])
+@crm_routes.route('/crm/notes/<string:clients_id>/<int:page_num>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def show_notes(clients_id, page_num: int = 1):
+    user_email = session['user']['preferred_username']
+    notes = DBNOTES.get_list(user_email, clients_id, page_num=page_num)
+    client_name = DBCLIENTS.get_client_name(clients_id)
+    authorizations = _get_authorizations(user_email)
+    return render_template(
+        'crm/notes.html',
+        notes=notes,
+        client_id=clients_id,
+        client_name=client_name,
+        prev_page_num=page_num - 1,
+        next_page_num=page_num + 1,
+        authorizations=authorizations
+    )
 
 
 @crm_routes.route('/crm/util/dial/<string:to_number>/', methods=['GET'])
@@ -313,6 +374,24 @@ def _get_day_time():
 
 
 def _update_compound_fields(fields, field_list):
+    """
+    Compound fields are represented in the request as field names with dashes in the middle.
+    For example, name-first_name and name-last_name suggest a structure like this:
+
+        {'name': {'first_name': None, 'last_name': None}}
+
+    This method reorganizes these compound names into compound fields. Thus:
+
+        {'name-first_name': 'Tom', 'name-last_name': 'Daley'}
+
+    becomes:
+
+        {'name': {'first_name': 'Tom', 'last_name': 'Daley'}}
+
+    Args:
+        fields (dict): The document object we're working with.
+        field_list (list): The prefixes we're looking for, e.g. ['name']
+    """
     new_fields = {f: {} for f in field_list}
     del_fields = []
 
