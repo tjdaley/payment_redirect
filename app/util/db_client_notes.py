@@ -7,7 +7,7 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 from datetime import datetime
 import json  # noqa
-from pymongo import ASCENDING
+from pymongo import ASCENDING, DESCENDING
 from bson.objectid import ObjectId
 
 from util.database import Database
@@ -32,7 +32,7 @@ class DbClientNotes(Database):
         document = self.dbconn[COLLECTION_NAME].find_one(filter_)
         return document
 
-    def get_list(self, email: str, clients_id: str, where: dict = {}, page_num: int = 1, page_size: int = 25) -> list:
+    def get_list(self, email: str, clients_id: str, where: dict = None, page_num: int = 1, page_size: int = 25) -> list:
         """
         Retrieve a list of notes viewable by this admin user.
         This method supports pagination.
@@ -50,17 +50,20 @@ class DbClientNotes(Database):
         skips = page_size * (page_num - 1)
 
         order_by = [
-            ('created_date', ASCENDING)
+            ('created_date', DESCENDING)
         ]
 
-        where = {
-            '$and': [
-                where,
-                {'client_id': ObjectId(clients_id)}
-            ]
-        }
+        if where:
+            filter_ = {
+                '$and': [
+                    where,
+                    {'clients_id': ObjectId(clients_id)}
+                ]
+            }
+        else:
+            filter_ = {'clients_id': ObjectId(clients_id)}
 
-        contacts = self.dbconn[COLLECTION_NAME].find(where).sort(order_by).skip(skips).limit(page_size)
+        contacts = self.dbconn[COLLECTION_NAME].find(filter_).sort(order_by).skip(skips).limit(page_size)
 
         if not contacts:
             return None

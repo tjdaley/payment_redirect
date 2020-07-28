@@ -215,7 +215,7 @@ def add_note():
 def search_notes(page_num: int = 1):
     user_email = session['user']['preferred_username']
     query = request.form.get('query', None)
-    clients_id = request.form.get('clients_id', None)
+    clients_id = request.form.get('client-id', None)
     client_name = DBCLIENTS.get_client_name(clients_id)
     if query:
         notes = DBNOTES.search(user_email, clients_id, query, page_num)

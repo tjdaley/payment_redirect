@@ -17,8 +17,8 @@
     data-target="#noteModal"
     data-noteid="0"
 >ADD</button>
-<input type="hidden" id="client-id" value="{{client_id}}" />
 <form method='POST' action="{{url_for('crm_routes.search_notes', page_num=1)}}">
+    <input type="hidden" id="client-id" name="client-id" value="{{client_id}}" />
     <div class="input-group mb-3">
         <input type="search" class="form-control" id="search" name="query" />
         <div class="input-group-append">
