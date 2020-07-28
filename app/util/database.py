@@ -23,6 +23,11 @@ except KeyError as e:
 
 DB_NAME = 'payment_redirect'
 
+# Flag values for get_clients()
+MEDIATION_RETAINER_DUE = 'M'
+TRIAL_RETAINER_DUE = 'T'
+EVERGREEN_PAYMENT_DUE = 'E'
+
 
 class MissingFieldException(Exception):
     def __init__self(self, message: str):
