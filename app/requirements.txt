@@ -42,5 +42,6 @@ s3transfer==0.3.3
 six==1.15.0
 snowballstemmer==2.0.0
 urllib3==1.25.9
+waitress==1.4.4
 Werkzeug==1.0.1
 WTForms==2.3.1
