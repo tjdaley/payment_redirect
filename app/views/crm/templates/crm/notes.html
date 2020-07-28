@@ -1,0 +1,115 @@
+{% extends 'layout.html' %}
+{% block body %}
+<style>
+    .table-hover>tbody>tr>td.highlightable:hover{
+        background-color: #eedf0d!important;
+    }
+
+    .table-hover>tbody>tr:hover>td{
+        background-color: inherit;
+    }
+</style>
+<span class="h1 my-3">Notes for {{client_name}}</span>
+<button
+    role="button"
+    class="btn btn-primary btn-sm float-right my-3"
+    data-toggle="modal"
+    data-target="#noteModal"
+    data-noteid="0"
+>ADD</button>
+<input type="hidden" id="client-id" value="{{client_id}}" />
+<form method='POST' action="{{url_for('crm_routes.search_notes', page_num=1)}}">
+    <div class="input-group mb-3">
+        <input type="search" class="form-control" id="search" name="query" />
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary fa fa-search" type="submit"></button>
+        </div>
+    </div>
+</form>
+
+{% for note in notes %}
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">{{note.created_date}} ({{note.created_by}})</div>
+        <div class="card-body">
+            <div class="form-row">
+                <p>{{note.text}}</p>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+<div>
+    <span class="float-right">
+        <a {% if prev_page_num > 0 %} href="/crm/notes/{{client_id}}/{{prev_page_num}}/" class="btn btn-sm btn-primary" {% else %}
+            href="#" class="btn btn-sm btn-secondary" {% endif %}><i class="fa fa-caret-left" aria-hidden="true"></i>
+            Prev</a>
+        <a href="/crm/notes/{{client_id}}/{{next_page_num}}/" class="btn btn-sm btn-primary">Next <i class="fa fa-caret-right"
+                aria-hidden="true"></i></a>
+    </span>
+</div>
+
+<div class="modal fade" id="noteModal" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="noteModalLabel">
+                    <h5 class="main-title">Note</h5>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <input type="hidden" id="modal-note-id" />
+                    <div class="form-group">
+                        <label for="note-text" class="col-form-label">Note:</label>
+                        <textarea class="form-control" id="note-text" rows="5"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="note-tags" class="col-form-label">Tags:</label>
+                        <input type="text" class="form-control" id="note-tags">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="save_note()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', clients_init);
+
+    function clients_init() {
+        $('[data-tooltip~="tooltip"]').tooltip();
+
+        $('#noteModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered modal
+            var noteid = button.data('noteid');
+            var modal = $(this);
+            modal.find('.modal-body textarea').val('');
+            $('#modal-note-id').val(noteid);
+        }
+        );
+    }
+
+    function save_note() {
+        var text = $('#note-text').val();
+        var tags = $('#note-tags').val();
+        var client_id = $('#client-id').val();
+        var note_id = $('#modal-note-id').val();
+        var payload = {'text': text, 'tags': tags, 'clients_id': client_id, '_id': note_id};
+        jQuery.post(
+            '/crm/notes/add/',
+            payload,
+            function(data){
+                console.log(data);
+                if (!data.success) {alert(data.message)};
+                if (data.success) location.reload();
+            });
+    }
+</script>
+{% endblock %}
