@@ -76,7 +76,7 @@ class DbClients(Database):
         """
         Return the client list as a CSV string.
         """
-        documents = self.get_clients(email)
+        documents = self.get_list(email)
         clients = clients_to_dataframe(documents)
 
         # Drop columns that don't need to be downloaded
