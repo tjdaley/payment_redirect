@@ -77,10 +77,20 @@ class DbClients(Database):
         Return the client list as a CSV string.
         """
         documents = self.get_list(email)
+
+        # Break out compound fields into individual columns
+        for document in documents:
+            name = document.get('name', {})
+            for key, value in name.items():
+                document[key] = value
+            address = document.get('address', {})
+            for key, value in address.items():
+                document[key] = value
+
         clients = clients_to_dataframe(documents)
 
         # Drop columns that don't need to be downloaded
-        clients = clients.drop(columns=['_id', 'admin_users', 'check_digit', 'client_dl', 'client_ssn', 'active_flag'])
+        clients = clients.drop(columns=['_id', 'admin_users', 'check_digit', 'client_dl', 'client_ssn', 'active_flag', 'name', 'address', 'address1', 'client_name'])
 
         # Create and return CSV file.
         csv_export = clients.to_csv(sep=",")
