@@ -23,6 +23,31 @@ COURTESY_TITLES = [
 ]
 
 
+def field_list(class_) -> list:
+    x = class_()
+    attrs = dir(x)
+    members = [
+        attr for attr in attrs
+        if isinstance(getattr(x, attr), (BooleanField, SelectField, StringField, DateField, EmailField, TelField))
+    ]
+    return members
+
+
+def instance_dict(class_, depth: int = 0) -> dict:
+    x = class_()
+    attribute_names = dir(x)
+    result = {}
+    for attr_name in attribute_names:
+        if attr_name.startswith('_'):
+            continue
+        attr = getattr(x, attr_name)
+        if isinstance(attr, (BooleanField, SelectField, StringField, DateField, EmailField, TelField)):
+            result[attr_name] = None
+        elif isinstance(attr, (FormField)):
+            result[attr_name] = instance_dict(attr.form_class, depth+1)
+    return result
+
+
 class ContactName(Form):
     title = SelectField("Title", choices=COURTESY_TITLES)
     first_name = StringField("First name")
@@ -31,12 +56,20 @@ class ContactName(Form):
     suffix = StringField("Suffix")
     salutation = StringField("Salutation")
 
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
+
 
 class ContactAddress(Form):
     street = StringField("Street")
     city = StringField("City")
     state = SelectField("State", choices=US_STATES)
     postal_code = StringField("ZIP")
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
 
 
 class ContactForm(Form):
@@ -48,6 +81,10 @@ class ContactForm(Form):
     email = EmailField("Email")
     organization = StringField("Organization name")
     job_title = StringField("Job title")
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
 
 
 class ContactsForm(Form):
@@ -188,3 +225,7 @@ class ClientForm(Form):
         "Completed on",
         validators=[validators.Optional()]
     )
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
