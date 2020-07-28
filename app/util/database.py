@@ -103,12 +103,16 @@ class Database(object):
         return status
 
 
-def multidict2dict(d) -> dict:
+def multidict2dict(d, blank_dict: dict = None) -> dict:
     """
     Create a dict from the given multidict.
     We get multidicts from Flask and have to convert them
     to dicts to modify them here.
     """
+    if blank_dict:
+        for key, value in d.items():
+            blank_dict[key] = value
+        return blank_dict
     return {key: value for key, value in d.items()}
 
 
