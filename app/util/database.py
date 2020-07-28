@@ -22,15 +22,6 @@ except KeyError as e:
     exit()
 
 DB_NAME = 'payment_redirect'
-USER_TABLE = 'users'
-CLIENTS_TABLE = 'clients'
-CONTACTS_TABLE = 'contacts'
-ADMIN_TABLE = 'admins'
-
-# Flag values for get_clients()
-MEDIATION_RETAINER_DUE = 'M'
-TRIAL_RETAINER_DUE = 'T'
-EVERGREEN_PAYMENT_DUE = 'E'
 
 
 class MissingFieldException(Exception):
