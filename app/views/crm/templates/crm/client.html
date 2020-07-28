@@ -3,7 +3,7 @@
     <h1>{{operation}} Client {% if client._id != '0'%}: {{client.name.title}} {{client.name.first_name}} {{client.name.middle_name}} {{client.name.last_name}}
     {{client.name.suffix}}{% endif %}</h1>
     {% from 'includes/_formhelpers.html' import render_field %}
-    <form method='POST' action="/crm/client/save/">
+    <form method='POST' action="{{url_for('crm_routes.save_client')}}">
         <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
         <input type='hidden' name='orig_trust_balance' value='{{client.trust_balance}}'>
         <div class="form-row">
