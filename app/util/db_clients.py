@@ -114,6 +114,15 @@ class DbClients(Database):
         document = self.dbconn[COLLECTION_NAME].find_one(filter_)
         return document
 
+    def get_client_name(self, client_id) -> str:
+        """
+        Return a client name string.
+        """
+        client = self.get_one(client_id)
+        if client:
+            return " ".join(list(client['name'].values())[0:-1])
+        return None
+
     def save(self, fields, user_email) -> dict:
         """
         Save a client record, if the user is permitted to do so.
@@ -123,10 +132,7 @@ class DbClients(Database):
         cleanup(doc)
 
         # Determine client name for status message
-        if 'client_name' in doc:
-            client_name = doc['client_name']
-        else:
-            client_name = 'Client'
+        client_name = doc.get('name', {}).get('salutation', 'Client')
 
         # Insert new client record
         if doc['_id'] == '0':
@@ -206,7 +212,7 @@ def cleanup(doc: dict):
     dollar_fields = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger', 'trust_balance', 'orig_trust_balance']
     str_to_dollars(doc, dollar_fields)
 
-    # Normalize the emai address
+    # Normalize the email address
     if 'email' in doc:
         doc['email'] = doc['email'].strip().lower()
 
