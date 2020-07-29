@@ -28,7 +28,7 @@ class DbClients(Database):
     """
     Encapsulates a database accessor for clients
     """
-    def get_list(self, email: str, flag: str = None) -> list:
+    def get_list(self, email: str, flag: str = None, projection: dict = None) -> list:
         """
         Return a list of client records where the email provided
         is one of the admin_users of the client record.
@@ -39,6 +39,7 @@ class DbClients(Database):
                         'T' for clients to who a trial retainer
                         'E' for clients who just have an evergreen payment due
                         None for all clients
+            projection (dict): MongoDb projection (defaults to all doc cols)
         Returns:
             (list): Of client docs.
         """
@@ -69,7 +70,7 @@ class DbClients(Database):
             ('email', ASCENDING)
         ]
 
-        documents = list(self.dbconn[COLLECTION_NAME].find(filter_).sort(order_by))
+        documents = list(self.dbconn[COLLECTION_NAME].find(filter_, projection).sort(order_by))
         return documents
 
     def get_list_as_csv(self, email: str) -> str:
@@ -90,11 +91,27 @@ class DbClients(Database):
         clients = clients_to_dataframe(documents)
 
         # Drop columns that don't need to be downloaded
-        clients = clients.drop(columns=['_id', 'admin_users', 'check_digit', 'client_dl', 'client_ssn', 'active_flag', 'name', 'address', 'address1', 'client_name'])
+        clients = clients.drop(
+            columns=[
+                '_id', 'admin_users', 'check_digit', 'client_dl', 'client_ssn',
+                'active_flag', 'name', 'address', 'address1', 'client_name'
+            ])
 
         # Create and return CSV file.
         csv_export = clients.to_csv(sep=",")
         return csv_export
+
+    def get_id_name_list(self, email: str) -> str:
+        """
+        Return a list of clients as a list of tuples suitable
+        for populating a select box.
+        """
+        docs = self.get_list(email, projection={'_id': 1, 'name': 1, 'billing_id': 1})
+        clients = {}
+        for doc in docs:
+            cn_name = " ".join(list(doc['name'].values())[0:-1])
+            clients[str(doc['_id'])] = cn_name
+        return clients
 
     def get_one(self, client_id) -> dict:
         """
@@ -131,6 +148,22 @@ class DbClients(Database):
         client = self.get_one(client_id)
         if client:
             return " ".join(list(client['name'].values())[0:-1])
+        return None
+
+    def get_email_subject(self, client_id) -> str:
+        """
+        Return a standard string to use as an email subject.
+        """
+        client = self.get_one(client_id)
+        if client:
+            subj_name = client.get('name', {}).get('last_name', "")
+            subj_cause = client.get('cause_number', None)
+            if not subj_cause:
+                subj_cause = client.get('case_style', None)
+            if subj_cause:
+                subj_cause = f"({subj_cause})"
+            return f"{subj_name} {subj_cause}:"
+
         return None
 
     def save(self, fields, user_email) -> dict:

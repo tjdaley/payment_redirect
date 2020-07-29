@@ -40,7 +40,7 @@ class DbContacts(Database):
         document = self.dbconn[COLLECTION_NAME].find_one(filter_)
         return document
 
-    def get_list(self, email: str, where: dict = {}, page_num: int = 1, page_size: int = 25) -> list:
+    def get_list(self, email: str, where: dict = {}, page_num: int = 1, page_size: int = 25, client_id: str = None) -> list:
         """
         Retrieve a list of contacts viewable by this admin user.
         This method supports pagination.
@@ -50,6 +50,7 @@ class DbContacts(Database):
             where (dict): Filter
             page_num (int): Which page number is going to be displayed? (default=1)
             page_size (int): Number of documents per page (default=25)
+            client_id (str): If provided, will filter for this client_id
         Returns:
             (list): List of documents from 'contacts' or None
         """
@@ -62,6 +63,20 @@ class DbContacts(Database):
             ('organization', ASCENDING)
         ]
 
+        if where and client_id:
+            where = {
+                '$and': [
+                    where,
+                    {'linked_client_ids': {'$elemMatch': {'$eq': ObjectId(client_id)}}}
+                ]
+            }
+        elif where and not client_id:
+            pass
+        elif client_id and not where:
+            where = {'linked_client_ids': {'$elemMatch': {'$eq': ObjectId(client_id)}}}
+        else:
+            where = {}
+
         contacts = self.dbconn[COLLECTION_NAME].find(where).sort(order_by).skip(skips).limit(page_size)
 
         if not contacts:
@@ -69,15 +84,16 @@ class DbContacts(Database):
 
         return list(contacts)
 
-    def search(self, email: str, query: str, page_num: int = 1, page_size: int = 25) -> list:
+    def search(self, email: str, query: str, page_num: int = 1, page_size: int = 25, client_id: str = None) -> list:
         """
         Search for contacts matching the words in *query*.
 
         Args:
             email (str): Email of user performing the search.
-            query (str): Query string from user
+            query (str): Query string from user.
             page_num (int): Which page number is going to be displayed? (default=1)
             page_size (int): Number of documents per page (default=25)
+            client_id (str): If provided, filter for this one client.
         Returns:
             (list): List of docs or None
         """
@@ -106,7 +122,8 @@ class DbContacts(Database):
             email=email,
             where=where,
             page_num=page_num,
-            page_size=page_size
+            page_size=page_size,
+            client_id=client_id
         )
 
     def save(self, email: str, doc: dict) -> dict:
@@ -114,8 +131,11 @@ class DbContacts(Database):
         Save a contact record
         """
         # Determine client name for status message
-        contact_name = f"{doc['name']['first_name']} {doc['name']['middle_name']} {doc['name']['last_name']} {doc['name']['suffix']}"
-        contact_name = ' '.join(contact_name.split())
+        try:
+            contact_name = f"{doc['name']['first_name']} {doc['name']['middle_name']} {doc['name']['last_name']} {doc['name']['suffix']}"
+            contact_name = ' '.join(contact_name.split())
+        except Exception:
+            contact_name = "Contact"
 
         # Cleanup telephone numbers
         phone_number_fields = ['office_phone', 'cell_phone', 'fax']
@@ -130,6 +150,7 @@ class DbContacts(Database):
         # Insert new contact record
         if doc['_id'] == '0':
             del doc['_id']
+            doc['linked_client_ids'] = []
 
             result = self.dbconn[COLLECTION_NAME].insert_one(doc)
             if result.inserted_id:
@@ -148,3 +169,53 @@ class DbContacts(Database):
 
         message = f"No updates applied to {contact_name}'s record ({result.modified_count})"
         return {'success': False, 'message': message}
+
+    def link(self, email: str, client_id: str, contact_id: str):
+        """
+        Link a contact to a client.
+        """
+        contact = self.dbconn[COLLECTION_NAME].find({'_id': ObjectId(contact_id)})
+        if not contact:
+            return {'success': False, 'message': 'Could not find contact ID'}
+
+        new_doc = {}
+        if 'linked_client_ids' not in contact:
+            new_doc['linked_client_ids'] = []
+        else:
+            new_doc['linked_client_ids'] = contact['linked_client_ids']
+
+        cl_id = ObjectId(client_id)
+        if cl_id in new_doc['linked_client_ids']:
+            return {'success': True, 'message': 'Contact was already linked'}
+
+        new_doc['linked_client_ids'].append(cl_id)
+        new_doc['_id'] = contact_id
+        result = self.save(email, new_doc)
+        if result['success']:
+            result['message'] = 'Contact successfully linked'
+        return result
+
+    def unlink(self, email: str, client_id: str, contact_id: str):
+        """
+        Unlink a contact from a client.
+        """
+        contact = self.dbconn[COLLECTION_NAME].find({'_id': ObjectId(contact_id)})
+        if not contact:
+            return {'success': False, 'message': 'Could not find contact ID'}
+
+        new_doc = {}
+        if 'linked_client_ids' not in contact:
+            new_doc['linked_client_ids'] = []
+        else:
+            new_doc['linked_client_ids'] = contact['linked_client_ids']
+
+        cl_id = ObjectId(client_id)
+        if cl_id not in new_doc['linked_client_ids']:
+            return {'success': True, 'message': 'Contact was not linked'}
+
+        new_doc['linked_client_ids'].remove(cl_id)
+        new_doc['_id'] = contact_id
+        result = self.save(email, new_doc)
+        if result['success']:
+            result['message'] = 'Contact successfully unlinked'
+        return result

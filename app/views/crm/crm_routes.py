@@ -35,6 +35,28 @@ DIRECTORY = CourtDirectory()
 crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
 
 
+@crm_routes.route('/crm/client_contacts/<string:client_id>/<int:page_num>/', methods=['GET'])
+@crm_routes.route('/crm/client_contacts/<string:client_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def list_client_contacts(client_id, page_num: int = 1):
+    user_email = session['user']['preferred_username']
+    contacts = DBCONTACTS.get_list(user_email, client_id=client_id)
+    cl_name = DBCLIENTS.get_client_name(client_id)
+    email_subject = DBCLIENTS.get_email_subject(client_id)
+    authorizations = _get_authorizations(user_email)
+    return render_template(
+        'crm/contacts.html',
+        contacts=contacts,
+        authorizations=authorizations,
+        prev_page_num=page_num - 1,
+        next_page_num=page_num + 1,
+        client_name=cl_name,
+        email_subject=email_subject,
+        client_id=client_id
+    )
+
+
 @crm_routes.route('/crm/contacts', methods=['GET'])
 @crm_routes.route('/crm/contacts/<int:page_num>/', methods=['GET'])
 @DECORATORS.is_logged_in
@@ -48,7 +70,9 @@ def list_contacts(page_num: int = 1):
         contacts=contacts,
         authorizations=authorizations,
         prev_page_num=page_num - 1,
-        next_page_num=page_num + 1
+        next_page_num=page_num + 1,
+        client_name=None,
+        email_subject=None
     )
 
 
@@ -95,17 +119,30 @@ def save_contact():
 def search_contacts(page_num: int = 1):
     user_email = session['user']['preferred_username']
     query = request.form.get('query', None)
+    client_id = request.form.get('client_id')
+    if client_id == '0':
+        client_id = None
     if query:
-        contacts = DBCONTACTS.search(user_email, query=query, page_num=page_num)
+        contacts = DBCONTACTS.search(user_email, query=query, page_num=page_num, client_id=client_id)
     else:
-        contacts = DBCONTACTS.get_list(user_email, page_num=page_num)
+        contacts = DBCONTACTS.get_list(user_email, page_num=page_num, client_id=client_id)
     authorizations = _get_authorizations(user_email)
+
+    if client_id:
+        cl_name = DBCLIENTS.get_client_name(client_id)
+        email_subject = DBCLIENTS.get_email_subject(client_id)
+    else:
+        cl_name = None
+        email_subject = None
     return render_template(
         'crm/contacts.html',
         contacts=contacts,
         authorizations=authorizations,
         prev_page_num=page_num - 1,
-        next_page_num=page_num + 1
+        next_page_num=page_num + 1,
+        client_name=cl_name,
+        email_subject=email_subject,
+        client_id=client_id
     )
 
 
@@ -292,6 +329,33 @@ def send_sms_message(to_number, message):
     if response.get('rc_login_needed', False):
         response['redirect'] = url_for('admin_routes.ring_central_login')
     return jsonify(response)
+
+
+@crm_routes.route('/crm/util/assign_contact/<string:contact_id>/<string:client_id>/')
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def assign_contact_to_client(contact_id: str, client_id: str):
+    user_email = session['user']['preferred_username']
+    result = DBCONTACTS.link(user_email, client_id, contact_id)
+    return jsonify(result)
+
+
+@crm_routes.route('/crm/util/unassign_contact/<string:contact_id>/<string:client_id>/')
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def unassign_contact_from_client(contact_id: str, client_id: str):
+    user_email = session['user']['preferred_username']
+    result = DBCONTACTS.unlink(user_email, client_id, contact_id)
+    return jsonify(result)
+
+
+@crm_routes.route('/crm/data/client_ids/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def get_client_ids():
+    user_email = session['user']['preferred_username']
+    client_ids = DBCLIENTS.get_id_name_list(user_email)
+    return jsonify(client_ids)
 
 
 @crm_routes.route('/crm/data/court_types/<string:county>/', methods=['GET'])

@@ -18,6 +18,7 @@
         <th>Call</th>
         <th>SMS</th>
         <th>Notes</th>
+        <th>Contacts</th>
         <th>Mediation Date</th>
         <th>Trial Date</th>
         <th class="text-right">Trust Balance</th>
@@ -71,6 +72,10 @@
                 data-toggle="tooltip" data-placement="top" title="Notes"
                 href="/crm/notes/{{client._id}}/"
             />
+        </td>
+        <td>
+            <a class="btn btn-small btn-outline-secondary fa fa-users" data-toggle="tooltip" data-placement="top"
+                title="contacts" href="/crm/client_contacts/{{client._id}}/" />
         </td>
         <td>{{client.mediation_date}}</td>
         <td>{{client.trial_date}}</td>

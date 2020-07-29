@@ -11,7 +11,7 @@
 </style>
 <div class="row">
     <div class="col">
-        <span class="h1 my-3">Contacts</span>
+        <span class="my-3"><span class="h1">Contacts</span>{% if client_name %} - <small>{{client_name}}</small>{% endif %}</span>
     </div>
     <div class="col">
         <a class="btn btn-primary btn-sm float-right my-3" href="{{url_for('crm_routes.add_contact')}}">ADD</a>
@@ -19,6 +19,7 @@
 </div>
 <form method='POST' action="{{url_for('crm_routes.search_contacts', page_num=1)}}">
     <div class="input-group mb-3">
+        <input type="hidden" name="client_id" value="{{client_id or 0}}" />
         <input type="search" class="form-control" id="search" name="query" />
         <div class="input-group-append">
             <button class="btn btn-outline-secondary fa fa-search" type="submit"></button>
@@ -33,6 +34,7 @@
         <th>Email</th>
         <th>Call</th>
         <th>SMS</th>
+        <th>Link</th>
     </tr>
     {% for contact in contacts %}
     <tr>
@@ -46,11 +48,11 @@
         </td>
         {% if contact.email %}
         <td>
-            <a href="mailto:{{contact.email}}?body=Dear%20{{contact.name.salutation}}:" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
+            <a href="mailto:{{contact.email}}{% if email_subject %}?subject={{email_subject}}{% endif %}" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
                 data-placement="top" title="Send Email to {{contact.email}}" role="button">
             </a>
         </td>
-        {% else %}
+        {% else %} 
         <td></td>
         {% endif %}
         {% if contact.cell_phone.strip() != '' %}
@@ -66,6 +68,13 @@
             <button class="btn btn-small btn-outline-secondary fa fa-comments" data-name="{{contact.client_name}}"
                 data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
                 title="Send Text" data-tooltip="tooltip" data-toggle="modal">
+            </button>
+        </td>
+        <td>
+            <button class="btn btn-small btn-outline-secondary fa fa-link" data-contactid="{{contact._id}}"
+                data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}"
+                data-jobtitle="{{contact.job_title}}" data-organization="{{contact.organization}}" data-target="#assignClientModal" data-placement="top"
+                title="Link to client" data-tooltip="tooltip" data-toggle="modal">
             </button>
         </td>
     </tr>
@@ -90,6 +99,7 @@
 </div>
 <br />
 
+<!--MODAL FOR SENDING SMS MESSAGES-->
 <div class="modal fade" id="smsMessageModal" tabindex="-1" role="dialog" aria-labelledby="smsModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -121,6 +131,56 @@
     </div>
 </div>
 
+<!--MODAL FOR ASSIGNING THIS CONTACT TO A CLIENT-->
+<div class="modal fade" id="assignClientModal" tabindex="-1" role="dialog" aria-labelledby="assignClientModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignClientModalLabel">Assign to Client</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-2">
+                        <i class="fa fa-user fa-4x" aria-hidden="true"></i>
+                    </div>
+                    <div class="col">
+                        <div class="row">
+                            <div class="col">
+                                <small id="assignContactName">name</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <small id="assignContactJobtitle">title</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <small id="assignContactOrganization">organization</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form>
+                    <input type="hidden" class="assigncontact_id" id="assigncontact_id" name="contact_id" />
+                    <div class="form-group">
+                        <label for="assignClientId" class="col-form-label">Client:</label>
+                        <select class="form-control" id="assignClientId"></select>
+                    </div>
+                    <div class="alert alert-primary" id="assign-result"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="assign_contact()">Assign</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     window.addEventListener('load', clients_init);
 
@@ -141,6 +201,35 @@
             $('#message-result').html('');
         }
         );
+
+        $('#assignClientModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered modal
+            var cn_id = button.data('contactid');
+            var cn_name = button.data('name');
+            var cn_jobtitle = button.data('jobtitle');
+            var cn_org = button.data('organization');
+            var modal = $(this);
+            modal.find('#assigncontact_id').val(cn_id);
+            modal.find('#assignContactName').text(cn_name);
+            modal.find('#assignContactJobtitle').text(cn_jobtitle);
+            modal.find('#assignContactOrganization').text(cn_org);
+            populate_client_dropdown();
+            $('#assign-result').html('');
+        }
+        );
+    }
+
+    function populate_client_dropdown() {
+        jQuery.get(
+            '/crm/data/client_ids/',
+            function(data) {
+                var select_list = $('#assignClientId');
+                select_list.empty();
+                $.each(data, function(key, value) {
+                    select_list.append($('<option>,/option>').attr('value', key).text(value));
+                })
+            }
+        )
     }
 
     function dial(to_number) {
@@ -170,6 +259,22 @@
                 }
                 $('#message-result').html(data.message);
                 $('#message-text').val('');
+            });
+    }
+
+    function assign_contact() {
+        var contact_id = $('#assigncontact_id').val();
+        var client_id = $('#assignClientId').val();
+        $('#message-result').html('');
+
+        jQuery.get(
+            '/crm/util/assign_contact/' + contact_id + '/' + client_id + '/',
+            function (data) {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return false;
+                }
+                $('#assign-result').html(data.message);
             });
     }
 </script>
