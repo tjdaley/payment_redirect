@@ -168,6 +168,7 @@ def list_clients():
     authorizations = _get_authorizations(user_email)
     for client in clients:
         client['_class'] = _client_row_class(client)
+        client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
     return render_template('crm/clients.html', clients=clients, authorizations=authorizations)
 
 

@@ -34,7 +34,7 @@
         {% if client.email %}
         <td>
             <a
-                href="mailto:{{client.email}}?subject=({{client.cause_number}})%20-%20"
+                href="mailto:{{client.email}}?subject={{client._email_subject}}"
                 class="btn btn-outline-secondary fa fa-envelope"
                 data-toggle="tooltip" data-placement="top" title="Send Email to {{client.email}}"
                 role="button">
