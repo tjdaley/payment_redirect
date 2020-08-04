@@ -28,7 +28,7 @@ class DbClients(Database):
     """
     Encapsulates a database accessor for clients
     """
-    def get_list(self, email: str, flag: str = None, projection: dict = None) -> list:
+    def get_list(self, email: str, flag: str = None, projection: dict = None, crm_state: str = '070:retained_active') -> list:
         """
         Return a list of client records where the email provided
         is one of the admin_users of the client record.
@@ -40,6 +40,8 @@ class DbClients(Database):
                         'E' for clients who just have an evergreen payment due
                         None for all clients
             projection (dict): MongoDb projection (defaults to all doc cols)
+            crm_state (str): CRM State to select. Default is '070:retained_acive',
+                             None or '*' for all CRM States.
         Returns:
             (list): Of client docs.
         """
@@ -64,6 +66,9 @@ class DbClients(Database):
             else:
                 return {}
 
+        if crm_state and crm_state != '*':
+            filter_['$and'].append({'crm_state': {'$eq': crm_state}})
+
         order_by = [
             ('name.last_name', ASCENDING),
             ('name.first_name', ASCENDING),
@@ -73,11 +78,11 @@ class DbClients(Database):
         documents = list(self.dbconn[COLLECTION_NAME].find(filter_, projection).sort(order_by))
         return documents
 
-    def get_list_as_csv(self, email: str) -> str:
+    def get_list_as_csv(self, email: str, crm_state=None) -> str:
         """
         Return the client list as a CSV string.
         """
-        documents = self.get_list(email)
+        documents = self.get_list(email, crm_state=crm_state)
 
         # Break out compound fields into individual columns
         for document in documents:
@@ -101,12 +106,12 @@ class DbClients(Database):
         csv_export = clients.to_csv(sep=",")
         return csv_export
 
-    def get_id_name_list(self, email: str) -> str:
+    def get_id_name_list(self, email: str, crm_state=None) -> str:
         """
         Return a list of clients as a list of tuples suitable
         for populating a select box.
         """
-        docs = self.get_list(email, projection={'_id': 1, 'name': 1, 'billing_id': 1})
+        docs = self.get_list(email, projection={'_id': 1, 'name': 1, 'billing_id': 1}, crm_state=crm_state)
         clients = {}
         for doc in docs:
             cn_name = " ".join(list(doc['name'].values())[0:-1])

@@ -222,6 +222,11 @@
                 <div class="card border-primary my-3">
                     <div class="card-header alert-primary">Marketing</div>
                     <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md">
+                                {{render_field(form.crm_state, class_="form-control", value=client.crm_state)}}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

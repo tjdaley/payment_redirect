@@ -22,6 +22,23 @@ COURTESY_TITLES = [
     ('Hon.', "Hon.")
 ]
 
+CRM_STATES = [
+    ('000:none', "Select"),
+    ('001:contact', "Initial contact"),
+    ('010:conflict_pending', "Pending conflict check"),
+    ('905:clo_conflicted', "Conflicted out"),
+    ('020:conflict_clear', "Conflicts cleared"),
+    ('030:consult_pending', "Ready to schedule"),
+    ('040:consult_scheduled', "Consult scheduled"),
+    ('910:clo_noconsult', "Declined consultation"),
+    ('050:consult_done', "Consult done"),
+    ('915:clo_consult_only', "Closed, Consult-only"),
+    ('920:clo_referred_out', "Closed, Referred-out"),
+    ('060:retain_pending', "Pending retainer"),
+    ('070:retained_active', "Retained"),
+    ('080:clo_closed', "Matter closed")
+]
+
 
 def field_list(class_) -> list:
     x = class_()
@@ -143,6 +160,10 @@ class ClientForm(Form):
     active_flag = BooleanField(
         "Active?",
         false_values=('N', '')
+    )
+    crm_state = SelectField(
+        "CRM State",
+        choices=CRM_STATES
     )
     target_retainer = StringField(
         "Target retainer", [DollarCleaner(min=0)]

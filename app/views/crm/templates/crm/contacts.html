@@ -32,7 +32,7 @@
         <th>Name</th>
         <th>Job</th>
         <th>Email</th>
-        <th>Call</th>
+        <th colspan="2">Call</th>
         <th>SMS</th>
         <th>Link</th>
     </tr>
@@ -55,21 +55,31 @@
         {% else %} 
         <td></td>
         {% endif %}
-        {% if contact.cell_phone.strip() != '' %}
+        {% if contact.office_phone.strip() != '' %}
         <td>
             <button class="btn btn-small btn-outline-secondary fa fa-phone" data-toggle="tooltip" data-placement="top"
-                title="Call {{contact.cell_phone}}" onclick="dial('{{contact.cell_phone}}')">
+                title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')">
             </button>
         </td>
         {% else %}
         <td></td>
         {% endif %}
+        {% if contact.cell_phone.strip() != '' %}
+        <td>
+            <button class="btn btn-small btn-outline-secondary fa fa-mobile" data-toggle="tooltip" data-placement="top"
+                title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')">
+            </button>
+        </td>
         <td>
             <button class="btn btn-small btn-outline-secondary fa fa-comments" data-name="{{contact.client_name}}"
                 data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
                 title="Send Text" data-tooltip="tooltip" data-toggle="modal">
             </button>
         </td>
+        {% else %}
+        <td></td>
+        <td></td>
+        {% endif %}
         <td>
             <button class="btn btn-small btn-outline-secondary fa fa-link" data-contactid="{{contact._id}}"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}"

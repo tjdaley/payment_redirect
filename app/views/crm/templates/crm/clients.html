@@ -9,7 +9,8 @@
         background-color: inherit;
     }
 </style>
-<span class="h1 my-3">Clients</span><a class="btn btn-primary btn-sm float-right my-3" href="/crm/client/add">ADD</a>
+<span class="h1 my-3">Active Clients</span><a class="btn btn-primary btn-sm float-right my-3" href="/crm/client/add">ADD</a>
+
 <table class="table table-sm table-hover">
     <tr>
         <th>Billing ID</th>
@@ -47,7 +48,7 @@
         <td>
             <button
                 class="btn btn-small btn-outline-secondary fa fa-phone"
-                data-toggle="tooltip" data-placement="top" title="Call {{client.telephone}}"
+                data-toggle="tooltip" data-placement="top" title="Call {{client.telephone | phone_number}}"
                 onclick="dial('{{client.telephone}}')">
             </button>
         </td>

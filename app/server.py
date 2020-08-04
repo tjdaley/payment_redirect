@@ -24,6 +24,11 @@ do_upgrades()
 
 DEBUG = int(os.environ.get('DEBUG', '0'))
 
+
+def phone_filter(value):
+    return f"{value[2:5]}-{value[5:8]}-{value[8:]}"
+
+
 app = Flask(__name__)
 app.config.from_mapping(
     CLIENT_SECRET=os.environ['AZURE_CLIENT_SECRET'],
@@ -34,6 +39,7 @@ Session(app)
 app.register_blueprint(admin_routes)
 app.register_blueprint(crm_routes)
 app.register_blueprint(payment_routes)
+app.jinja_env.filters['phone_number'] = phone_filter
 
 
 @app.route('/', methods=['GET'])
