@@ -169,7 +169,27 @@ def list_clients():
     for client in clients:
         client['_class'] = _client_row_class(client)
         client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
-    return render_template('crm/clients.html', clients=clients, authorizations=authorizations)
+    return render_template('crm/clients.html', clients=clients, authorizations=authorizations, show_crm_state=False)
+
+
+@crm_routes.route('/crm/clients/search/<int:page_num>/', methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def search_clients(page_num: int = 1):
+    user_email = session['user']['preferred_username']
+    query = request.form.get('query', None)
+    if query:
+        clients = DBCLIENTS.search(user_email, query=query, page_num=page_num, crm_state='*')
+    else:
+        clients = DBCLIENTS.get_list(user_email)
+    authorizations = _get_authorizations(user_email)
+
+    return render_template(
+        'crm/clients.html',
+        clients=clients,
+        authorizations=authorizations,
+        show_crm_state=True
+    )
 
 
 @crm_routes.route("/crm/client/add/", methods=['GET'])
@@ -225,6 +245,7 @@ def show_client(id):
     form.court_type.data = client.get('court_type', None)
     form.court_name.choices = DIRECTORY.get_court_tuples(client.get('case_county'), client.get('court_type'))
     form.court_name.data = client.get('court_name', None)
+    form.crm_state.data = client.get('crm_state', None)
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
     return render_template('crm/client.html', client=client, notes=notes, authorizations=authorizations, form=form, our_pay_url=our_pay_url)

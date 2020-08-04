@@ -28,7 +28,7 @@ class DbClients(Database):
     """
     Encapsulates a database accessor for clients
     """
-    def get_list(self, email: str, flag: str = None, projection: dict = None, crm_state: str = '070:retained_active') -> list:
+    def get_list(self, email: str, flag: str = None, projection: dict = None, crm_state: str = '070:retained_active', where: dict = {}) -> list:
         """
         Return a list of client records where the email provided
         is one of the admin_users of the client record.
@@ -36,7 +36,7 @@ class DbClients(Database):
         Args:
             email (str): Email address of user who requested the query
             flag (str): 'M' for clients who owe a mediation retainer
-                        'T' for clients to who a trial retainer
+                        'T' for clients who owe a trial retainer
                         'E' for clients who just have an evergreen payment due
                         None for all clients
             projection (dict): MongoDb projection (defaults to all doc cols)
@@ -69,7 +69,11 @@ class DbClients(Database):
         if crm_state and crm_state != '*':
             filter_['$and'].append({'crm_state': {'$eq': crm_state}})
 
+        if where:
+            filter_['$and'].append(where)
+
         order_by = [
+            ('crm_state', ASCENDING),
             ('name.last_name', ASCENDING),
             ('name.first_name', ASCENDING),
             ('email', ASCENDING)
@@ -77,6 +81,49 @@ class DbClients(Database):
 
         documents = list(self.dbconn[COLLECTION_NAME].find(filter_, projection).sort(order_by))
         return documents
+
+    def search(self, email: str, query: str, page_num: int = 1, page_size: int = 25, crm_state: str = None) -> list:
+        """
+        Search for clients matching the words in *query*.
+
+        Args:
+            email (str): Email of user performing the search.
+            query (str): Query string from user.
+            page_num (int): Which page number is going to be displayed? (default=1)
+            page_size (int): Number of documents per page (default=25)
+        Returns:
+            (list): List of docs or None
+        """
+        search_fields = [
+            'name.first_name',
+            'name.last_name',
+            'name.middle_name',
+            'name.suffix',
+            'email',
+            'telephone',
+            'address.street',
+            'address.city',
+            'case_county',
+            'court_name',
+            'cause_number',
+            'oag_number'
+        ]
+        search_words = query.split()
+        conditions = []
+        for search_field in search_fields:
+            for search_word in search_words:
+                regex = f'.*{search_word}.*'
+                conditions.append({search_field: {'$regex': regex, '$options': 'i'}})
+
+        where = {'$or': conditions}
+
+        print(json.dumps(where, indent=4))
+
+        return self.get_list(
+            email=email,
+            where=where,
+            crm_state=crm_state
+        )
 
     def get_list_as_csv(self, email: str, crm_state=None) -> str:
         """

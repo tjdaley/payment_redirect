@@ -9,10 +9,23 @@
         background-color: inherit;
     }
 </style>
-<span class="h1 my-3">Active Clients</span><a class="btn btn-primary btn-sm float-right my-3" href="/crm/client/add">ADD</a>
+<span class="h1 my-3">{% if show_crm_state %}Filtered{%else%}Active{%endif%} Clients</span><a class="btn btn-primary btn-sm float-right my-3" href="/crm/client/add">ADD</a>
+
+<form method='POST' action="{{url_for('crm_routes.search_clients', page_num=1)}}">
+    <div class="input-group mb-3">
+        <input type="search" class="form-control" id="search" name="query" />
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary fa fa-search" type="submit"></button>
+        </div>
+    </div>
+</form>
+
 
 <table class="table table-sm table-hover">
     <tr>
+        {% if show_crm_state %}
+        <th>CRM State</th>
+        {% endif %}
         <th>Billing ID</th>
         <th>Client Name</th>
         <th>Email</th>
@@ -26,6 +39,11 @@
     </tr>
     {% for client in clients %}
     <tr class="text-{{client._class}}">
+        {% if show_crm_state %}
+        <td>
+            {{client.crm_state | crm_state}}
+        </td>
+        {% endif %}
         <td>
             <a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a>
         </td>

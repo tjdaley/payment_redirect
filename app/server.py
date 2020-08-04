@@ -17,6 +17,7 @@ from util.database import Database, do_upgrades
 from views.admin.admin_routes import admin_routes
 from views.crm.crm_routes import crm_routes
 from views.payment.payment_routes import payment_routes
+from views.admin.forms.ClientForm import CRM_STATES
 
 
 DATABASE = Database()
@@ -27,6 +28,13 @@ DEBUG = int(os.environ.get('DEBUG', '0'))
 
 def phone_filter(value):
     return f"{value[2:5]}-{value[5:8]}-{value[8:]}"
+
+
+def crm_state_filter(value):
+    for crm_state in CRM_STATES:
+        if crm_state[0] == value:
+            return crm_state[1]
+    return value
 
 
 app = Flask(__name__)
@@ -40,6 +48,7 @@ app.register_blueprint(admin_routes)
 app.register_blueprint(crm_routes)
 app.register_blueprint(payment_routes)
 app.jinja_env.filters['phone_number'] = phone_filter
+app.jinja_env.filters['crm_state'] = crm_state_filter
 
 
 @app.route('/', methods=['GET'])
