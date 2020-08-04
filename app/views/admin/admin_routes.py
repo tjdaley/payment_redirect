@@ -291,7 +291,7 @@ def ring_central_login():
     base_url += '/restapi/oauth/authorize'
     params = (
         ('response_type', 'code'),
-        ('redirect_url', os.environ.get('RING_CENTRAL_REDIRECT_PATH')),
+        ('redirect_uri', os.environ.get('RING_CENTRAL_REDIRECT_PATH')),
         ('client_id', os.environ.get('RING_CENTRAL_CLIENTID')),
         ('state', 'initialState')
     )
@@ -306,6 +306,10 @@ def ring_central_login():
 def ring_central_authorized():
     auth_code = request.values.get('code')
     redirect_url = os.environ.get('RING_CENTRAL_REDIRECT_PATH')
+    print('*' * 80)
+    print("auth_code   :", auth_code)
+    print("redirect_url:", redirect_url)
+    print('*' * 80)
     tokens = Dialer.get_oauth_tokens(auth_code, redirect_url)
     session[Dialer.RING_CENTRAL_SESSION_KEY] = tokens
     return redirect(url_for('crm_routes.list_clients'))
