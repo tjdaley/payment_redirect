@@ -14,7 +14,7 @@ import urllib.parse
 # pylint: disable=import-error
 from util.logger import get_logger
 from views.payment.forms.ClientIdForm import ClientIdForm
-from util.db_clients import DbClients, correct_check_digit
+from util.db_clients import DbClients, correct_check_digit, make_client_name
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 DBCLIENTS = DbClients()
@@ -77,15 +77,23 @@ def enrich_url(base_url, client_doc) -> str:
     """
     url = base_url
     params = ''
+    cl_name = make_client_name(client_doc, include_title=False)
+    cl_street = client_doc.get('address', {}).get('street',' ')
+    cl_city = client_doc.get('address', {}).get('city',' ')
+    cl_state = client_doc.get('address', {}).get('state',' ')
+    cl_zip = client_doc.get('address', {}).get('postal_code',' ')
+    cl_amount = client_doc.get('payment_due', client_doc.get('target_retainer','0.00'))
+    cl_email = client_doc.get('email', ' ')
+    cl_ref = client_doc.get('reference', client_doc.get('billing_id',' '))
     try:
-        params = f'{params}?reference={client_doc["reference"]}'
-        params = f'{params}&name={client_doc["client_name"]}'
-        params = f'{params}&address1={client_doc["address"]["street"]}'
-        params = f'{params}&city={client_doc["address"]["city"]}'
-        params = f'{params}&state={client_doc["address"]["state"]}'
-        params = f'{params}&postal_code={client_doc["address"]["postal_code"]}'
-        params = f'{params}&amount={client_doc["payment_due"]}'
-        params = f'{params}&email={client_doc["email"]}'
+        params = f'{params}?reference={cl_ref}'
+        params = f'{params}&name={cl_name}'
+        params = f'{params}&address1={cl_street}'
+        params = f'{params}&city={cl_city}'
+        params = f'{params}&state={cl_state}'
+        params = f'{params}&postal_code={cl_zip}'
+        params = f'{params}&amount={cl_amount}'
+        params = f'{params}&email={cl_email}'
     except KeyError as e:
         logger = get_logger('payment_routes')
         logger.warn("Error creating redirect url:", e)
