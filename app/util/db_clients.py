@@ -193,13 +193,13 @@ class DbClients(Database):
         document = self.dbconn[COLLECTION_NAME].find_one(filter_)
         return document
 
-    def get_client_name(self, client_id) -> str:
+    def get_client_name(self, client_id, include_title: bool = True) -> str:
         """
         Return a client name string.
         """
         client = self.get_one(client_id)
         if client:
-            return " ".join(list(client['name'].values())[0:-1])
+            return make_client_name(client, include_title)
         return None
 
     def get_email_subject(self, client_id) -> str:
@@ -227,7 +227,8 @@ class DbClients(Database):
         cleanup(doc)
 
         # Determine client name for status message
-        client_name = doc.get('name', {}).get('salutation', 'Client')
+        # client_name = doc.get('name', {}).get('salutation', 'Client')
+        client_name = make_client_name(doc)
 
         # Insert new client record
         if doc['_id'] == '0':
@@ -260,6 +261,23 @@ class DbClients(Database):
 
 CHECK_DIGITS = os.environ.get('CHECK_DIGITS', 'QPWOEIRUTYALSKDJFHGZMXNCBV')
 CHECK_DIGITS_LENGTH = len(CHECK_DIGITS)
+
+
+def make_client_name(client: dict, include_title: bool = True) -> str:
+    """
+    Create a client_name string from parts.
+
+    Args:
+        client (dict): Document from clients collection.
+        include_title (bool): Whether to include the title field as a prefix.
+    Returns:
+        (str): Client name string.
+    """
+    if include_title:
+        first_index = 0
+    else:
+        first_index = 1
+    return " ".join(list(client['name'].values())[first_index:-1])
 
 
 def correct_check_digit(ssn: str, dl: str) -> str:
