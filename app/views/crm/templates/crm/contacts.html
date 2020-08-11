@@ -71,7 +71,8 @@
             </button>
         </td>
         <td>
-            <button class="btn btn-small btn-outline-secondary fa fa-comments" data-name="{{contact.client_name}}"
+            <button class="btn btn-small btn-outline-secondary fa fa-comments"
+                data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.last_name}}"
                 data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
                 title="Send Text" data-tooltip="tooltip" data-toggle="modal">
             </button>
