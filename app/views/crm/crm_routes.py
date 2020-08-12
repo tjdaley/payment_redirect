@@ -380,7 +380,7 @@ def save_intake():
 
 
 @crm_routes.route('/crm/util/update_intake', methods=['POST'])
-def save_intake():
+def update_intake():
     fields = multidict2dict(request.form)
     print("SAVE UPDATE".center(80, "*"))
     print(json.dumps(fields, indent=4))

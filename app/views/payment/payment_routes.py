@@ -78,13 +78,13 @@ def enrich_url(base_url, client_doc) -> str:
     url = base_url
     params = ''
     cl_name = make_client_name(client_doc, include_title=False)
-    cl_street = client_doc.get('address', {}).get('street',' ')
-    cl_city = client_doc.get('address', {}).get('city',' ')
-    cl_state = client_doc.get('address', {}).get('state',' ')
-    cl_zip = client_doc.get('address', {}).get('postal_code',' ')
-    cl_amount = client_doc.get('payment_due', client_doc.get('target_retainer','0.00'))
+    cl_street = client_doc.get('address', {}).get('street', ' ')
+    cl_city = client_doc.get('address', {}).get('city', ' ')
+    cl_state = client_doc.get('address', {}).get('state', ' ')
+    cl_zip = client_doc.get('address', {}).get('postal_code', ' ')
+    cl_amount = client_doc.get('payment_due', client_doc.get('target_retainer', '0.00'))
     cl_email = client_doc.get('email', ' ')
-    cl_ref = client_doc.get('reference', client_doc.get('billing_id',' '))
+    cl_ref = client_doc.get('reference', client_doc.get('billing_id', ' '))
     try:
         params = f'{params}?reference={cl_ref}'
         params = f'{params}&name={cl_name}'
