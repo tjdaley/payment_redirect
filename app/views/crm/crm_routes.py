@@ -371,6 +371,22 @@ def unassign_contact_from_client(contact_id: str, client_id: str):
     return jsonify(result)
 
 
+@crm_routes.route('/crm/util/save_intake', methods=['POST'])
+def save_intake():
+    fields = multidict2dict(request.form)
+    print("SAVE INTAKE".center(80, "*"))
+    print(json.dumps(fields, indent=4))
+    return jsonify({'success': True})
+
+
+@crm_routes.route('/crm/util/update_intake', methods=['POST'])
+def save_intake():
+    fields = multidict2dict(request.form)
+    print("SAVE UPDATE".center(80, "*"))
+    print(json.dumps(fields, indent=4))
+    return jsonify({'success': True})
+
+
 @crm_routes.route('/crm/data/client_ids/', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
