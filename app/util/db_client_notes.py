@@ -7,7 +7,7 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 from datetime import datetime
 import json  # noqa
-from pymongo import ASCENDING, DESCENDING
+from pymongo import DESCENDING
 from bson.objectid import ObjectId
 
 from util.database import Database
