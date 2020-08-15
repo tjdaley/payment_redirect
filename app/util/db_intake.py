@@ -100,8 +100,12 @@ class DbIntakes(Database):
         """
         Save a notes record
         """
-        doc['entry_number'] = doc.get('Entry', {}).get('Number', 0)
-        filter_ = {'_id': ObjectId(doc['entry_number'])}
+        try:
+            doc['entry_number'] = doc.get('Entry', {}).get('Number', 0)
+            filter_ = {'_id': ObjectId(str(doc['entry_number']))}
+            update_result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc}, upsert=True)
+        except Exception as e:
+            result = {'success': False, 'message': str(e)}
+            return result
 
-        result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc}, upsert=True)
-        return {'success': True, 'message': f"Matched: {result.matched_count}  Modified: {result.modified_count}  ID (if inserted): {result.upserted_id}"}
+        return {'success': True, 'message': f"Matched: {update_result.matched_count}  Modified: {update_result.modified_count}  ID (if inserted): {update_result.upserted_id}"}
