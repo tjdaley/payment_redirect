@@ -102,7 +102,7 @@ class DbIntakes(Database):
         """
         try:
             doc['entry_number'] = doc.get('Entry', {}).get('Number', 0)
-            filter_ = {'_id': ObjectId(str(doc['entry_number']))}
+            filter_ = {'entry_number': doc['entry_number']}
             update_result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc}, upsert=True)
         except Exception as e:
             result = {'success': False, 'message': str(e)}
