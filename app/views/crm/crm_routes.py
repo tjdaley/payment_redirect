@@ -259,7 +259,6 @@ def add_note():
     fields = multidict2dict(request.form)
     client_id = fields.get('clients_id', None)
     client = DBCLIENTS.get_one(client_id)
-    print(client)
     if not client:
         return jsonify({'success': False, 'message': 'Invalid Client ID'})
 
@@ -375,16 +374,16 @@ def unassign_contact_from_client(contact_id: str, client_id: str):
 @crm_routes.route('/crm/util/save_intake', methods=['POST'])
 def save_intake():
     fields = multidict2dict(request.form)
-    logger = get_logger('.crm')
+    logger = get_logger('crm')
     logger.debug(json.dumps(fields, indent=4))
     return jsonify({'success': True})
 
 
 @crm_routes.route('/crm/util/update_intake', methods=['POST'])
 def update_intake():
-    fields = multidict2dict(request.form)
-    logger = get_logger('.crm')
-    logger.debug(json.dumps(fields, indent=4))
+    data = request.get_json(silent=True)
+    logger = get_logger('crm')
+    logger.debug(json.dumps(data, indent=4))
     return jsonify({'success': True})
 
 
