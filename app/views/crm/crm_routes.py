@@ -21,6 +21,7 @@ from util.court_directory import CourtDirectory
 from util.dialer import Dialer
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
+from util.logger import get_logger
 from views.admin.forms.ClientForm import ClientForm, ContactForm
 DBADMINS = DbAdmins()
 DBCONTACTS = DbContacts()
@@ -374,16 +375,16 @@ def unassign_contact_from_client(contact_id: str, client_id: str):
 @crm_routes.route('/crm/util/save_intake', methods=['POST'])
 def save_intake():
     fields = multidict2dict(request.form)
-    print("SAVE INTAKE".center(80, "*"))
-    print(json.dumps(fields, indent=4))
+    logger = get_logger('.crm')
+    logger.debug(json.dumps(fields, indent=4))
     return jsonify({'success': True})
 
 
 @crm_routes.route('/crm/util/update_intake', methods=['POST'])
 def update_intake():
     fields = multidict2dict(request.form)
-    print("SAVE UPDATE".center(80, "*"))
-    print(json.dumps(fields, indent=4))
+    logger = get_logger('.crm')
+    logger.debug(json.dumps(fields, indent=4))
     return jsonify({'success': True})
 
 
