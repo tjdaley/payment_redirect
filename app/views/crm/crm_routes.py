@@ -383,7 +383,7 @@ def save_intake():
 def update_intake():
     data = request.get_json(silent=True)
     logger = get_logger('crm')
-    logger.debug(json.dumps(data, indent=4))
+    logger.debug(json.dumps(data.get('AboutYou', {}), indent=4))
     return jsonify({'success': True})
 
 
