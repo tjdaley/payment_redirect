@@ -101,8 +101,16 @@ class DbIntakes(Database):
         Save a notes record
         """
         try:
+            # Indexed by Entry number
             doc['entry_number'] = doc.get('Entry', {}).get('Number', 0)
             filter_ = {'entry_number': doc['entry_number']}
+
+            # Remove '$'-prefixed fields
+            doc['_$etag'] = doc.get('$etag', None)
+            del doc['$etag']
+            doc['_$version'] = doc.get('$version', None)
+            del doc['$version']
+
             update_result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc}, upsert=True)
         except Exception as e:
             result = {'success': False, 'message': str(e)}
