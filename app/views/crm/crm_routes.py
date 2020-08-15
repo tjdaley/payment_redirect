@@ -16,6 +16,7 @@ from util.database import multidict2dict
 from util.db_clients import DbClients
 from util.db_client_notes import DbClientNotes
 from util.db_contacts import DbContacts
+from util.db_intake import DbIntakes
 import views.decorators as DECORATORS
 from util.court_directory import CourtDirectory
 from util.dialer import Dialer
@@ -27,6 +28,7 @@ DBADMINS = DbAdmins()
 DBCONTACTS = DbContacts()
 DBCLIENTS = DbClients()
 DBNOTES = DbClientNotes()
+DBINTAKES = DbIntakes()
 
 
 # Refresh court directory information on restart
@@ -373,18 +375,20 @@ def unassign_contact_from_client(contact_id: str, client_id: str):
 
 @crm_routes.route('/crm/util/save_intake', methods=['POST'])
 def save_intake():
-    fields = multidict2dict(request.form)
+    data = request.get_json(silent=True)
+    result = DBINTAKES.save(data)
     logger = get_logger('crm')
-    logger.debug(json.dumps(fields, indent=4))
-    return jsonify({'success': True})
+    logger.debug(json.dumps(result, indent=4))
+    return jsonify(result)
 
 
 @crm_routes.route('/crm/util/update_intake', methods=['POST'])
 def update_intake():
     data = request.get_json(silent=True)
+    result = DBINTAKES.save(data)
     logger = get_logger('crm')
-    logger.debug(json.dumps(data.get('AboutYou', {}), indent=4))
-    return jsonify({'success': True})
+    logger.debug(json.dumps(result, indent=4))
+    return jsonify(result)
 
 
 @crm_routes.route('/crm/data/client_ids/', methods=['GET'])
