@@ -66,6 +66,8 @@ NON_CONTIGUOUS_STATES = [
 ]
 
 US_STATES = (CONTIGUOUS_STATES + NON_CONTIGUOUS_STATES)
+US_STATE_NAMES = {n: abbr for (abbr, n) in US_STATES}
+US_STATE_ABBREVIATIONS = {abbr: n for (abbr, n) in US_STATES}
 
 #: Non-state territories.
 US_TERRITORIES = [
