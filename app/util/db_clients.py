@@ -223,7 +223,6 @@ class DbClients(Database):
     def save(self, fields, user_email) -> dict:
         """
         Save a client record, if the user is permitted to do so.
-        NOTE: if *fields* is missing 'active_flag', it will be set to 'N' (inactive).
         """
         try:
             doc = multidict2dict(fields)
