@@ -225,40 +225,44 @@ class DbClients(Database):
         Save a client record, if the user is permitted to do so.
         NOTE: if *fields* is missing 'active_flag', it will be set to 'N' (inactive).
         """
-        doc = multidict2dict(fields)
-        cleanup(doc)
+        try:
+            doc = multidict2dict(fields)
+            cleanup(doc)
 
-        # Determine client name for status message
-        # client_name = doc.get('name', {}).get('salutation', 'Client')
-        client_name = make_client_name(doc)
+            # Determine client name for status message
+            # client_name = doc.get('name', {}).get('salutation', 'Client')
+            client_name = make_client_name(doc)
 
-        # Insert new client record
-        if doc['_id'] == '0':
+            # Insert new client record
+            if doc['_id'] == '0':
+                del doc['_id']
+
+                doc['active_flag'] = 'Y'
+                if user_email.lower() not in doc['admin_users']:
+                    doc['admin_users'].append(user_email.lower())
+
+                # Create a reference field
+                doc['reference'] = f"Client ID {doc['billing_id']}"
+                result = self.dbconn[COLLECTION_NAME].insert_one(doc)
+                if result.inserted_id:
+                    message = f"Client record added for {client_name}"
+                    return {'success': True, 'message': message}
+                message = "Failed to add new client record"
+                return {'success': False, 'message': message}
+
+            # Update existing client record
+            filter_ = {'_id': ObjectId(doc['_id'])}
             del doc['_id']
-
-            doc['active_flag'] = 'Y'
-            if user_email.lower() not in doc['admin_users']:
-                doc['admin_users'].append(user_email.lower())
-
-            # Create a reference field
-            doc['reference'] = f"Client ID {doc['billing_id']}"
-            result = self.dbconn[COLLECTION_NAME].insert_one(doc)
-            if result.inserted_id:
-                message = f"Client record added for {client_name}"
+            result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
+            if result.modified_count == 1:
+                message = f"{client_name}'s record updated"
                 return {'success': True, 'message': message}
-            message = "Failed to add new client record"
-            return {'success': False, 'message': message}
 
-        # Update existing client record
-        filter_ = {'_id': ObjectId(doc['_id'])}
-        del doc['_id']
-        result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
-        if result.modified_count == 1:
-            message = f"{client_name}'s record updated"
+            message = f"No updates applied to {client_name}'s record({result.modified_count})"
             return {'success': True, 'message': message}
-
-        message = f"No updates applied to {client_name}'s record({result.modified_count})"
-        return {'success': True, 'message': message}
+        except Exception as e:
+            get_logger('db_clients').exception(e)
+            return {'success': False, 'message': str(e)}
 
 
 CHECK_DIGITS = os.environ.get('CHECK_DIGITS', 'QPWOEIRUTYALSKDJFHGZMXNCBV')
