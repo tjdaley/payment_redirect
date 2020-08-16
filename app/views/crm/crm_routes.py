@@ -394,6 +394,7 @@ def update_intake():
     logger.debug("Updating . . .")
     data = request.get_json(silent=True)
     result = DBINTAKES.save(data)
+    logger.debug(json.dumps(result, indent=4))
 
     # upsert_id is not none if this was a brand new record
     if result.get('upsert_id', None):
@@ -401,7 +402,7 @@ def update_intake():
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
         DBCLIENTS.save(client_doc)
-    logger.debug(json.dumps(result, indent=4))
+    
     return jsonify(result)
 
 
