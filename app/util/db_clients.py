@@ -15,6 +15,7 @@ from bson.objectid import ObjectId
 import pandas as pd
 
 from util.database import Database, multidict2dict, csv_to_list, str_to_dollars, set_missing_flags, normalize_telephone_number
+from util.us_states import US_STATE_NAMES
 
 COLLECTION_NAME = 'clients'
 
@@ -344,3 +345,282 @@ def cleanup(doc: dict):
     # Fix the flags
     flag_fields = ['trial_retainer_flag', 'mediation_retainer_flag']
     set_missing_flags(doc, flag_fields)
+
+
+def intake_to_client(intake: dict) -> dict:
+    """
+    Convert a dict from the Cognito Forms intake form to
+    a dict compatible with our clients collection.
+
+    Args:
+        intake (dict): Intake after being saved to the intakes table.
+    Returns:
+        (dict): Transformed to clients collection form.
+    """
+    client_doc = {}
+    about_you = intake.get('AboutYou', {})
+
+    # Transform names to a name dict
+    name = about_you.get('Name', {})
+    name = __transform_name(name)
+    client_doc['name'] = name
+
+    # Transform addresses
+    address = about_you.get('Address', {})
+    address = __transform_address(address)
+    client_doc['address'] = address
+
+    if about_you.get('Usehomeaddressforbilling', True):
+        client_doc['billing_address'] = address
+    else:
+        address = about_you.get('BillingAddress', {})
+        address = __transform_address(address)
+        client_doc['billing_address'] = address
+
+    # Transform client flags
+    client_doc['in_county_90_days_flag'] = __flag_value(about_you.get('Incounty90days', False))
+    client_doc['in_state_6_months_flag'] = __flag_value(about_you.get('Instate6months', False))
+    client_doc['email_statements_flag'] = __flag_value(about_you.get('Billingemailok', False))
+
+    # Transform telephone numbers
+    telephone = about_you.get('HomeTelephone', '')
+    client_doc['home_phone'] = normalize_telephone_number(telephone)
+    telephone = about_you.get('CellPhone', '')
+    client_doc['cell_phone'] = normalize_telephone_number(telephone)
+    if about_you.get('PreferredPhone', 'Cell Phone') == 'Cell Phone':
+        client_doc['telephone'] = client_doc['cell_phone']
+    else:
+        client_doc['telephone'] = client_doc['home_phone']
+
+    # Client Email
+    client_doc['email'] = about_you.get('Email')
+
+    # More About You Section
+    more_you = intake.get('Moreyou', {})
+    vehicle = more_you.get('Vehicle', {})
+    vehicle = __transform_vehicle(vehicle)
+    client_doc['client_vehicle'] = vehicle
+
+    # Employment
+    employment = more_you.get('Employment', {})
+    employment = __transform_employment(employment)
+    client_doc['employment'] = employment
+
+    # Client Confidential Section
+    client_conf = intake.get('Clientconfidential', {})
+    client_doc['client_ssn'] = client_conf.get('Ssn', '000')
+    client_doc['client_dl'] = client_conf.get('Dl', '000')
+    dl_state = client_conf.get('Dlstate', {}).get('State')
+    client_doc['client_dl_state'] = US_STATE_NAMES.get(dl_state, dl_state)
+    client_doc['client_dob'] = client_conf.get('DateOfBirth')
+    client_doc['place_of_birth'] = client_conf.get('PlaceOfBirth')
+
+    # About OP
+    about_op = intake.get('Op', {})
+    client_doc['op'] = {}
+    name = about_op.get('Name', {})
+    name = __transform_name(name)
+    client_doc['op']['name'] = name
+    address = about_op.get('Address', {})
+    address = __transform_address(address)
+    client_doc['op']['address'] = address
+
+    # Transform OP flags
+    client_doc['op']['in_county_90_days_flag'] = __flag_value(about_op.get('LivedInThiscountyMoreThan90Days', False))
+    client_doc['op']['in_state_6_months_flag'] = __flag_value(about_op.get('LivedInThisstateMoreThan6Months', False))
+
+    # OP Confidential
+    op_conf = intake.get('ConfidentialInformationAboutOpNameRequiredByTheState', {})
+    client_doc['op']['ssn'] = op_conf.get('LastThreeDigitsOfFormOpNameFirstsSocialSecurityNumber', '000')
+    client_doc['op']['dl'] = op_conf.get('LastThreeDigitsOfFormOpNameFirstsDriversLicenseNumber', '000')
+    dl_state = op_conf.get('Dlstate', {}).get('State')
+    client_doc['op']['dl_state'] = US_STATE_NAMES.get(dl_state, dl_state)
+    client_doc['op']['dob'] = op_conf.get('DateOfBirth')
+    client_doc['op']['place_of_birth'] = op_conf.get('PlaceOfBirth')
+
+    # More About OP Section
+    more_op = intake.get('Moreop', {})
+    vehicle = more_op.get('FormOpNameFirstsPrimaryAutomobile', {})
+    vehicle = __transform_vehicle(vehicle)
+    client_doc['op']['client_vehicle'] = vehicle
+
+    # Employment
+    employment = more_op.get('FormOpNameFirstsPrimaryEmployment', {})
+    employment = __transform_employment(employment)
+    client_doc['op']['employment'] = employment
+
+    # Physical Description
+    phys = more_op.get('FormOpNameFirstsPhysicalDescription', {})
+    client_doc['op']['physical_description'] = {
+        'height': phys.get('Height', ''),
+        'weight': phys.get('Weight', ''),
+        'hair_color': phys.get('HairColor', '')
+    }
+
+    # Marriage Information
+    marriage = intake.get('Marriage', {})
+    client_doc['marriage_date'] = marriage.get('Dom')
+    client_doc['separation_date'] = marriage.get('Dos')
+    client_doc['marriage_place'] = marriage.get('Place')
+    client_doc['restore_maiden_name_flag'] = __flag_value(marriage.get('Maindenrestoreflag'))
+    client_doc['maiden_name'] = marriage.get('Midenname')
+
+    # Children
+    children = intake.get('Children', [])
+    if children:
+        client_doc['children'] = []
+        for child in children:
+            c_name = __transform_name(child.get('Name', {}))
+            c_dob = child.get('Dob', '')
+            c_state = child.get('HomeState', {}).get('State')
+            c_home_state = US_STATE_NAMES.get(c_state, c_state)
+            c = {'name': c_name, 'dob': c_dob, 'home_state': c_home_state}
+            client_doc['children'].append(c)
+
+    # Health Insurance
+    h_ins = intake.get('Med', {})
+    if h_ins:
+        client_doc['health_ins'] = {
+            'carrier': h_ins.get('HealthInsuranceCompany'),
+            'policy_holder': h_ins.get('PolicyHolderName'),
+            'policy_number': h_ins.get('PolicyNumber'),
+            'group_number': h_ins.get('GroupNumber'),
+            'monthly_premium': h_ins.get('MonthlyCost', 0.00),
+            'provided_through': h_ins.get('ProvidedThrough')
+        }
+
+    # Dental Insurance
+    h_ins = intake.get('Dental', {})
+    if h_ins:
+        client_doc['dental_ins'] = {
+            'carrier': h_ins.get('HealthInsuranceCompany'),
+            'policy_holder': h_ins.get('PolicyHolderName'),
+            'policy_number': h_ins.get('PolicyNumber'),
+            'group_number': h_ins.get('GroupNumber'),
+            'monthly_premium': h_ins.get('MonthlyCost', 0.00),
+            'provided_through': h_ins.get('ProvidedThrough')
+        }
+
+    # Marketing information
+    referral = intake.get('Referral', {})
+    referral = __transform_referral(referral)
+    client_doc['referrer'] = referral
+
+
+def __flag_value(v) -> str:
+    """
+    Transform a flag value from Cognito into a Y or N string.
+    """
+    if v:
+        return 'Y'
+    return 'N'
+
+
+def __name_string(n: dict) -> str:
+    n = __transform_name(n)
+    ti = n.get('title', '')
+    fn = n.get('first_name', '')
+    mn = n.get('middle_name', '')
+    ln = n.get('last_name', '')
+    sx = n.get('suffix', '')
+    if ti:
+        ti += ' '
+    if fn:
+        fn += ' '
+    if mn:
+        mn += ' '
+    if ln:
+        ln += ' '
+    result = f"{ti}{fn}{mn}{ln}{sx}".strip()
+    return result
+
+
+def __transform_address(address: dict) -> dict:
+    """
+    Transform an address from Cognito format to our format.
+    """
+    return {
+        'street': address.get('Line1', ''),
+        'city': address.get('City', ''),
+        'state': US_STATE_NAMES.get(address.get('State'), address.get('State')),
+        'postal_code': address.get('PostalCode', ''),
+        'country': address.get('Country', 'United States')
+    }
+
+
+def __transform_employment(employment: dict) -> dict:
+    """
+    Transform employment information from Cognito format to our format.
+    """
+    e_name = employment.get('EmployersName')
+    e_job = employment.get('JobTitle')
+    address = employment.get('Address', {})
+    address = __transform_address(address)
+    e_tel = normalize_telephone_number(employment.get('Phone', ''))
+    e_inc = employment.get('ApproximateAnnualIncome', 0.0)
+    contact = employment.get('EmergencyContact', {})
+    contact = __transform_name(contact)
+    return {
+        'employer': e_name,
+        'position': e_job,
+        'address': address,
+        'telephone': e_tel,
+        'annual_income': e_inc,
+        'contact': contact
+    }
+
+
+def __transform_name(name: dict) -> dict:
+    """
+    Transform a name from Cognito format to our format.
+    """
+    result = {}
+    f_name = name.get('First')
+    m_name = name.get('Middle')
+    l_name = name.get('Last')
+    title = name.get('Prefix')
+    suffix = name.get('Suffix')
+
+    if title:
+        result['title'] = title
+    if f_name:
+        result['first_name'] = f_name
+    if m_name:
+        result['middle_name'] = m_name
+    if l_name:
+        result['last_name'] = l_name
+    if suffix:
+        result['suffix'] = suffix
+    if title and l_name:
+        result['salutation'] = f"{title} {l_name}"
+    return result
+
+
+def __transform_referral(referral: dict) -> dict:
+    result = {}
+    result['referred_to'] = referral.get('NameOfAttorneyYouWereReferredTo', 'FIRM')
+    result['source'] = referral.get('Source')
+    if referral.get('Name', {}).get('FirstAndLast', ' ') != ' ':
+        ref_name = __name_string(referral.get('Name', {}))
+    elif referral.get('Website'):
+        ref_name = f"SITE: {referral.get('Website')}"
+    elif referral.get('Magazine'):
+        ref_name = f"TITLE: {referral.get('Magazine')}"
+    elif referral.get('Program'):
+        ref_name = f"PROGRAM: {referral.get('Program')}"
+    elif referral.get('Description'):
+        ref_name = referral.get('Description')
+    elif referral.get('Searchstring'):
+        ref_name = f"SEARCH: {referral.get('Searchstring')}"
+    else:
+        ref_name = "n/a"
+    result['more_info'] = ref_name
+
+
+def __transform_vehicle(vehicle: dict) -> str:
+    v_year = vehicle.get('Year', '')
+    v_make = vehicle.get('Make', '')
+    v_model = vehicle.get('Model', '')
+    v_color = vehicle.get('Color', '')
+    v = [v_year, v_make, v_model, v_color]
+    return ' '.join(v).strip().title()
