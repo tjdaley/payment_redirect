@@ -36,7 +36,8 @@ CRM_STATES = [
     ('920:clo_referred_out', "Closed, Referred-out"),
     ('060:retain_pending', "Pending retainer"),
     ('070:retained_active', "Retained"),
-    ('080:clo_closed', "Matter closed")
+    ('998:trash', "Trash"),
+    ('999:clo_closed', "Matter closed")
 ]
 
 
