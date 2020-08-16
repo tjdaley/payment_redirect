@@ -390,6 +390,8 @@ def save_intake():
 
 @crm_routes.route('/crm/util/update_intake', methods=['POST'])
 def update_intake():
+    logger = get_logger('crm')
+    logger.debug("Updating . . .")
     data = request.get_json(silent=True)
     result = DBINTAKES.save(data)
 
@@ -399,7 +401,6 @@ def update_intake():
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
         DBCLIENTS.save(client_doc)
-    logger = get_logger('crm')
     logger.debug(json.dumps(result, indent=4))
     return jsonify(result)
 
