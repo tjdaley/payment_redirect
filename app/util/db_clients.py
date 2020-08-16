@@ -506,6 +506,9 @@ def intake_to_client(intake: dict) -> dict:
     referral = __transform_referral(referral)
     client_doc['referrer'] = referral
 
+    # Done!!
+    return client_doc
+
 
 def __flag_value(v) -> str:
     """
