@@ -16,6 +16,7 @@ import pandas as pd
 
 from util.database import Database, multidict2dict, csv_to_list, str_to_dollars, set_missing_flags, normalize_telephone_number
 from util.us_states import US_STATE_NAMES
+from util.logger import get_logger
 
 COLLECTION_NAME = 'clients'
 
@@ -357,154 +358,157 @@ def intake_to_client(intake: dict) -> dict:
     Returns:
         (dict): Transformed to clients collection form.
     """
-    client_doc = {}
-    about_you = intake.get('AboutYou', {})
+    try:
+        client_doc = {}
+        about_you = intake.get('AboutYou', {})
 
-    # Transform names to a name dict
-    name = about_you.get('Name', {})
-    name = __transform_name(name)
-    client_doc['name'] = name
+        # Transform names to a name dict
+        name = about_you.get('Name', {})
+        name = __transform_name(name)
+        client_doc['name'] = name
 
-    # Transform addresses
-    address = about_you.get('Address', {})
-    address = __transform_address(address)
-    client_doc['address'] = address
-
-    if about_you.get('Usehomeaddressforbilling', True):
-        client_doc['billing_address'] = address
-    else:
-        address = about_you.get('BillingAddress', {})
+        # Transform addresses
+        address = about_you.get('Address', {})
         address = __transform_address(address)
-        client_doc['billing_address'] = address
+        client_doc['address'] = address
 
-    # Transform client flags
-    client_doc['in_county_90_days_flag'] = __flag_value(about_you.get('Incounty90days', False))
-    client_doc['in_state_6_months_flag'] = __flag_value(about_you.get('Instate6months', False))
-    client_doc['email_statements_flag'] = __flag_value(about_you.get('Billingemailok', False))
+        if about_you.get('Usehomeaddressforbilling', True):
+            client_doc['billing_address'] = address
+        else:
+            address = about_you.get('BillingAddress', {})
+            address = __transform_address(address)
+            client_doc['billing_address'] = address
 
-    # Transform telephone numbers
-    telephone = about_you.get('HomeTelephone', '')
-    client_doc['home_phone'] = normalize_telephone_number(telephone)
-    telephone = about_you.get('CellPhone', '')
-    client_doc['cell_phone'] = normalize_telephone_number(telephone)
-    if about_you.get('PreferredPhone', 'Cell Phone') == 'Cell Phone':
-        client_doc['telephone'] = client_doc['cell_phone']
-    else:
-        client_doc['telephone'] = client_doc['home_phone']
+        # Transform client flags
+        client_doc['in_county_90_days_flag'] = __flag_value(about_you.get('Incounty90days', False))
+        client_doc['in_state_6_months_flag'] = __flag_value(about_you.get('Instate6months', False))
+        client_doc['email_statements_flag'] = __flag_value(about_you.get('Billingemailok', False))
 
-    # Client Email
-    client_doc['email'] = about_you.get('Email')
+        # Transform telephone numbers
+        telephone = about_you.get('HomeTelephone', '')
+        client_doc['home_phone'] = normalize_telephone_number(telephone)
+        telephone = about_you.get('CellPhone', '')
+        client_doc['cell_phone'] = normalize_telephone_number(telephone)
+        if about_you.get('PreferredPhone', 'Cell Phone') == 'Cell Phone':
+            client_doc['telephone'] = client_doc['cell_phone']
+        else:
+            client_doc['telephone'] = client_doc['home_phone']
 
-    # More About You Section
-    more_you = intake.get('Moreyou', {})
-    vehicle = more_you.get('Vehicle', {})
-    vehicle = __transform_vehicle(vehicle)
-    client_doc['client_vehicle'] = vehicle
+        # Client Email
+        client_doc['email'] = about_you.get('Email')
 
-    # Employment
-    employment = more_you.get('Employment', {})
-    employment = __transform_employment(employment)
-    client_doc['employment'] = employment
+        # More About You Section
+        more_you = intake.get('Moreyou', {})
+        vehicle = more_you.get('Vehicle', {})
+        vehicle = __transform_vehicle(vehicle)
+        client_doc['client_vehicle'] = vehicle
 
-    # Client Confidential Section
-    client_conf = intake.get('Clientconfidential', {})
-    client_doc['client_ssn'] = client_conf.get('Ssn', '000')
-    client_doc['client_dl'] = client_conf.get('Dl', '000')
-    dl_state = client_conf.get('Dlstate', {}).get('State')
-    client_doc['client_dl_state'] = US_STATE_NAMES.get(dl_state, dl_state)
-    client_doc['client_dob'] = client_conf.get('DateOfBirth')
-    client_doc['place_of_birth'] = client_conf.get('PlaceOfBirth')
+        # Employment
+        employment = more_you.get('Employment', {})
+        employment = __transform_employment(employment)
+        client_doc['employment'] = employment
 
-    # About OP
-    about_op = intake.get('Op', {})
-    client_doc['op'] = {}
-    name = about_op.get('Name', {})
-    name = __transform_name(name)
-    client_doc['op']['name'] = name
-    address = about_op.get('Address', {})
-    address = __transform_address(address)
-    client_doc['op']['address'] = address
+        # Client Confidential Section
+        client_conf = intake.get('Clientconfidential', {})
+        client_doc['client_ssn'] = client_conf.get('Ssn', '000')
+        client_doc['client_dl'] = client_conf.get('Dl', '000')
+        dl_state = client_conf.get('Dlstate', {}).get('State')
+        client_doc['client_dl_state'] = US_STATE_NAMES.get(dl_state, dl_state)
+        client_doc['client_dob'] = client_conf.get('DateOfBirth')
+        client_doc['place_of_birth'] = client_conf.get('PlaceOfBirth')
 
-    # Transform OP flags
-    client_doc['op']['in_county_90_days_flag'] = __flag_value(about_op.get('LivedInThiscountyMoreThan90Days', False))
-    client_doc['op']['in_state_6_months_flag'] = __flag_value(about_op.get('LivedInThisstateMoreThan6Months', False))
+        # About OP
+        about_op = intake.get('Op', {})
+        client_doc['op'] = {}
+        name = about_op.get('Name', {})
+        name = __transform_name(name)
+        client_doc['op']['name'] = name
+        address = about_op.get('Address', {})
+        address = __transform_address(address)
+        client_doc['op']['address'] = address
 
-    # OP Confidential
-    op_conf = intake.get('ConfidentialInformationAboutOpNameRequiredByTheState', {})
-    client_doc['op']['ssn'] = op_conf.get('LastThreeDigitsOfFormOpNameFirstsSocialSecurityNumber', '000')
-    client_doc['op']['dl'] = op_conf.get('LastThreeDigitsOfFormOpNameFirstsDriversLicenseNumber', '000')
-    dl_state = op_conf.get('Dlstate', {}).get('State')
-    client_doc['op']['dl_state'] = US_STATE_NAMES.get(dl_state, dl_state)
-    client_doc['op']['dob'] = op_conf.get('DateOfBirth')
-    client_doc['op']['place_of_birth'] = op_conf.get('PlaceOfBirth')
+        # Transform OP flags
+        client_doc['op']['in_county_90_days_flag'] = __flag_value(about_op.get('LivedInThiscountyMoreThan90Days', False))
+        client_doc['op']['in_state_6_months_flag'] = __flag_value(about_op.get('LivedInThisstateMoreThan6Months', False))
 
-    # More About OP Section
-    more_op = intake.get('Moreop', {})
-    vehicle = more_op.get('FormOpNameFirstsPrimaryAutomobile', {})
-    vehicle = __transform_vehicle(vehicle)
-    client_doc['op']['client_vehicle'] = vehicle
+        # OP Confidential
+        op_conf = intake.get('ConfidentialInformationAboutOpNameRequiredByTheState', {})
+        client_doc['op']['ssn'] = op_conf.get('LastThreeDigitsOfFormOpNameFirstsSocialSecurityNumber', '000')
+        client_doc['op']['dl'] = op_conf.get('LastThreeDigitsOfFormOpNameFirstsDriversLicenseNumber', '000')
+        dl_state = op_conf.get('Dlstate', {}).get('State')
+        client_doc['op']['dl_state'] = US_STATE_NAMES.get(dl_state, dl_state)
+        client_doc['op']['dob'] = op_conf.get('DateOfBirth')
+        client_doc['op']['place_of_birth'] = op_conf.get('PlaceOfBirth')
 
-    # Employment
-    employment = more_op.get('FormOpNameFirstsPrimaryEmployment', {})
-    employment = __transform_employment(employment)
-    client_doc['op']['employment'] = employment
+        # More About OP Section
+        more_op = intake.get('Moreop', {})
+        vehicle = more_op.get('FormOpNameFirstsPrimaryAutomobile', {})
+        vehicle = __transform_vehicle(vehicle)
+        client_doc['op']['client_vehicle'] = vehicle
 
-    # Physical Description
-    phys = more_op.get('FormOpNameFirstsPhysicalDescription', {})
-    client_doc['op']['physical_description'] = {
-        'height': phys.get('Height', ''),
-        'weight': phys.get('Weight', ''),
-        'hair_color': phys.get('HairColor', '')
-    }
+        # Employment
+        employment = more_op.get('FormOpNameFirstsPrimaryEmployment', {})
+        employment = __transform_employment(employment)
+        client_doc['op']['employment'] = employment
 
-    # Marriage Information
-    marriage = intake.get('Marriage', {})
-    client_doc['marriage_date'] = marriage.get('Dom')
-    client_doc['separation_date'] = marriage.get('Dos')
-    client_doc['marriage_place'] = marriage.get('Place')
-    client_doc['restore_maiden_name_flag'] = __flag_value(marriage.get('Maindenrestoreflag'))
-    client_doc['maiden_name'] = marriage.get('Midenname')
-
-    # Children
-    children = intake.get('Children', [])
-    if children:
-        client_doc['children'] = []
-        for child in children:
-            c_name = __transform_name(child.get('Name', {}))
-            c_dob = child.get('Dob', '')
-            c_state = child.get('HomeState', {}).get('State')
-            c_home_state = US_STATE_NAMES.get(c_state, c_state)
-            c = {'name': c_name, 'dob': c_dob, 'home_state': c_home_state}
-            client_doc['children'].append(c)
-
-    # Health Insurance
-    h_ins = intake.get('Med', {})
-    if h_ins:
-        client_doc['health_ins'] = {
-            'carrier': h_ins.get('HealthInsuranceCompany'),
-            'policy_holder': h_ins.get('PolicyHolderName'),
-            'policy_number': h_ins.get('PolicyNumber'),
-            'group_number': h_ins.get('GroupNumber'),
-            'monthly_premium': h_ins.get('MonthlyCost', 0.00),
-            'provided_through': h_ins.get('ProvidedThrough')
+        # Physical Description
+        phys = more_op.get('FormOpNameFirstsPhysicalDescription', {})
+        client_doc['op']['physical_description'] = {
+            'height': phys.get('Height', ''),
+            'weight': phys.get('Weight', ''),
+            'hair_color': phys.get('HairColor', '')
         }
 
-    # Dental Insurance
-    h_ins = intake.get('Dental', {})
-    if h_ins:
-        client_doc['dental_ins'] = {
-            'carrier': h_ins.get('HealthInsuranceCompany'),
-            'policy_holder': h_ins.get('PolicyHolderName'),
-            'policy_number': h_ins.get('PolicyNumber'),
-            'group_number': h_ins.get('GroupNumber'),
-            'monthly_premium': h_ins.get('MonthlyCost', 0.00),
-            'provided_through': h_ins.get('ProvidedThrough')
-        }
+        # Marriage Information
+        marriage = intake.get('Marriage', {})
+        client_doc['marriage_date'] = marriage.get('Dom')
+        client_doc['separation_date'] = marriage.get('Dos')
+        client_doc['marriage_place'] = marriage.get('Place')
+        client_doc['restore_maiden_name_flag'] = __flag_value(marriage.get('Maindenrestoreflag'))
+        client_doc['maiden_name'] = marriage.get('Midenname')
 
-    # Marketing information
-    referral = intake.get('Referral', {})
-    referral = __transform_referral(referral)
-    client_doc['referrer'] = referral
+        # Children
+        children = intake.get('Children', [])
+        if children:
+            client_doc['children'] = []
+            for child in children:
+                c_name = __transform_name(child.get('Name', {}))
+                c_dob = child.get('Dob', '')
+                c_state = child.get('HomeState', {}).get('State')
+                c_home_state = US_STATE_NAMES.get(c_state, c_state)
+                c = {'name': c_name, 'dob': c_dob, 'home_state': c_home_state}
+                client_doc['children'].append(c)
+
+        # Health Insurance
+        h_ins = intake.get('Med', {})
+        if h_ins:
+            client_doc['health_ins'] = {
+                'carrier': h_ins.get('HealthInsuranceCompany'),
+                'policy_holder': h_ins.get('PolicyHolderName'),
+                'policy_number': h_ins.get('PolicyNumber'),
+                'group_number': h_ins.get('GroupNumber'),
+                'monthly_premium': h_ins.get('MonthlyCost', 0.00),
+                'provided_through': h_ins.get('ProvidedThrough')
+            }
+
+        # Dental Insurance
+        h_ins = intake.get('Dental', {})
+        if h_ins:
+            client_doc['dental_ins'] = {
+                'carrier': h_ins.get('HealthInsuranceCompany'),
+                'policy_holder': h_ins.get('PolicyHolderName'),
+                'policy_number': h_ins.get('PolicyNumber'),
+                'group_number': h_ins.get('GroupNumber'),
+                'monthly_premium': h_ins.get('MonthlyCost', 0.00),
+                'provided_through': h_ins.get('ProvidedThrough')
+            }
+
+        # Marketing information
+        referral = intake.get('Referral', {})
+        referral = __transform_referral(referral)
+        client_doc['referrer'] = referral
+    except Exception as e:
+        get_logger('db_clients').exception(e)
 
     # Done!!
     return client_doc
