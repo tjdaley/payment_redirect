@@ -101,41 +101,30 @@ class DbIntakes(Database):
         """
         logger = get_logger('db_intake')
         try:
-            logger.debug("001 - Entering save()")
             # Indexed by Entry number
             doc['entry_number'] = doc.get('Entry', {}).get('Number', 0)
-            logger.debug("002 - Creating filter")
             filter_ = {'entry_number': doc['entry_number']}
 
             # Remove '$'-prefixed fields
-            logger.debug("003 - Fixing dollar prefixes")
             doc['_$etag'] = doc.get('$etag', None)
             del doc['$etag']
             doc['_$version'] = doc.get('$version', None)
             del doc['$version']
 
-            logger.debug("004 - Doing the update")
             update_result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc}, upsert=True)
-            logger.debug("005 - Update is done %s", update_result)
         except Exception as e:
             logger.exception(e)
             result = {'success': False, 'message': str(e)}
             return result
 
-        try:
-            matched = update_result.matched_count
-            modified = update_result.modified_count
-            up_id = update_result.upserted_id
-            result = {
-                'success': True,
-                'message': f"Matched: {matched}  Modified: {modified}  ID (if inserted): {up_id}",
-                'matched': matched,
-                'modified': modified,
-                'upsert_id': up_id
-            }
-            logger.debug(result)
-            logger.debug('999 - Done')
-            return result
-        except Exception as e:
-            logger.exception(e)
-        return {'success': False, 'message': "FAIL!!"}
+        matched = update_result.matched_count
+        modified = update_result.modified_count
+        up_id = update_result.upserted_id
+        result = {
+            'success': True,
+            'message': f"Matched: {matched}  Modified: {modified}  ID (if inserted): {up_id}",
+            'matched': matched,
+            'modified': modified,
+            'upsert_id': up_id
+        }
+        return result
