@@ -630,4 +630,5 @@ def __transform_vehicle(vehicle: dict) -> str:
     v_model = vehicle.get('Model', '')
     v_color = vehicle.get('Color', '')
     v = [v_year, v_make, v_model, v_color]
+    v = [val for val in v if val]
     return ' '.join(v).strip().title()
