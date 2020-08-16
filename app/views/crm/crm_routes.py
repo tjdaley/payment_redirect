@@ -13,7 +13,7 @@ import os
 # pylint: disable=import-error
 from util.db_admins import DbAdmins
 from util.database import multidict2dict
-from util.db_clients import DbClients
+from util.db_clients import DbClients, intake_to_client
 from util.db_client_notes import DbClientNotes
 from util.db_contacts import DbContacts
 from util.db_intake import DbIntakes
@@ -380,7 +380,7 @@ def save_intake():
 
     # upsert_id is not none if this was a brand new record
     if result['upsert_id']:
-        client_doc = DBCLIENTS.intake_to_client(data)
+        client_doc = intake_to_client(data)
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
         DBCLIENTS.save(client_doc)
@@ -395,7 +395,7 @@ def update_intake():
 
     # upsert_id is not none if this was a brand new record
     if result['upsert_id']:
-        client_doc = DBCLIENTS.intake_to_client(data)
+        client_doc = intake_to_client(data)
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
         DBCLIENTS.save(client_doc)
