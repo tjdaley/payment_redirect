@@ -5,10 +5,8 @@ db_intakes.py - Class to access client intake entries from Cognito Forms
 @version 0.0.1
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
-from datetime import datetime
 import json  # noqa
 from pymongo import DESCENDING
-from bson.objectid import ObjectId
 
 from util.database import Database
 
@@ -116,4 +114,13 @@ class DbIntakes(Database):
             result = {'success': False, 'message': str(e)}
             return result
 
-        return {'success': True, 'message': f"Matched: {update_result.matched_count}  Modified: {update_result.modified_count}  ID (if inserted): {update_result.upserted_id}"}
+        matched = update_result.matched_count
+        modified = update_result.modified_count
+        up_id = update_result.upserted_id
+        return {
+            'success': True,
+            'message': f"Matched: {matched}  Modified: {modified}  ID (if inserted): {up_id}",
+            'matched': matched,
+            'modified': modified,
+            'upsert_id': up_id
+        }
