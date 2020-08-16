@@ -377,8 +377,13 @@ def unassign_contact_from_client(contact_id: str, client_id: str):
 def save_intake():
     data = request.get_json(silent=True)
     result = DBINTAKES.save(data)
-    logger = get_logger('crm')
-    logger.debug(json.dumps(result, indent=4))
+
+    # upsert_id is not none if this was a brand new record
+    if result['upsert_id']:
+        client_doc = DBCLIENTS.intake_to_client(data)
+        client_doc['_id'] = '0'
+        client_doc['crm_state'] = '040:consult_scheduled'
+        DBCLIENTS.save(client_doc)
     return jsonify(result)
 
 
@@ -386,8 +391,13 @@ def save_intake():
 def update_intake():
     data = request.get_json(silent=True)
     result = DBINTAKES.save(data)
-    logger = get_logger('crm')
-    logger.debug(json.dumps(result, indent=4))
+
+    # upsert_id is not none if this was a brand new record
+    if result['upsert_id']:
+        client_doc = DBCLIENTS.intake_to_client(data)
+        client_doc['_id'] = '0'
+        client_doc['crm_state'] = '040:consult_scheduled'
+        DBCLIENTS.save(client_doc)
     return jsonify(result)
 
 
