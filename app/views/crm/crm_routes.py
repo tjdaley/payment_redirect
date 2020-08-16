@@ -403,6 +403,7 @@ def update_intake():
         logger.debug("Transformed OK")
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
+        client_doc['active_flag'] = 'Y'
         logger.debug("About to save")
         result = DBCLIENTS.save(client_doc, 'tdaley@koonsfuller.com')
         logger.debug("Save done . . .")
