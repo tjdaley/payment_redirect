@@ -370,6 +370,7 @@ def intake_to_client(intake: dict) -> dict:
         client_doc['admin_users'] = admin.get('AssignedTo', os.environ.get('ADMIN_USERS'))
         client_doc['crm_state'] = admin.get('CRMState', '040"consult_scheduled')
         client_doc['billing_id'] = admin.get('BillingID', '9999')
+        client_doc['attorney_initials'] = admin.get('AttorneyInitials', 'tjd')
 
         # About the Cliente
         about_you = intake.get('AboutYou', {})
