@@ -398,6 +398,7 @@ def update_intake():
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
         DBCLIENTS.save(client_doc)
+    get_logger('crm').debug(json.dumps(result, indent=4))
     return jsonify(result)
 
 
