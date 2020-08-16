@@ -389,23 +389,14 @@ def save_intake():
 
 @crm_routes.route('/crm/util/update_intake', methods=['POST'])
 def update_intake():
-    logger = get_logger('crm')
-    logger.debug("Updating . . .")
     data = request.get_json(silent=True)
     result = DBINTAKES.save(data)
-    logger.debug('. . . Save is complete . . . show result next')
-    logger.debug(result)
 
     # upsert_id is not none if this was a brand new record
     if result.get('modified', 0) == 0:
-        logger.debug("Saving new client record")
         client_doc = intake_to_client(data)
-        logger.debug("Transformed OK")
         client_doc['_id'] = '0'
-        logger.debug("About to save")
         result = DBCLIENTS.save(client_doc, 'tdaley@koonsfuller.com')
-        logger.debug("Save done . . .")
-        logger.debug(result)
 
     return jsonify(result)
 
