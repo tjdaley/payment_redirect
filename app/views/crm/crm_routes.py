@@ -32,7 +32,7 @@ DBINTAKES = DbIntakes()
 
 
 # Refresh court directory information on restart
-CourtDirectory.process()
+# CourtDirectory.process()
 DIRECTORY = CourtDirectory()
 
 crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')

@@ -126,13 +126,16 @@ class DbIntakes(Database):
             matched = update_result.matched_count
             modified = update_result.modified_count
             up_id = update_result.upserted_id
-            return {
+            result = {
                 'success': True,
                 'message': f"Matched: {matched}  Modified: {modified}  ID (if inserted): {up_id}",
                 'matched': matched,
                 'modified': modified,
                 'upsert_id': up_id
             }
+            logger.debug(result)
+            logger.debug('999 - Done')
+            return result
         except Exception as e:
             logger.exception(e)
         return {'success': False, 'message': "FAIL!!"}
