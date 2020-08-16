@@ -379,7 +379,7 @@ def save_intake():
     result = DBINTAKES.save(data)
 
     # upsert_id is not none if this was a brand new record
-    if result['upsert_id']:
+    if result.get('upsert_id', None):
         client_doc = intake_to_client(data)
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
@@ -394,7 +394,7 @@ def update_intake():
     result = DBINTAKES.save(data)
 
     # upsert_id is not none if this was a brand new record
-    if result['upsert_id']:
+    if result.get('upsert_id', None):
         client_doc = intake_to_client(data)
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
