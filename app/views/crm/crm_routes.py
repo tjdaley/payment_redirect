@@ -404,7 +404,7 @@ def update_intake():
         client_doc['_id'] = '0'
         client_doc['crm_state'] = '040:consult_scheduled'
         logger.debug("About to save")
-        result = DBCLIENTS.save(client_doc)
+        result = DBCLIENTS.save(client_doc, 'tdaley@koonsfuller.com')
         logger.debug("Save done . . .")
         logger.debug(result)
 
