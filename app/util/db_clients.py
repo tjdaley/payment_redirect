@@ -363,6 +363,14 @@ def intake_to_client(intake: dict) -> dict:
     """
     try:
         client_doc = {}
+
+        # Internal-only fields
+        admin = intake.get('AdminFields', {})
+        client_doc['active_flag'] = 'Y'
+        client_doc['admin_users'] = admin.get('AssignedTo', os.environ.get('ADMIN_USERS'))
+        client_doc['crm_state'] = admin.get('CRMState', '040"consult_scheduled')
+
+        # About the Cliente
         about_you = intake.get('AboutYou', {})
 
         # Transform names to a name dict
