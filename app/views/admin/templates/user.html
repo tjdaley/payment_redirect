@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% block body %}
     <h1>{{operation}} Admin User</h1>
-    {% from 'includes/_formhelpers.html' import render_field %}
+    {% from 'includes/_formhelpers.html' import render_field, render_checkbox %}
     <form method='POST' action="/admin/user/save/">
         <input type='hidden' name='_id' id='_id' value='{{user._id}}'>
         <div class="card border-primary my-3">
@@ -54,11 +54,19 @@
                         {{render_field(form.ring_central_password, class_="form-control", value=user.ring_central_password)}}
                         <small class="text-muted">Password for logging into RingCentral Office or AT&T Office At Hand</small>
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group col-md">
                         {% if user.active_flag == 'Y' %}
-                        {{render_field(form.active_flag, class_="form-control", value='Y', checked='Y')}}
+                        {{render_checkbox(form.active_flag, value='Y', checked='Y')}}
                         {% else %}
-                        {{render_field(form.active_flag, class_="form-control", value='Y')}}
+                        {{render_checkbox(form.active_flag, value='Y')}}
+                        {% endif %}
+
+                        {% if user.prompt_on_dial_flag == 'Y' %}
+                        {{render_checkbox(form.prompt_on_dial_flag, value='Y', checked='Y')}}
+                        {% else %}
+                        {{render_checkbox(form.prompt_on_dial_flag, value='Y')}}
                         {% endif %}
                     </div>
                 </div>

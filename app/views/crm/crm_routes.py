@@ -328,6 +328,7 @@ def dial_number(to_number):
         user['ring_central_username'],
         user['ring_central_extension'],
         user['ring_central_password'],
+        (user.get('prompt_on_dial_flag', 'N') == 'Y'),
         session_access_token=token
     )
     if response.get('rc_login_needed', False):

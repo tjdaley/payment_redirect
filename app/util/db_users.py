@@ -106,7 +106,7 @@ class DbUsers(Database):
             del doc['_id']
 
             # Fix the flags
-            flag_fields = ['active_flag']
+            flag_fields = ['active_flag', 'prompt_on_dial_flag']
             set_missing_flags(doc, flag_fields)
 
             result = self.dbconn[COLLECTION_NAME].insert_one(doc)
@@ -116,10 +116,11 @@ class DbUsers(Database):
             message = "Failed to add new user record"
             return {'success': False, 'message': message}
 
-        # Update existing client record
+        # Update existing admin record
         filter_ = {'_id': ObjectId(doc['_id'])}
         del doc['_id']
-        doc['active_flag'] = 'Y'
+        # doc['active_flag'] = 'Y'
+        set_missing_flags(doc, ['active_flag', 'prompt_on_dial_flag'])
         result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
         if result.modified_count == 1:
             message = f"{user_name}'s record updated"

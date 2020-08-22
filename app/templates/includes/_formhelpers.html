@@ -7,3 +7,15 @@
         {% endfor %}
     {% endif %}
 {% endmacro %}
+
+{% macro render_checkbox(field) %}
+    <div class="form-check">
+    {{field(**kwargs)|safe}}
+    {{field.label}}
+    {% if field.errors %}
+        {% for error in field.errors %}
+        <span class="help-inline text-danger">{{error}}</span>
+        {% endfor %}
+    {% endif %}
+    </div>
+{% endmacro %}
