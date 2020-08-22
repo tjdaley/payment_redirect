@@ -37,6 +37,15 @@ def crm_state_filter(value):
     return value
 
 
+def newlines_filter(value: str) -> str:
+    """
+    Convert newlines to <br /> for displaying on browser.
+    """
+    if isinstance(value, str):
+        return value.replace('\n', '<br />')
+    return value
+
+
 app = Flask(__name__)
 app.config.from_mapping(
     CLIENT_SECRET=os.environ['AZURE_CLIENT_SECRET'],
@@ -49,6 +58,7 @@ app.register_blueprint(crm_routes)
 app.register_blueprint(payment_routes)
 app.jinja_env.filters['phone_number'] = phone_filter
 app.jinja_env.filters['crm_state'] = crm_state_filter
+app.jinja_env.filters['newlines'] = newlines_filter
 
 
 @app.route('/', methods=['GET'])
