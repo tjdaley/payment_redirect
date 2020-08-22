@@ -519,7 +519,11 @@ def intake_to_client(intake: dict) -> dict:
 
         # Marketing information
         referral = intake.get('Referral', {})
+        print("REFERRAL INPUT".center(80, "*"))
+        print(json.dumps(referral, indent=4))
         referral = __transform_referral(referral)
+        print("TRANSFORMED REFERRAL".center(80, "*"))
+        print(json.dumps(referral, indent=4))
         client_doc['referrer'] = referral
     except Exception as e:
         get_logger('db_clients').exception(e)
