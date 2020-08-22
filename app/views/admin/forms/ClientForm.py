@@ -108,10 +108,24 @@ class ContactForm(Form):
 class ContactsForm(Form):
     contacts = FieldList(ContactForm)
 
+
 class Referral(Form):
     referred_to = StringField("Referred to")
     source = StringField("Source")
     more_info = StringField("More information")
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
+
+
+class Insurance(Form):
+    carrier = StringField("Carrier")
+    policy_holder = StringField("Policy holder")
+    policy_number = StringField("Policy #")
+    group_number = StringField("Group #")
+    monthly_premium = StringField("Monthly premium", [validators.Optional(), DollarCleaner(min=0)])
+    provided_through = StringField("Provided through")
 
     @classmethod
     def get(cls) -> dict:
@@ -128,6 +142,8 @@ class ClientForm(Form):
 
     name = FormField(ContactName)
     referrer = FormField(Referral)
+    health_ins = FormField(Insurance, "Health Insurance")
+    dental_ins = FormField(Insurance, "Dental Insurance")
 
     client_ssn = StringField(
         "Client SSN",
