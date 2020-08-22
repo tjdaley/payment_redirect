@@ -242,6 +242,7 @@ def show_client(id):
     _cleanup_client(client)
     notes = DBNOTES.get_list(user_email, id)
 
+    form.name.title.data = client.get('name', {}).get('title', None)
     form.address.state.data = client.get('address', {}).get('state', None)
     form.case_county.data = client.get('case_county', None)
     form.court_type.choices = DIRECTORY.get_court_type_tuples(client.get('case_county'))
