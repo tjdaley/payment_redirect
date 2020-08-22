@@ -215,7 +215,7 @@ def add_client():
 def save_client():
     form = ClientForm(request.form)
     fields = multidict2dict(request.form, ClientForm.get())
-    _update_compound_fields(fields, ['name', 'address'])
+    _update_compound_fields(fields, ['name', 'address', 'referrer', 'dental_ins', 'health_ins', 'employment', 'billing_address'])
 
     if form.validate():
         user_email = session['user']['preferred_username']

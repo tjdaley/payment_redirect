@@ -108,6 +108,15 @@ class ContactForm(Form):
 class ContactsForm(Form):
     contacts = FieldList(ContactForm)
 
+class Referral(Form):
+    referred_to = StringField("Referred to")
+    source = StringField("Source")
+    more_info = StringField("More information")
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
+
 
 class ClientForm(Form):
     directory = CourtDirectory()
@@ -118,6 +127,7 @@ class ClientForm(Form):
     )
 
     name = FormField(ContactName)
+    referrer = FormField(Referral)
 
     client_ssn = StringField(
         "Client SSN",
