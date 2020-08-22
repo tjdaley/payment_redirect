@@ -519,9 +519,7 @@ def intake_to_client(intake: dict) -> dict:
 
         # Marketing information
         referral = intake.get('Referral', {})
-        get_logger('test').debug('Refereral Input %s', referral)
         referral = __transform_referral(referral)
-        get_logger('test').debug('Refereral Output %s', referral)
         client_doc['referrer'] = referral
     except Exception as e:
         get_logger('db_clients').exception(e)
@@ -621,7 +619,11 @@ def __transform_name(name: dict) -> dict:
 
 def __transform_referral(referral: dict) -> dict:
     result = {}
-    result['referred_to'] = referral.get('NameOfAttorneyYouWereReferredTo', 'FIRM')
+    ref_to = referral.get('NameOfAttorneyYouWereReferredTo', 'FIRM')
+    if ref_to:
+        result['referred_to'] = ref_to
+    else:
+        result['referred_to'] = 'FIRM'
     result['source'] = referral.get('Source')
     if referral.get('Name', {}).get('FirstAndLast', ' ') != ' ':
         ref_name = __name_string(referral.get('Name', {}))
