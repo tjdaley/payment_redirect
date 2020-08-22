@@ -240,7 +240,6 @@ def show_client(id):
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(id)
     _cleanup_client(client)
-    notes = DBNOTES.get_list(user_email, id)
 
     form.name.title.data = client.get('name', {}).get('title', None)
     form.address.state.data = client.get('address', {}).get('state', None)
@@ -252,7 +251,7 @@ def show_client(id):
     form.crm_state.data = client.get('crm_state', None)
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
-    return render_template('crm/client.html', client=client, notes=notes, authorizations=authorizations, form=form, our_pay_url=our_pay_url)
+    return render_template('crm/client.html', client=client, authorizations=authorizations, form=form, our_pay_url=our_pay_url)
 
 
 @crm_routes.route('/crm/notes/add/', methods=['POST'])
