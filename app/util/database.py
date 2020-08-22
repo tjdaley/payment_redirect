@@ -141,7 +141,10 @@ def set_missing_flags(doc: dict, flag_fields: list):
     """
     for field in flag_fields:
         if field in doc:
-            doc[field] = 'Y'
+            if doc[field]:
+                doc[field] = 'Y'
+            else:
+                doc[field] = 'N'
         else:
             doc[field] = 'N'
 
