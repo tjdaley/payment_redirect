@@ -119,8 +119,6 @@ class DbClients(Database):
 
         where = {'$or': conditions}
 
-        print(json.dumps(where, indent=4))
-
         return self.get_list(
             email=email,
             where=where,
