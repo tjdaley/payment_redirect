@@ -252,6 +252,7 @@ class DbClients(Database):
             # Update existing client record
             filter_ = {'_id': ObjectId(doc['_id'])}
             del doc['_id']
+            doc['reference'] = f"Client ID {doc['billing_id']}"
             result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
             if result.modified_count == 1:
                 message = f"{client_name}'s record updated"
