@@ -247,7 +247,7 @@ def add_client():
 @DECORATORS.is_admin_user
 def save_client():
     form = ClientForm(request.form)
-    fields = multidict2dict(request.form)
+    fields = multidict2dict(request.form, ClientForm.get())
 
     if form.validate():
         user_email = session['user']['preferred_username']
