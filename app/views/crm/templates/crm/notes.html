@@ -32,7 +32,7 @@
         <div class="card-header alert-primary">{{note.created_date}} ({{note.created_by}})</div>
         <div class="card-body">
             <div class="form-row">
-                <p>{{note.text}}</p>
+                <p>{{note.text | newlines | safe}}</p>
             </div>
         </div>
     </div>
