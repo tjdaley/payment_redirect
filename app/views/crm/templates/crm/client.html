@@ -43,16 +43,16 @@
                     aria-selected="false">Dates</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" id="insurance-tab" data-toggle="tab" href="#insurance" role="tab" aria-controls="insurance"
+                    aria-selected="false">Insurance</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" id="marketing-tab" data-toggle="tab" href="#marketing" role="tab" aria-controls="marketing"
                     aria-selected="false">Marketing</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="access-tab" data-toggle="tab" href="#access" role="tab" aria-controls="access"
                     aria-selected="false">Access</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes"
-                    aria-selected="false">Notes</a>
             </li>
         </ul>
 
@@ -298,30 +298,87 @@
                 </div>
             </div>
 
-            <!--NOTES TAB-->
-            <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+            <!--INSURANCE TAB-->
+            <div class="tab-pane fade" id="insurance" role="tabpanel" aria-labelledby="insurance-tab">
                 <div class="card border-primary my-3">
-                    <div class="card-header alert-primary">
-                        Notes
-                        <div class="float-right">
-                            <button class="btn btn-small btn-outline-secondary fa fa-comments" data-clientsid="{{client._id}}"
-                                data-target="#noteModal" data-placement="top" title="Add Note" type="button"
-                                data-tooltip="tooltip" data-toggle="modal">
-                            </button>
-                        </div>
-                    </div>
+                    <div class="card-header alert-primary">Insurance</div>
                     <div class="card-body">
-                        {% for note in notes %}
                         <div class="form-row">
                             <div class="form-group col">
-                                <small>{{note.last_edit_date}} by {{note.last_editor}}</small>
-                                <p>
-                                    {{note.text}}
-                                </p>
-                                <hr />
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <b>{{form.health_ins.label()}}</b>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.health_ins.carrier, class_="form-control", value=client.health_ins.carrier)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.health_ins.policy_holder, class_="form-control", value=client.health_ins.policy_holder)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.health_ins.policy_number, class_="form-control", value=client.health_ins.policy_number)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.health_ins.group_number, class_="form-control", value=client.health_ins.group_number)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.health_ins.monthly_premium, class_="form-control", value=client.health_ins.monthly_premium)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.health_ins.provided_through, class_="form-control", value=client.health_ins.provided_through)}}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col">
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <b>{{form.dental_ins.label()}}</b>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.dental_ins.carrier, class_="form-control", value=client.dental_ins.carrier)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.dental_ins.policy_holder, class_="form-control", value=client.dental_ins.policy_holder)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.dental_ins.policy_number, class_="form-control", value=client.dental_ins.policy_number)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.dental_ins.group_number, class_="form-control", value=client.dental_ins.group_number)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.dental_ins.monthly_premium, class_="form-control", value=client.dental_ins.monthly_premium)}}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        {{render_field(form.dental_ins.provided_through, class_="form-control", value=client.dental_ins.provided_through)}}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -424,38 +481,6 @@
         <a href="/crm" class="btn btn-secondary my-3 mx-3">Cancel</a>
     </form>
 
-<div class="modal fade" id="noteModal" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="noteModalLabel">Add/Edit Note</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="form-group">
-                        <label for="note-text" class="col-form-label">Text:</label>
-                        <textarea class="form-control" id="note-text" rows="5"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="note-tags" class="col-form-label">Tags:</label>
-                        <input type="text" class="form-control" id="note-tags">
-                    </div>
-                    <div class="alert alert-primary" id="message-result"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="save_note()">Send</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
     <script>
         window.addEventListener('load', init);
         /**
@@ -478,22 +503,6 @@
             else {
                 e.addEventListener("change", court_type_change);
             }
-        }
-
-        /**
-         * Save a note
-         */
-        function save_note() {
-            var text = encodeURIComponent($('#note-text').val());
-            var tags = encodeURIComponent($('#note-tags').val());
-            var client_id = encodeURIComponent($('#_id').val());
-            $('#message-result').html('');
-            jQuery.get(
-                '/crm/data/save_note/' + text + '/' + tags + '/' + client_id + '/0/',
-                function (data) {
-                    $('#message-result').html(data.message);
-                    $('#message-text').val('');
-                });
         }
 
         /**
