@@ -638,6 +638,7 @@ def __transform_referral(referral: dict) -> dict:
     else:
         ref_name = "n/a"
     result['more_info'] = ref_name
+    return result
 
 
 def __transform_vehicle(vehicle: dict) -> str:
