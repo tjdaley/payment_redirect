@@ -230,23 +230,23 @@
                         <div class="form-row">
                             <div class="form-group col-md">
                                 {% if 'EDIT_REFERRER' in authorizations %}
-                                {{render_field(form.referrer.referred_to, class_="form-control", value=client.referrer.referred_to)}}
+                                {{render_field(form.referrer.referred_to, class_="form-control", value=client.get('referrer', {}).get('referred_to', ''))}}
                                 {% else %}
-                                {{render_field(form.referrer.referred_to, class_="form-control", value=client.referrer.referred_to, readonly="Y")}}
+                                {{render_field(form.referrer.referred_to, class_="form-control", value=client.get('referrer', {}).get('referred_to', ''), readonly="Y")}}
                                 {% endif %}
                             </div>
                             <div class="form-group col-md">
                                 {% if 'EDIT_REFERRER' in authorizations %}
-                                {{render_field(form.referrer.source, class_="form-control", value=client.referrer.source)}}
+                                {{render_field(form.referrer.source, class_="form-control", value=client.get('referrer', {}).get('source', ''))}}
                                 {% else %}
-                                {{render_field(form.referrer.source, class_="form-control", value=client.referrer.source, readonly="Y")}}
+                                {{render_field(form.referrer.source, class_="form-control", value=client.get('referrer', {}).get('source', ''), readonly="Y")}}
                                 {% endif %}
                             </div>
                             <div class="form-group col-md">
                                 {% if 'EDIT_REFERRER' in authorizations %}
-                                {{render_field(form.referrer.more_info, class_="form-control", value=client.referrer.more_info)}}
+                                {{render_field(form.referrer.more_info, class_="form-control", value=client.get('referrer', {}).get('more_info', ''))}}
                                 {% else %}
-                                {{render_field(form.referrer.more_info, class_="form-control", value=client.referrer.more_info, readonly="Y")}}
+                                {{render_field(form.referrer.more_info, class_="form-control", value=client.get('referrer', {}).get('more_info', ''), readonly="Y")}}
                                 {% endif %}
                             </div>
                         </div>
@@ -312,32 +312,32 @@
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.health_ins.carrier, class_="form-control", value=client.health_ins.carrier)}}
+                                        {{render_field(form.health_ins.carrier, class_="form-control", value=client.get('health_ins',{}).get('carrier',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.health_ins.policy_holder, class_="form-control", value=client.health_ins.policy_holder)}}
+                                        {{render_field(form.health_ins.policy_holder, class_="form-control", value=client.get('health_ins',{}).get('policy_holder',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.health_ins.policy_number, class_="form-control", value=client.health_ins.policy_number)}}
+                                        {{render_field(form.health_ins.policy_number, class_="form-control", value=client.get('health_ins',{}).get('policy_number',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.health_ins.group_number, class_="form-control", value=client.health_ins.group_number)}}
+                                        {{render_field(form.health_ins.group_number, class_="form-control", value=client.get('health_ins',{}).get('group_number',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.health_ins.monthly_premium, class_="form-control", value=client.health_ins.monthly_premium)}}
+                                        {{render_field(form.health_ins.monthly_premium, class_="form-control", value=client.get('health_ins',{}).get('monthly_premium',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.health_ins.provided_through, class_="form-control", value=client.health_ins.provided_through)}}
+                                        {{render_field(form.health_ins.provided_through, class_="form-control", value=client.get('health_ins',{}).get('provided_through',''))}}
                                     </div>
                                 </div>
                             </div>
@@ -349,32 +349,32 @@
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.dental_ins.carrier, class_="form-control", value=client.dental_ins.carrier)}}
+                                        {{render_field(form.dental_ins.carrier, class_="form-control", value=client.get('dental_ins',{}).get('carrier',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.dental_ins.policy_holder, class_="form-control", value=client.dental_ins.policy_holder)}}
+                                        {{render_field(form.dental_ins.policy_holder, class_="form-control", value=client.get('dental_ins',{}).get('policy_holder',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.dental_ins.policy_number, class_="form-control", value=client.dental_ins.policy_number)}}
+                                        {{render_field(form.dental_ins.policy_number, class_="form-control", value=client.get('dental_ins',{}).get('policy_number',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.dental_ins.group_number, class_="form-control", value=client.dental_ins.group_number)}}
+                                        {{render_field(form.dental_ins.group_number, class_="form-control", value=client.get('dental_ins',{}).get('group_number',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.dental_ins.monthly_premium, class_="form-control", value=client.dental_ins.monthly_premium)}}
+                                        {{render_field(form.dental_ins.monthly_premium, class_="form-control", value=client.get('dental_ins',{}).get('monthly_premium',''))}}
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col">
-                                        {{render_field(form.dental_ins.provided_through, class_="form-control", value=client.dental_ins.provided_through)}}
+                                        {{render_field(form.dental_ins.provided_through, class_="form-control", value=client.get('dental_ins',{}).get('provided_through',''))}}
                                     </div>
                                 </div>
                             </div>
