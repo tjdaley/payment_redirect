@@ -63,12 +63,12 @@ class DbClientNotes(Database):
         else:
             filter_ = {'clients_id': ObjectId(clients_id)}
 
-        contacts = self.dbconn[COLLECTION_NAME].find(filter_).sort(order_by).skip(skips).limit(page_size)
+        notes = self.dbconn[COLLECTION_NAME].find(filter_).sort(order_by).skip(skips).limit(page_size)
 
-        if not contacts:
+        if not notes:
             return None
 
-        return list(contacts)
+        return list(notes)
 
     def search(self, email: str, clients_id: str, query: str, page_num: int = 1, page_size: int = 25) -> list:
         """
