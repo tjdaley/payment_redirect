@@ -22,7 +22,7 @@ from util.court_directory import CourtDirectory
 from util.dialer import Dialer
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
-from util.logger import get_logger
+# from util.logger import get_logger
 from views.admin.forms.ClientForm import ClientForm, ContactForm
 DBADMINS = DbAdmins()
 DBCONTACTS = DbContacts()
@@ -99,10 +99,10 @@ def add_contact():
 def save_contact():
     form = ContactForm(request.form)
     fields = multidict2dict(request.form)
+    _update_compound_fields(fields, ['name', 'address'])
 
     if form.validate():
         user_email = session['user']['preferred_username']
-        _update_compound_fields(fields, ['name', 'address'])
         result = DBCONTACTS.save(user_email, fields)
         if result['success']:
             css_name = 'success'
@@ -215,10 +215,10 @@ def add_client():
 def save_client():
     form = ClientForm(request.form)
     fields = multidict2dict(request.form, ClientForm.get())
+    _update_compound_fields(fields, ['name', 'address'])
 
     if form.validate():
         user_email = session['user']['preferred_username']
-        _update_compound_fields(fields, ['name', 'address'])
         result = DBCLIENTS.save(fields, user_email)
         if result['success']:
             css_name = 'success'
