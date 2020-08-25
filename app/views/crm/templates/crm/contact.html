@@ -45,15 +45,39 @@
         <div class="card-body">
             <div class="form-row">
                 <div class="form-group col-md">
-                    {{render_field(form.office_phone, class_="form-control", value=contact.office_phone)}}
+                    {{form.office_phone.label()}}
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-outline-secondary fa fa-phone" title="Call {{contact.office_phone | phone_number}}"
+                                type="button" onclick="dial('{{contact.office_phone}}')"></button>
+                        </div>
+                        {{form.office_phone(class_="form-control", value=contact.office_phone)}}
+                    </div>
                 </div>
+
                 <div class="form-group col-md">
-                    {{render_field(form.cell_phone, class_="form-control", value=contact.cell_phone)}}
+                    {{form.cell_phone.label()}}
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-outline-secondary fa fa-phone" title="Call {{contact.cell_phone | phone_number}}"
+                                type="button" onclick="dial('{{contact.cell_phone}}')"></button>
+                        </div>
+                        {{form.cell_phone(class_="form-control", value=contact.cell_phone)}}
+                    </div>
                 </div>
+
                 <div class="form-group col-md">
-                    {{render_field(form.email, class_="form-control", value=contact.email)}}
+                    {{form.email.label()}}
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <a href="mailto:{{contact.email}}" class="btn btn-outline-secondary fa fa-envelope pt-2" data-toggle="tooltip"
+                                data-placement="top" title="Send Email to {{contact.email}}" role="button">
+                            </a>
+                        </div>
+                        {{form.email(class_="form-control", value=contact.email)}}
+                    </div>
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-2">
                     {{render_field(form.fax, class_="form-control", value=contact.fax)}}
                 </div>
             </div>
@@ -80,4 +104,14 @@
     <button class="btn btn-primary my-3" type="submit">Save</button>
     <a href="/crm/contacts" class="btn btn-secondary my-3 mx-3">Cancel</a>
 </form>
+<script>
+    function dial(to_number) {
+        opts = {
+            to_number: to_number
+        };
+        dialer.dial(opts);
+    }
+        
+</script>
+
 {% endblock %}
