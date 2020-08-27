@@ -47,10 +47,12 @@
                 <div class="form-group col-md">
                     {{form.office_phone.label()}}
                     <div class="input-group mb-3">
+                        {% if contact.office_phone %}
                         <div class="input-group-prepend">
                             <button class="btn btn-outline-secondary fa fa-phone" title="Call {{contact.office_phone | phone_number}}"
                                 type="button" onclick="dial('{{contact.office_phone}}')"></button>
                         </div>
+                        {% endif %}
                         {{form.office_phone(class_="form-control", value=contact.office_phone)}}
                     </div>
                 </div>
@@ -58,10 +60,12 @@
                 <div class="form-group col-md">
                     {{form.cell_phone.label()}}
                     <div class="input-group mb-3">
+                        {% if contact.cell_phone %}
                         <div class="input-group-prepend">
                             <button class="btn btn-outline-secondary fa fa-phone" title="Call {{contact.cell_phone | phone_number}}"
                                 type="button" onclick="dial('{{contact.cell_phone}}')"></button>
                         </div>
+                        {% endif %}
                         {{form.cell_phone(class_="form-control", value=contact.cell_phone)}}
                     </div>
                 </div>
@@ -69,11 +73,13 @@
                 <div class="form-group col-md">
                     {{form.email.label()}}
                     <div class="input-group">
+                        {% if contact.email %}
                         <div class="input-group-prepend">
                             <a href="mailto:{{contact.email}}" class="btn btn-outline-secondary fa fa-envelope pt-2" data-toggle="tooltip"
                                 data-placement="top" title="Send Email to {{contact.email}}" role="button">
                             </a>
                         </div>
+                        {% endif %}
                         {{form.email(class_="form-control", value=contact.email)}}
                     </div>
                 </div>
