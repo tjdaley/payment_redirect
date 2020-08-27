@@ -123,21 +123,25 @@
                             <div class="form-group col-md">
                                 {{form.email.label()}}
                                 <div class="input-group">
+                                    {% if client.email %}
                                     <div class="input-group-prepend">
                                         <a href="mailto:{{client.email}}" class="btn btn-outline-secondary fa fa-envelope pt-2" data-toggle="tooltip"
                                             data-placement="top" title="Send Email to {{client.email}}" role="button">
                                         </a>
                                     </div>
+                                    {% endif %}
                                     {{form.email(class_="form-control", value=client.email)}}
                                 </div>
                             </div>
                             <div class="form-group col-md">
                                 {{form.telephone.label()}}
                                 <div class="input-group mb-3">
+                                    {% if client.telephone %}
                                     <div class="input-group-prepend">
                                         <button class="btn btn-outline-secondary fa fa-phone" title="Call {{client.telephone | phone_number}}" type="button"
                                             onclick="dial('{{client.telephone}}')"></button>
                                     </div>
+                                    {% endif %}
                                     {{form.telephone(class_="form-control", value=client.telephone)}}
                                 </div>
                             </div>
