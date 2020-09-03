@@ -20,88 +20,97 @@
     </div>
 </form>
 
-
-<table class="table table-sm table-hover">
-    <tr>
-        {% if show_crm_state %}
-        <th>CRM State</th>
-        {% endif %}
-        <th>Billing ID</th>
-        <th>Client Name</th>
-        <th>Email</th>
-        <th>Call</th>
-        <th>SMS</th>
-        <th>Notes</th>
-        <th>Contacts</th>
-        <th>Mediation Date</th>
-        <th>Trial Date</th>
-        <th class="text-right">Trust Balance</th>
-    </tr>
-    {% for client in clients %}
-    <tr class="text-{{client._class}}">
-        {% if show_crm_state %}
-        <td>
-            {{client.crm_state | crm_state}}
-        </td>
-        {% endif %}
-        <td>
-            <a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a>
-        </td>
-        <td class="highlightable">
-            {{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}
-        </td>
-        {% if client.email %}
-        <td>
-            <a
-                href="mailto:{{client.email}}?subject={{client._email_subject}}"
-                class="btn btn-outline-secondary fa fa-envelope"
-                data-toggle="tooltip" data-placement="top" title="Send Email to {{client.email}}"
-                role="button">
-            </a>
-        </td>
-        {% else %}
-        <td></td>
-        {% endif %}
-        {% if client.telephone.strip() != '' %}
-        <td>
-            <button
-                class="btn btn-small btn-outline-secondary fa fa-phone"
-                data-toggle="tooltip" data-placement="top" title="Call {{client.telephone | phone_number}}"
-                onclick="dial('{{client.telephone}}')">
-            </button>
-        </td>
-        {% else %}
-        <td></td>
-        {% endif %}
-        <td>
-            <button
-                class="btn btn-small btn-outline-secondary fa fa-comments"
-                data-name="{{client.name.title}} {{client.name.first_name}} {{client.name.last_name}}"
-                data-telephone="{{client.telephone}}"
-                data-target="#smsMessageModal"
-                data-placement="top"
-                title="Send Text"
-                data-tooltip="tooltip"
-                data-toggle="modal">
-            </button>
-        </td>
-        <td>
-            <a
-                class="btn btn-small btn-outline-secondary fa fa-sticky-note"
-                data-toggle="tooltip" data-placement="top" title="Notes"
-                href="/crm/notes/{{client._id}}/"
-            />
-        </td>
-        <td>
-            <a class="btn btn-small btn-outline-secondary fa fa-users" data-toggle="tooltip" data-placement="top"
-                title="contacts" href="/crm/client_contacts/{{client._id}}/" />
-        </td>
-        <td>{{client.mediation_date}}</td>
-        <td>{{client.trial_date}}</td>
-        <td class="text-right">{{"${:,.2f}".format(client.trust_balance or 0)}}</td>
-    </tr>
-    {% endfor %}
-</table>
+<div class="row">
+    <div class="col-md-10">
+        <table class="table table-sm table-hover">
+            <tr>
+                {% if show_crm_state %}
+                <th>CRM State</th>
+                {% endif %}
+                <th>Billing ID</th>
+                <th>Client Name</th>
+                <th>Email</th>
+                <th>Call</th>
+                <th>SMS</th>
+                <th>Notes</th>
+                <th>Contacts</th>
+                <th>Mediation Date</th>
+                <th>Trial Date</th>
+                <th class="text-right">Trust Balance</th>
+            </tr>
+            {% for client in clients %}
+            <tr class="text-{{client._class}}">
+                {% if show_crm_state %}
+                <td>
+                    {{client.crm_state | crm_state}}
+                </td>
+                {% endif %}
+                <td>
+                    <a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a>
+                </td>
+                <td class="highlightable">
+                    {{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}
+                </td>
+                {% if client.email %}
+                <td>
+                    <a
+                        href="mailto:{{client.email}}?subject={{client._email_subject}}"
+                        class="btn btn-outline-secondary fa fa-envelope"
+                        data-toggle="tooltip" data-placement="top" title="Send Email to {{client.email}}"
+                        role="button">
+                    </a>
+                </td>
+                {% else %}
+                <td></td>
+                {% endif %}
+                {% if client.telephone.strip() != '' %}
+                <td>
+                    <button
+                        class="btn btn-small btn-outline-secondary fa fa-phone"
+                        data-toggle="tooltip" data-placement="top" title="Call {{client.telephone | phone_number}}"
+                        onclick="dial('{{client.telephone}}')">
+                    </button>
+                </td>
+                {% else %}
+                <td></td>
+                {% endif %}
+                <td>
+                    <button
+                        class="btn btn-small btn-outline-secondary fa fa-comments"
+                        data-name="{{client.name.title}} {{client.name.first_name}} {{client.name.last_name}}"
+                        data-telephone="{{client.telephone}}"
+                        data-target="#smsMessageModal"
+                        data-placement="top"
+                        title="Send Text"
+                        data-tooltip="tooltip"
+                        data-toggle="modal">
+                    </button>
+                </td>
+                <td>
+                    <a
+                        class="btn btn-small btn-outline-secondary fa fa-sticky-note"
+                        data-toggle="tooltip" data-placement="top" title="Notes"
+                        href="/crm/notes/{{client._id}}/"
+                    />
+                </td>
+                <td>
+                    <a class="btn btn-small btn-outline-secondary fa fa-users" data-toggle="tooltip" data-placement="top"
+                        title="contacts" href="/crm/client_contacts/{{client._id}}/" />
+                </td>
+                <td>{{client.mediation_date}}</td>
+                <td>{{client.trial_date}}</td>
+                <td class="text-right">{{"${:,.2f}".format(client.trust_balance or 0)}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="col-md">
+        <h5 class="card-title">Tasks</h5>
+        <form method="post" onsubmit="add_todo(event)">
+            <input class="form-control" type="text" name="todo" id="todo" />
+        </form>
+    </div>
+</div>
 {% if 'DOWNLOAD_CLIENTS' in authorizations %}
 <a href="/clients/csv" class="btn btn-sm btn-secondary">Download</a>
 {% endif %}
@@ -160,6 +169,12 @@
             $('#message-result').html('');
         }
         );
+    }
+
+    function add_todo(evt) {
+        evt.preventDefault();
+        console.log(evt);
+        return false;
     }
 
     function dial(to_number) {
