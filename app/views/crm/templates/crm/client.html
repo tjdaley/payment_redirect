@@ -189,41 +189,55 @@
             <!--CHILDREN TAB-->
             <div class="tab-pane fade" id="children" role="tabpanel" aria-labelledby="children-tab">
                 <div class="card border-primary my-3">
-                    <div class="card-header alert-primary">Children<a class="btn btn-primary btn-sm float-right xmy-3" href="/client/add">ADD</a></div>
-                        <div class="card-body" id="child_forms">
+                    <div class="card-header alert-primary">
+                        Children
+                        <button class="btn btn-sm btn-primary float-right"
+                            type="button"
+                            data-toggle="modal"
+                            data-target="#addChildModal"
+                            xdata-placement="top" xtitle="Add child"
+                            xdata-tooltip="tooltip">
+                            Add
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {# ONLY RENDER IF THERE CHILD DATA TO SHOW #}
+                        {% if 'children' in client %}
                             {% for childform in form.children %}
                             {% set child = client.children[loop.index0] %}
-                            <div class=" border border-primary rounded mb-3">
-                            <div class="form-row mx-4">
-                                <div class="form-group col-md">
-                                    {{render_field(childform.form.name.first_name, class_="form-control", value=child.name.first_name)}}
+
+                            <div class="border border-primary rounded mb-3">
+                                <div class="form-row mx-4">
+                                    <div class="form-group col-md">
+                                        {{render_field(childform.form.name.first_name, class_="form-control", value=child.name.first_name)}}
+                                    </div>
+                                    <div class="form-group col-md">
+                                        {{render_field(childform.form.name.middle_name, class_="form-control", value=child.name.middle_name)}}
+                                    </div>
+                                    <div class="form-group col-md">
+                                        {{render_field(childform.form.name.last_name, class_="form-control", value=child.name.last_name)}}
+                                    </div>
+                                    <div class="form-group col-md-2">
+                                        {{render_field(childform.form.name.suffix, class_="form-control", value=child.name.suffix)}}
+                                    </div>
                                 </div>
-                                <div class="form-group col-md">
-                                    {{render_field(childform.form.name.middle_name, class_="form-control", value=child.name.middle_name)}}
-                                </div>
-                                <div class="form-group col-md">
-                                    {{render_field(childform.form.name.last_name, class_="form-control", value=child.name.last_name)}}
-                                </div>
-                                <div class="form-group col-md-2">
-                                    {{render_field(childform.form.name.suffix, class_="form-control", value=child.name.suffix)}}
+                                <div class="form-row mx-4">
+                                    <div class="form-group col-md">
+                                        {{render_field(childform.sex, class_="form-control", value=child.sex)}}
+                                    </div>
+                                    <div class="form-group col-md">
+                                        {{render_field(childform.dob, class_="form-control", value=child.dob)}}
+                                    </div>
+                                    <div class="form-group col-md">
+                                        {{render_field(childform.home_state, class_="form-control", value=child.home_state)}}
+                                    </div>
+                                    <div class="form-group col-md-2">
+                                        {{render_field(childform.ssn, class_="form-control", value=child.ssn)}}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="form-row mx-4">
-                                <div class="form-group col-md">
-                                    {{render_field(childform.sex, class_="form-control", value=child.sex)}}
-                                </div>
-                                <div class="form-group col-md">
-                                    {{render_field(childform.dob, class_="form-control", value=child.dob)}}
-                                </div>
-                                <div class="form-group col-md">
-                                    {{render_field(childform.home_state, class_="form-control", value=child.home_state)}}
-                                </div>
-                                <div class="form-group col-md-2">
-                                    {{render_field(childform.ssn, class_="form-control", value=child.ssn)}}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% endif %}
                         <input type="hidden" id="child_count" name="child_count" value="{{client.children|length}}" />
                     </div>
                 </div>
@@ -548,13 +562,69 @@
         <a href="/crm" class="btn btn-secondary my-3 mx-3">Cancel</a>
     </form>
 
+    <!--MODAL: ADD CHILD-->
+    <div class="modal fade" id="addChildModal" tabindex="-1" role="dialog" aria-labelledby="addChildLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="addChildLabel">
+                        <h5 class="main-title">Add Child</h5>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addChildForm">
+                        <div class="border border-primary rounded mb-3">
+                            <div class="form-row mx-4">
+                                <div class="form-group col-md">
+                                    {{render_field(new_child.name.first_name, class_="form-control")}}
+                                </div>
+                                <div class="form-group col-md">
+                                    {{render_field(new_child.name.middle_name, class_="form-control")}}
+                                </div>
+                                <div class="form-group col-md">
+                                    {{render_field(new_child.name.last_name, class_="form-control")}}
+                                </div>
+                                <div class="form-group col-md-2">
+                                    {{render_field(new_child.name.suffix, class_="form-control")}}
+                                </div>
+                            </div>
+                            <div class="form-row mx-4">
+                                <div class="form-group col-md">
+                                    {{render_field(new_child.sex, class_="form-control")}}
+                                </div>
+                                <div class="form-group col-md">
+                                    {{render_field(new_child.dob, class_="form-control", value="")}}
+                                </div>
+                                <div class="form-group col-md">
+                                    {{render_field(new_child.home_state, class_="form-control", value="TX")}}
+                                </div>
+                                <div class="form-group col-md-2">
+                                    {{render_field(new_child.ssn, class_="form-control")}}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="save_child(); return false;">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
-        window.addEventListener('load', init);
+        window.addEventListener('load', client_init);
         /**
          * Form initialization.
          * Set up listeners and prepopulate select inputs.
          */
-        function init() {
+        function client_init() {
             var e = document.getElementById('case_county');
             if (!e) {
                 alert('case_county control missing');
@@ -570,6 +640,19 @@
             else {
                 e.addEventListener("change", court_type_change);
             }
+
+            $('#addChildModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // Button that triggered modal
+                console.log("MODAL TRIGGERED");
+                //event.preventDefault();
+                //return false;
+            }
+            );
+            $('#addChildModal').on('shown.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // Button that triggered modal
+                console.log("MODAL APPEARS");
+            }
+            );
         }
 
         /**
@@ -600,6 +683,31 @@
                 url,
                 function(data){update_select_options('#court_name', data);}
             );
+        }
+
+        function save_child() {
+            var next_index = $('#child_count').val();
+            create_new_child_form(next_index);
+            populate_new_child_form(next_index);
+
+            $("#addChildModal").modal('hide');
+        }
+
+        function create_new_child_form(next_index) {
+            console.log("Creating new child form with index of " + next_index);
+        }
+
+        function populate_new_child_form(next_index) {
+            console.log("Populating new child form with index of " + next_index);
+            var fields = ['name-first_name', 'name-middle_name', 'name-last_name', 'name-suffix', 'sex', 'dob', 'home_state', 'ssn'];
+            fields.forEach((element) => {
+                //console.log($('#addChildForm #'+element).val());
+                var dest_selector = '#children-' + next_index + '-' + element;
+                var src_selector = '#addChildForm #' + element;
+                var value = $(src_selector).val();
+                console.log({'From': src_selector, 'To': dest_selector, 'Value': value});
+                $(dest_selector).val(value);
+            });
         }
 
         /**
