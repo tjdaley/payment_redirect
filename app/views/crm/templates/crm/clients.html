@@ -97,8 +97,8 @@
                     <a class="btn btn-small btn-outline-secondary fa fa-users" data-toggle="tooltip" data-placement="top"
                         title="contacts" href="/crm/client_contacts/{{client._id}}/" />
                 </td>
-                <td>{{client.mediation_date}}</td>
-                <td>{{client.trial_date}}</td>
+                <td>{{client.mediation_date or ''}}</td>
+                <td>{{client.trial_date or ''}}</td>
                 <td class="text-right">{{"${:,.2f}".format(client.trust_balance or 0)}}</td>
             </tr>
             {% endfor %}
