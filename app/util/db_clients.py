@@ -231,8 +231,9 @@ class DbClients(Database):
             client_name = make_client_name(doc)
 
             # Insert new client record
-            if doc['_id'] == '0':
-                del doc['_id']
+            if doc.get('_id', '0') == '0':
+                if '_id' in doc:
+                    del doc['_id']
 
                 doc['active_flag'] = 'Y'
                 if user_email.lower() not in doc['admin_users']:
@@ -346,7 +347,7 @@ def cleanup(doc: dict):
         del doc['orig_trust_balance']
 
     # Fix the flags
-    flag_fields = ['trial_retainer_flag', 'mediation_retainer_flag']
+    flag_fields = ['trial_retainer_flag', 'mediation_retainer_flag', 'active_flag']
     set_missing_flags(doc, flag_fields)
 
 
