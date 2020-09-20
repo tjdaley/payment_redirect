@@ -27,11 +27,9 @@ class DateConverter(object):
             datetime.date is converted to YYYY-MM-DD string.
         """
         if not isinstance(field.data, (date)):
-            print("Skipping conversion for", type(field.data))
             return
 
         try:
             field.data = field.data.strftime('%Y-%m-%d')
-            print("Converted date to", field.data)
         except ValueError as e:
             raise ValidationError(str(e))
