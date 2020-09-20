@@ -97,11 +97,12 @@ def add_contact():
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def save_contact():
-    form = ContactForm(request.form)
-    fields = multidict2dict(request.form)
-    _update_compound_fields(fields, ['name', 'address'])
+    form = ContactForm()
+    form.process(formdata=request.form)
 
     if form.validate():
+        fields = form.data
+        fields['_id'] = request.form.get('_id', '0')
         user_email = session['user']['preferred_username']
         result = DBCONTACTS.save(user_email, fields)
         if result['success']:
@@ -213,11 +214,12 @@ def add_client():
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def save_client():
-    form = ClientForm(request.form)
-    fields = multidict2dict(request.form, ClientForm.get())
-    _update_compound_fields(fields, ['name', 'address', 'referrer', 'dental_ins', 'health_ins', 'employment', 'billing_address'])
+    form = ClientForm()
+    form.process(formdata=request.form)
 
     if form.validate():
+        fields = form.data
+        fields['_id'] = request.form.get('_id', '0')
         user_email = session['user']['preferred_username']
         result = DBCLIENTS.save(fields, user_email)
         if result['success']:
@@ -229,7 +231,8 @@ def save_client():
 
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    return render_template('/crm/client.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
+    our_pay_url = os.environ.get('OUR_PAY_URL', None)
+    return render_template('/crm/client.html', client=form.data, authorizations=authorizations, form=form, our_pay_url=our_pay_url, operation="Correct")
 
 
 @crm_routes.route('/crm/client/<string:id>/', methods=['GET'])
@@ -240,15 +243,11 @@ def show_client(id):
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(id)
     _cleanup_client(client)
+    form.process(data=client)
 
-    form.name.title.data = client.get('name', {}).get('title', None)
-    form.address.state.data = client.get('address', {}).get('state', None)
-    form.case_county.data = client.get('case_county', None)
     form.court_type.choices = DIRECTORY.get_court_type_tuples(client.get('case_county'))
-    form.court_type.data = client.get('court_type', None)
     form.court_name.choices = DIRECTORY.get_court_tuples(client.get('case_county'), client.get('court_type'))
-    form.court_name.data = client.get('court_name', None)
-    form.crm_state.data = client.get('crm_state', None)
+
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
     return render_template('crm/client.html', client=client, authorizations=authorizations, form=form, our_pay_url=our_pay_url)
