@@ -49,7 +49,8 @@ def newlines_filter(value: str) -> str:
 app = Flask(__name__)
 app.config.from_mapping(
     CLIENT_SECRET=os.environ['AZURE_CLIENT_SECRET'],
-    SESSION_TYPE='filesystem'
+    SESSION_TYPE='filesystem',
+    SECRET_KEY=os.environ.get('FLASK_FORM_SECRET_KEY', 'aas;ldfkjiruetnviupi842nvutj4iv')
 )
 Session(app)
 
