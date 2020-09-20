@@ -21,7 +21,7 @@
 </form>
 
 <div class="row">
-    <div class="col-md-10">
+    <div class="col">
         <table class="table table-sm table-hover">
             <tr>
                 {% if show_crm_state %}
@@ -103,12 +103,6 @@
             </tr>
             {% endfor %}
         </table>
-    </div>
-    <div class="col-md">
-        <h5 class="card-title">Tasks</h5>
-        <form method="post" onsubmit="add_todo(event)">
-            <input class="form-control" type="text" name="todo" id="todo" />
-        </form>
     </div>
 </div>
 {% if 'DOWNLOAD_CLIENTS' in authorizations %}
