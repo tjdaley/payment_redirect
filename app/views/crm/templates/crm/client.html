@@ -685,23 +685,35 @@
             );
         }
 
+        /**
+         * Create a new child subform on the children tab.
+         * This function does NOT save the child to the database.
+         * It merely adds it to the UI.
+         *
+         * TODO: Determine whether NOT saving to the DB is a UX problem.
+         */
         function save_child() {
             var next_index = $('#child_count').val();
             create_new_child_form(next_index);
             populate_new_child_form(next_index);
-
             $("#addChildModal").modal('hide');
         }
 
+        /**
+         * Create new child subform to hold values collected from the
+         * addChildModal.
+         */
         function create_new_child_form(next_index) {
             console.log("Creating new child form with index of " + next_index);
         }
 
+        /**
+         * Populate the given child subform with values from the addChildModal.
+         */
         function populate_new_child_form(next_index) {
             console.log("Populating new child form with index of " + next_index);
             var fields = ['name-first_name', 'name-middle_name', 'name-last_name', 'name-suffix', 'sex', 'dob', 'home_state', 'ssn'];
             fields.forEach((element) => {
-                //console.log($('#addChildForm #'+element).val());
                 var dest_selector = '#children-' + next_index + '-' + element;
                 var src_selector = '#addChildForm #' + element;
                 var value = $(src_selector).val();
