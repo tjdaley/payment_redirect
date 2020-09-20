@@ -148,8 +148,9 @@ class DbContacts(Database):
             doc['email'] = doc['email'].strip().lower()
 
         # Insert new contact record
-        if doc['_id'] == '0':
-            del doc['_id']
+        if doc.get('_id', '0') == '0':
+            if '_id' in doc:
+                del doc['_id']
             doc['linked_client_ids'] = []
 
             result = self.dbconn[COLLECTION_NAME].insert_one(doc)
