@@ -189,39 +189,42 @@
             <!--CHILDREN TAB-->
             <div class="tab-pane fade" id="children" role="tabpanel" aria-labelledby="children-tab">
                 <div class="card border-primary my-3">
-                    <div class="card-header alert-primary">Children</div>
-                    <div class="card-body">
-                        {% for childform in form.children %}
-                        {% set child = client.children[loop.index0] %}
-                        <div class="form-row">
-                            <div class="form-group col-md">
-                                {{render_field(childform.form.name.first_name, class_="form-control", value=child.name.first_name)}}
+                    <div class="card-header alert-primary">Children<a class="btn btn-primary btn-sm float-right xmy-3" href="/client/add">ADD</a></div>
+                        <div class="card-body" id="child_forms">
+                            {% for childform in form.children %}
+                            {% set child = client.children[loop.index0] %}
+                            <div class=" border border-primary rounded mb-3">
+                            <div class="form-row mx-4">
+                                <div class="form-group col-md">
+                                    {{render_field(childform.form.name.first_name, class_="form-control", value=child.name.first_name)}}
+                                </div>
+                                <div class="form-group col-md">
+                                    {{render_field(childform.form.name.middle_name, class_="form-control", value=child.name.middle_name)}}
+                                </div>
+                                <div class="form-group col-md">
+                                    {{render_field(childform.form.name.last_name, class_="form-control", value=child.name.last_name)}}
+                                </div>
+                                <div class="form-group col-md-2">
+                                    {{render_field(childform.form.name.suffix, class_="form-control", value=child.name.suffix)}}
+                                </div>
                             </div>
-                            <div class="form-group col-md">
-                                {{render_field(childform.form.name.middle_name, class_="form-control", value=child.name.middle_name)}}
-                            </div>
-                            <div class="form-group col-md">
-                                {{render_field(childform.form.name.last_name, class_="form-control", value=child.name.last_name)}}
-                            </div>
-                            <div class="form-group col-md-2">
-                                {{render_field(childform.form.name.suffix, class_="form-control", value=child.name.suffix)}}
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md">
-                                {{render_field(childform.sex, class_="form-control", value=child.sex)}}
-                            </div>
-                            <div class="form-group col-md">
-                                {{render_field(childform.dob, class_="form-control", value=child.dob)}}
-                            </div>
-                            <div class="form-group col-md">
-                                {{render_field(childform.home_state, class_="form-control", value=child.home_state)}}
-                            </div>
-                            <div class="form-group col-md-2">
-                                {{render_field(childform.ssn, class_="form-control", value=child.ssn)}}
+                            <div class="form-row mx-4">
+                                <div class="form-group col-md">
+                                    {{render_field(childform.sex, class_="form-control", value=child.sex)}}
+                                </div>
+                                <div class="form-group col-md">
+                                    {{render_field(childform.dob, class_="form-control", value=child.dob)}}
+                                </div>
+                                <div class="form-group col-md">
+                                    {{render_field(childform.home_state, class_="form-control", value=child.home_state)}}
+                                </div>
+                                <div class="form-group col-md-2">
+                                    {{render_field(childform.ssn, class_="form-control", value=child.ssn)}}
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
+                        <input type="hidden" id="child_count" name="child_count" value="{{client.children|length}}" />
                     </div>
                 </div>
             </div>
