@@ -23,7 +23,7 @@ from util.dialer import Dialer
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 # from util.logger import get_logger
-from views.admin.forms.ClientForm import ClientForm, ContactForm
+from views.admin.forms.ClientForm import ChildForm, ClientForm, ContactForm
 DBADMINS = DbAdmins()
 DBCONTACTS = DbContacts()
 DBCLIENTS = DbClients()
@@ -201,13 +201,21 @@ def search_clients(page_num: int = 1):
 @DECORATORS.auth_crm_user
 def add_client():
     form = ClientForm(request.form)
+    child_form = ChildForm()  # Blank form for adding new children
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
 
     client = {'_id': '0'}
     client['address'] = {}
     client['name'] = {}
-    return render_template("crm/client.html", client=client, form=form, operation="Add New", authorizations=authorizations)
+    return render_template(
+        "crm/client.html",
+        client=client,
+        form=form,
+        new_child=child_form,
+        operation="Add New",
+        authorizations=authorizations
+    )
 
 
 @crm_routes.route("/crm/client/save/", methods=['POST'])
@@ -232,7 +240,16 @@ def save_client():
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
-    return render_template('/crm/client.html', client=form.data, authorizations=authorizations, form=form, our_pay_url=our_pay_url, operation="Correct")
+    child_form = ChildForm()
+    return render_template(
+        '/crm/client.html',
+        client=form.data,
+        form=form,
+        new_child=child_form,
+        our_pay_url=our_pay_url,
+        operation="Correct",
+        authorizations=authorizations
+    )
 
 
 @crm_routes.route('/crm/client/<string:id>/', methods=['GET'])
@@ -240,6 +257,7 @@ def save_client():
 @DECORATORS.auth_crm_user
 def show_client(id):
     form = ClientForm(request.form)
+    child_form = ChildForm()
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(id)
     _cleanup_client(client)
@@ -250,7 +268,14 @@ def show_client(id):
 
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
-    return render_template('crm/client.html', client=client, authorizations=authorizations, form=form, our_pay_url=our_pay_url)
+    return render_template(
+        'crm/client.html',
+        client=client,
+        form=form,
+        new_child=child_form,
+        our_pay_url=our_pay_url,
+        authorizations=authorizations
+    )
 
 
 @crm_routes.route('/crm/notes/add/', methods=['POST'])
