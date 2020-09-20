@@ -3,12 +3,14 @@ ClientForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
+from flask_wtf import FlaskForm
 from wtforms import Form, FormField, validators, BooleanField, SelectField, FieldList, StringField
 from wtforms.fields.html5 import DateField, EmailField, TelField
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
 from util.dollarcleaner import DollarCleaner
+from util.date_converter import DateConverter
 from util.us_states import US_STATES
 from util.court_directory import CourtDirectory
 # pylint: enable=no-name-in-module
@@ -40,6 +42,12 @@ CRM_STATES = [
     ('999:clo_closed', "Matter closed")
 ]
 
+GENDERS = [
+    ('F', "Female"),
+    ('M', "Male"),
+    ('U', "Unspecified")
+]
+
 
 def field_list(class_) -> list:
     x = class_()
@@ -64,6 +72,32 @@ def instance_dict(class_, depth: int = 0) -> dict:
         elif isinstance(attr, (FormField)):
             result[attr_name] = instance_dict(attr.form_class, depth+1)
     return result
+
+
+class ChildName(Form):
+    first_name = StringField("First name")
+    middle_name = StringField("Middle name")
+    last_name = StringField("Last name")
+    suffix = StringField("Suffix")
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
+
+
+class ChildForm(Form):
+    name = FormField(ChildName)
+    dob = DateField(
+        "Birth Date",
+        validators=[validators.Optional(), DateConverter()]
+    )
+    sex = SelectField("Sex", choices=GENDERS)
+    home_state = SelectField("Home state", choices=US_STATES)
+    ssn = StringField("SSN", validators=[validators.Optional()])
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
 
 
 class ContactName(Form):
@@ -132,7 +166,7 @@ class Insurance(Form):
         return instance_dict(cls)
 
 
-class ClientForm(Form):
+class ClientForm(FlaskForm):
     directory = CourtDirectory()
 
     billing_id = StringField(
@@ -144,6 +178,7 @@ class ClientForm(Form):
     referrer = FormField(Referral)
     health_ins = FormField(Insurance, "Health Insurance")
     dental_ins = FormField(Insurance, "Dental Insurance")
+    children = FieldList(FormField(ChildForm))
 
     client_ssn = StringField(
         "Client SSN",
@@ -203,14 +238,14 @@ class ClientForm(Form):
     )
     trial_date = DateField(
         "Trial date",
-        validators=[validators.Optional()]
+        validators=[validators.Optional(), DateConverter()]
     )
     mediation_retainer = StringField(
         "Mediation retainer", [validators.Optional(), DollarCleaner(min=0)]
     )
     mediation_date = DateField(
         "Mediation date",
-        validators=[validators.Optional()]
+        validators=[validators.Optional(), DateConverter()]
     )
     trust_balance = StringField(
         "Trust balance", [validators.Optional(), DollarCleaner()]
@@ -251,27 +286,27 @@ class ClientForm(Form):
     case_style = StringField("Style")
     client_dob = DateField(
         "Client's DOB",
-        validators=[validators.Optional()]
+        validators=[validators.Optional(), DateConverter()]
     )
     marriage_date = DateField(
         "Date of Marriage",
-        validators=[validators.Optional()]
+        validators=[validators.Optional(), DateConverter()]
     )
     separation_date = DateField(
         "Date of Separation",
-        validators=[validators.Optional()]
+        validators=[validators.Optional(), DateConverter()]
     )
     retained_date = DateField(
         "Retained on",
-        validators=[validators.Optional()]
+        validators=[validators.Optional(), DateConverter()]
     )
     filed_date = DateField(
         "Filed on",
-        validators=[validators.Optional()]
+        validators=[validators.Optional(), DateConverter()]
     )
     completion_date = DateField(
         "Completed on",
-        validators=[validators.Optional()]
+        validators=[validators.Optional(), DateConverter()]
     )
 
     @classmethod
