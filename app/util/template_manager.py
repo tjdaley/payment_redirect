@@ -11,8 +11,19 @@ from botocore.exceptions import ClientError
 
 import settings
 
-
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+
+
+def _ses_client():
+    """
+    Instantiate boto3 client for SES service.
+    """
+    return boto3.client(
+        'ses',
+        region_name=AWS_REGION,
+        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+    )
 
 
 class TemplateManager(object):
@@ -28,7 +39,7 @@ class TemplateManager(object):
         Args:
             email_address (str): Email address of person wanting to retrieve templates.
         """
-        client = boto3.client('ses', region_name=AWS_REGION, )
+        client = _ses_client()
         response = client.list_templates(MaxItems=10)
         return response['TemplatesMetadata']
 
@@ -42,7 +53,7 @@ class TemplateManager(object):
             template_name (str): Template name to retrieve
             raw (bool): If True, return exactly what we retrieved, otherwise, trim it down.
         """
-        client = boto3.client('ses', region_name=AWS_REGION, )
+        client = _ses_client()
         response = client.get_template(TemplateName=template_name)
         if raw:
             return response
@@ -64,7 +75,7 @@ class TemplateManager(object):
                     'HtmlPart': 'string'
                 }
         """
-        client = boto3.client('ses', region_name=AWS_REGION, )
+        client = _ses_client()
         try:
             my_template = {key: value for key, value in template.items()}
             my_template['TemplateName'] = re.sub(r'[^A-Za-z0-9\_\-]', '', template['TemplateName'])
@@ -76,7 +87,7 @@ class TemplateManager(object):
             response = client.create_template(Template=my_template)
             return {'success': True, 'message': "OK"}
 
-        response = client.update_template(Template=my_template)
+        response = client.update_template(Template=my_template)  # noqa
         return {'success': True, 'message': "OK"}
 
     @staticmethod
@@ -87,8 +98,8 @@ class TemplateManager(object):
             email_address (str): Email address of person wanting to retrieve the template.
             template_name (str): Template name to delete
         """
-        client = boto3.client('ses', region_name=AWS_REGION, )
+        client = _ses_client()
         # pylint: disable=unused-variable
-        response = client.delete_template(TemplateName=template_name)
+        response = client.delete_template(TemplateName=template_name)  # noqa
         # pylint: enable=unused-variable
         return {'success': True, 'message': "OK"}
