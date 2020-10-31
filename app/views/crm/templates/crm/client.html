@@ -139,7 +139,7 @@
                                 <div class="input-group">
                                     {% if client.email %}
                                     <div class="input-group-prepend">
-                                        <a href="mailto:{{client.email}}" class="btn btn-outline-secondary fa fa-envelope pt-2" data-toggle="tooltip"
+                                        <a href="mailto:{{client.email}}?cc={{client.email_cc_list or default_cc_list}}" class="btn btn-outline-secondary fa fa-envelope pt-2" data-toggle="tooltip"
                                             data-placement="top" title="Send Email to {{client.email}}" role="button">
                                         </a>
                                     </div>
@@ -366,6 +366,13 @@
                             {{render_field(form.admin_users, class_="form-control", value=default_admins)}}
                             {% else %}
                             {{render_field(form.admin_users, class_="form-control", value=client.admin_users)}}
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {% if client._id == '0' %}
+                            {{render_field(form.email_cc_list, class_="form-control", value=default_cc_list)}}
+                            {% else %}
+                            {{render_field(form.email_cc_list, class_="form-control", value=client.email_cc_list)}}
                             {% endif %}
                         </div>
                     </div>

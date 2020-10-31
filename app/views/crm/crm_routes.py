@@ -171,12 +171,18 @@ def show_contact(id: str):
 @DECORATORS.auth_crm_user
 def list_clients():
     user_email = session['user']['preferred_username']
+    user = DBADMINS.admin_record(user_email)
     clients = DBCLIENTS.get_list(user_email)
     authorizations = _get_authorizations(user_email)
     for client in clients:
         client['_class'] = _client_row_class(client)
         client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
-    return render_template('crm/clients.html', clients=clients, authorizations=authorizations, show_crm_state=False)
+    return render_template(
+        'crm/clients.html',
+        clients=clients,
+        default_cc_list=user.get('default_cc_list'),
+        authorizations=authorizations,
+        show_crm_state=False)
 
 
 @crm_routes.route('/crm/clients/search/<int:page_num>/', methods=['POST'])
@@ -222,6 +228,7 @@ def add_client():
         new_child=child_form,
         operation="Add New",
         default_admins=default_access_list,
+        default_cc_list=user.get('default_cc_list', ''),
         authorizations=authorizations
     )
 
@@ -267,6 +274,7 @@ def show_client(id):
     form = ClientForm(request.form)
     child_form = ChildForm()
     user_email = session['user']['preferred_username']
+    user = DBADMINS.admin_record(user_email)
     client = DBCLIENTS.get_one(id)
     _cleanup_client(client)
     form.process(data=client)
@@ -282,6 +290,7 @@ def show_client(id):
         form=form,
         new_child=child_form,
         our_pay_url=our_pay_url,
+        default_cc_list=user.get('default_cc_list', ''),
         authorizations=authorizations
     )
 

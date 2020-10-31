@@ -209,6 +209,9 @@ class ClientForm(FlaskForm):
         "Admin emails",
         [validators.DataRequired()]
     )
+    email_cc_list = StringField(
+        "Email CC list"
+    )
 
     payment_due = StringField(
         "Payment due",
