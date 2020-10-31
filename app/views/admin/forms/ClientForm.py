@@ -131,6 +131,7 @@ class ContactForm(Form):
     cell_phone = TelField("Cell phone")
     fax = TelField("Fax")
     email = EmailField("Email")
+    email_cc = StringField("Email CC")
     organization = StringField("Organization name")
     job_title = StringField("Job title")
 

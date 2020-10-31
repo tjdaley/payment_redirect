@@ -2,7 +2,7 @@
 {% block body %}
     <h1>{{operation}} Admin User</h1>
     {% from 'includes/_formhelpers.html' import render_field, render_checkbox %}
-    <form method='POST' action="/admin/user/save/">
+    <form method='POST' action="/admin/user/save/" enctype="multipart/form-data">
         <input type='hidden' name='_id' id='_id' value='{{user._id}}'>
         <div class="card border-primary my-3">
             <div class="card-header alert-primary">Name</div>
@@ -16,6 +16,29 @@
                     </div>
                     <div class="form-group col-md">
                         {{render_field(form.last_name, class_="form-control", value=user.last_name)}}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{render_field(form.default_access_list, class_="form-control", value=user.default_access_list)}}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{render_field(form.default_cc_list, class_="form-control", value=user.default_cc_list)}}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{form.letterhead_template.label}}
+                        <div class="input-group">
+                            {{form.letterhead_template(class_="form-control", accept=".docx", value=user.letterhead_template)}}
+                            <div class="input-group-append">
+                                <div class="input-group-text" title="Download template">
+                                    <a href="/admin/user/get/template/letterhead/{{user.email}}/" class="btn btn-sm fas fa-file-download" role="button"></a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

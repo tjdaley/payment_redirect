@@ -6,7 +6,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 import uuid
 import os
 import msal
-from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, send_file
 import requests
 import urllib
 
@@ -31,6 +31,7 @@ TEMPLATE_MANAGER = TemplateManager()
 
 admin_routes = Blueprint("admin_routes", __name__, template_folder="templates")
 REDIRECT_PATH = os.environ['AZURE_REDIRECT_PATH']
+ALLOWED_EXTENSIONS = ['docx']
 
 
 @admin_routes.route('/admin/templates')
@@ -134,6 +135,14 @@ def save_user():
             css_name = 'success'
         else:
             css_name = 'danger'
+
+        # save letterhead template, if provided
+        if 'letterhead_template' in request.files:
+            letterhead_template = request.files['letterhead_template']
+            if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
+                user_email = fields['email']
+                filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-letterhead.docx')
+                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
         flash(result['message'], css_name)
         return redirect(url_for('admin_routes.list_users'))
 
@@ -144,6 +153,14 @@ def save_user():
     form.authorizations.data = request.form['authorizations']
     return render_template('user.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
+
+@admin_routes.route('/admin/user/get/template/<string:template_name>/<string:user_email>/', methods=['GET'])
+@DECORATORS.is_logged_in
+def get_user_template(template_name: str, user_email: str):
+    filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-letterhead.docx')
+    if not os.path.exists(filename):
+        filename = os.path.join(os.environ.get('DOCX_PATH'), 'default-letterhead.docx')
+    return send_file(filename, as_attachment=True, cache_timeout=30)
 
 @admin_routes.route('/admin/user/<string:user_id>/', methods=['GET'])
 @DECORATORS.is_logged_in
@@ -449,3 +466,8 @@ def _update_compound_fields(fields, field_list):
 def _get_authorizations(user_email: str) -> list:
     database = DbAdmins()
     return database.authorizations(user_email)
+
+
+def _allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

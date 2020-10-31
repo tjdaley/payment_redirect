@@ -3,7 +3,7 @@ UserForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
-from wtforms import Form, StringField, SelectMultipleField, validators, BooleanField
+from wtforms import Form, StringField, SelectMultipleField, validators, BooleanField, FileField
 from wtforms.fields.html5 import EmailField
 
 # pylint: disable=no-name-in-module
@@ -63,4 +63,13 @@ class UserForm(Form):
     prompt_on_dial_flag = BooleanField(
         "Prompt before dialing?",
         false_values=('N', '', None)
+    )
+    letterhead_template = FileField(
+        "Letterhead template"
+    )
+    default_cc_list = StringField(
+        "Default CC list"
+    )
+    default_access_list = StringField(
+        "Default access list"
     )
