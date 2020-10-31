@@ -169,12 +169,15 @@ class DbClients(Database):
         """
         Return a client record given a client ID.
         """
-        # Create lookup filter
-        filter_ = {}
-        filter_['_id'] = ObjectId(client_id)
+        try:
+            # Create lookup filter
+            filter_ = {}
+            filter_['_id'] = ObjectId(client_id)
 
-        # Locate matching client document
-        document = self.dbconn[COLLECTION_NAME].find_one(filter_)
+            # Locate matching client document
+            document = self.dbconn[COLLECTION_NAME].find_one(filter_)
+        except Exception:
+            document = None
         return document
 
     def get_by_ssn(self, ssn, dl) -> dict:

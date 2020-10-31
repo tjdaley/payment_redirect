@@ -36,8 +36,11 @@ class DbContacts(Database):
         Returns:
             (dict): The located document or None
         """
-        filter_ = {'_id': ObjectId(id)}
-        document = self.dbconn[COLLECTION_NAME].find_one(filter_)
+        try:
+            filter_ = {'_id': ObjectId(id)}
+            document = self.dbconn[COLLECTION_NAME].find_one(filter_)
+        except Exception:
+            document = None
         return document
 
     def get_list(self, email: str, where: dict = {}, page_num: int = 1, page_size: int = 25, client_id: str = None) -> list:
@@ -72,6 +75,7 @@ class DbContacts(Database):
             }
         elif where and not client_id:
             pass
+
         elif client_id and not where:
             where = {'linked_client_ids': {'$elemMatch': {'$eq': ObjectId(client_id)}}}
         else:
