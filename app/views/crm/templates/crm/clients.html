@@ -66,7 +66,7 @@
                 {% if client.telephone.strip() != '' %}
                 <td>
                     <button
-                        class="btn btn-small btn-outline-secondary fa fa-phone"
+                        class="btn btn-outline-secondary fa fa-phone"
                         data-toggle="tooltip" data-placement="top" title="Call {{client.telephone | phone_number}}"
                         onclick="dial('{{client.telephone}}')">
                     </button>
@@ -76,7 +76,7 @@
                 {% endif %}
                 <td>
                     <button
-                        class="btn btn-small btn-outline-secondary fa fa-comments"
+                        class="btn btn-outline-secondary fa fa-comments"
                         data-name="{{client.name.title}} {{client.name.first_name}} {{client.name.last_name}}"
                         data-telephone="{{client.telephone}}"
                         data-target="#smsMessageModal"
@@ -88,13 +88,13 @@
                 </td>
                 <td>
                     <a
-                        class="btn btn-small btn-outline-secondary fa fa-sticky-note"
+                        class="btn btn-outline-secondary fa fa-sticky-note"
                         data-toggle="tooltip" data-placement="top" title="Notes"
                         href="/crm/notes/{{client._id}}/"
                     />
                 </td>
                 <td>
-                    <a class="btn btn-small btn-outline-secondary fa fa-users" data-toggle="tooltip" data-placement="top"
+                    <a class="btn btn-outline-secondary fa fa-users" data-toggle="tooltip" data-placement="top"
                         title="contacts" href="/crm/client_contacts/{{client._id}}/" />
                 </td>
                 <td>{{client.mediation_date or ''}}</td>
