@@ -34,6 +34,7 @@
         <th>Email</th>
         <th colspan="2">Call</th>
         <th>SMS</th>
+        <th>Letter</th>
         <th>Link</th>
     </tr>
     {% for contact in contacts %}
@@ -57,7 +58,7 @@
         {% endif %}
         {% if contact.office_phone.strip() != '' %}
         <td>
-            <button class="btn btn-small btn-outline-secondary fa fa-phone" data-toggle="tooltip" data-placement="top"
+            <button class="btn btn-outline-secondary fa fa-phone" data-toggle="tooltip" data-placement="top"
                 title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')">
             </button>
         </td>
@@ -66,12 +67,12 @@
         {% endif %}
         {% if contact.cell_phone.strip() != '' %}
         <td>
-            <button class="btn btn-small btn-outline-secondary fa fa-mobile" data-toggle="tooltip" data-placement="top"
+            <button class="btn btn-outline-secondary fa fa-mobile" data-toggle="tooltip" data-placement="top"
                 title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')">
             </button>
         </td>
         <td>
-            <button class="btn btn-small btn-outline-secondary fa fa-comments"
+            <button class="btn btn-outline-secondary fa fa-comments"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.last_name}}"
                 data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
                 title="Send Text" data-tooltip="tooltip" data-toggle="modal">
@@ -82,7 +83,10 @@
         <td></td>
         {% endif %}
         <td>
-            <button class="btn btn-small btn-outline-secondary fa fa-link" data-contactid="{{contact._id}}"
+            <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client_id or 0}}/"
+        </td>
+        <td>
+            <button class="btn btn-outline-secondary fa fa-link" data-contactid="{{contact._id}}"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}"
                 data-jobtitle="{{contact.job_title}}" data-organization="{{contact.organization}}" data-target="#assignClientModal" data-placement="top"
                 title="Link to client" data-tooltip="tooltip" data-toggle="modal">
