@@ -65,7 +65,10 @@ class UserForm(Form):
         false_values=('N', '', None)
     )
     letterhead_template = FileField(
-        "Letterhead template"
+        "Client letterhead template"
+    )
+    contact_letterhead_template = FileField(
+        "Contact letterhead template"
     )
     default_cc_list = StringField(
         "Default CC list"

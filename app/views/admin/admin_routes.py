@@ -137,12 +137,18 @@ def save_user():
         else:
             css_name = 'danger'
 
-        # save letterhead template, if provided
+        # save letterhead templates, if provided
         if 'letterhead_template' in request.files:
             letterhead_template = request.files['letterhead_template']
             if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
                 user_email = fields['email']
                 filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-letterhead.docx')
+                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+        if 'contact_letterhead_template' in request.files:
+            letterhead_template = request.files['contact_letterhead_template']
+            if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
+                user_email = fields['email']
+                filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-contact-letterhead.docx')
                 letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
         flash(result['message'], css_name)
         return redirect(url_for('admin_routes.list_users'))
@@ -155,10 +161,10 @@ def save_user():
     return render_template('user.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
-@admin_routes.route('/admin/user/get/template/<string:template_name>/<string:user_email>/', methods=['GET'])
+@admin_routes.route('/admin/user/get/template/<string:docx_template_name>/<string:user_email>/', methods=['GET'])
 @DECORATORS.is_logged_in
 def get_user_template(docx_template_name: str, user_email: str):
-    filename = template_name('letterhead', user_email)
+    filename = template_name(docx_template_name, user_email)
     return send_file(filename, as_attachment=True, cache_timeout=30)
 
 

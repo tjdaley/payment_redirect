@@ -41,6 +41,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{form.contact_letterhead_template.label}}
+                        <div class="input-group">
+                            {{form.contact_letterhead_template(class_="form-control", accept=".docx", value=user.letterhead_template)}}
+                            <div class="input-group-append">
+                                <div class="input-group-text" title="Download template">
+                                    <a href="/admin/user/get/template/contact-letterhead/{{user.email}}/"
+                                        class="btn btn-sm fas fa-file-download" role="button"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

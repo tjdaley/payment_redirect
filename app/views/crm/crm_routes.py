@@ -557,42 +557,6 @@ def _get_day_time():
     return "Evening"
 
 
-def _update_compound_fields(fields, field_list):
-    """
-    Compound fields are represented in the request as field names with dashes in the middle.
-    For example, name-first_name and name-last_name suggest a structure like this:
-
-        {'name': {'first_name': None, 'last_name': None}}
-
-    This method reorganizes these compound names into compound fields. Thus:
-
-        {'name-first_name': 'Tom', 'name-last_name': 'Daley'}
-
-    becomes:
-
-        {'name': {'first_name': 'Tom', 'last_name': 'Daley'}}
-
-    Args:
-        fields (dict): The document object we're working with.
-        field_list (list): The prefixes we're looking for, e.g. ['name']
-    """
-    new_fields = {f: {} for f in field_list}
-    del_fields = []
-
-    for field in fields:
-        name_parts = str(field).split('-', 2)
-        if len(name_parts) == 2:
-            if name_parts[0] in field_list:
-                new_fields[name_parts[0]][name_parts[1]] = fields[field]
-                del_fields.append(field)
-
-    for key, value in new_fields.items():
-        fields[key] = value
-
-    for field in del_fields:
-        del fields[field]
-
-
 def _get_authorizations(user_email: str) -> list:
     database = DbAdmins()
     return database.authorizations(user_email)
