@@ -4,8 +4,9 @@ crm_routes.py - Direct a client to the payment page
 Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify, send_file
 import json  # noqa
+from mailmerge import MailMerge
 import random
 import os
 
@@ -16,10 +17,12 @@ from util.database import multidict2dict
 from util.db_clients import DbClients, intake_to_client
 from util.db_client_notes import DbClientNotes
 from util.db_contacts import DbContacts
+from util.flatten_dict import flatten_dict
 from util.db_intake import DbIntakes
 import views.decorators as DECORATORS
 from util.court_directory import CourtDirectory
 from util.dialer import Dialer
+from util.template_name import template_name
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 # from util.logger import get_logger
@@ -424,6 +427,21 @@ def update_intake():
         result = DBCLIENTS.save(client_doc, 'tdaley@koonsfuller.com')
 
     return jsonify(result)
+
+
+@crm_routes.route('/crm/util/client_letter/<string:client_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+def client_letter(client_id: str):
+    user_email = session['user']['preferred_username']  # noqa
+    client = DBCLIENTS.get_one(client_id)
+    flat_client = flatten_dict(client)
+    template_file_name = template_name('letterhead', session['user']['preferred_username'])
+    merged_file_name = os.path.join(os.environ.get('DOCX_PATH'), f'tmp-{user_email}-letterhead.docx')
+
+    with MailMerge(template_file_name) as document:
+        document.merge(**flat_client)
+        document.write(merged_file_name)
+    return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Client.docx")
 
 
 @crm_routes.route('/crm/data/client_ids/', methods=['GET'])
