@@ -47,12 +47,23 @@ crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
 @DECORATORS.auth_crm_user
 def list_client_contacts(client_id, page_num: int = 1):
     user_email = session['user']['preferred_username']
-    user = DBADMINS.admin_record(user_email)
-    user_ccs = user.get('default_cc_list', '').split(',')
+
+    # See if we have a client-specific set of emails to CC
+    client = DBCLIENTS.get_one(client_id)
+    our_cc_str = client.get('email_cc_list')
+
+    # If not, then use the default email CC list for this user
+    if not our_cc_str:
+        user = DBADMINS.admin_record(user_email)
+        our_cc_str = user.get('default_cc_list')
+
+    # Combine our CC list into the CC list for this contact
+    our_ccs = our_cc_str.split(',')
     contacts = DBCONTACTS.get_list(user_email, client_id=client_id)
     for contact in contacts:
         contact_ccs = contact.get('cc_list', '').split(',')
-        contact['cc_list'] = ';'.join(user_ccs + contact_ccs)
+        contact['cc_list'] = ';'.join(our_ccs + contact_ccs)
+
     cl_name = DBCLIENTS.get_client_name(client_id)
     email_subject = DBCLIENTS.get_email_subject(client_id)
     authorizations = _get_authorizations(user_email)
