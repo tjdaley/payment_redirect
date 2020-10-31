@@ -444,6 +444,31 @@ def client_letter(client_id: str):
     return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Client.docx")
 
 
+@crm_routes.route('/crm/util/contact_letter/<string:contact_id>/<string:client_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+def contact_letter(contact_id: str, client_id: str):
+    user_email = session['user']['preferred_username']  # noqa
+    client = DBCLIENTS.get_one(client_id)
+    contact = DBCONTACTS.get_one(contact_id)
+
+    # Copy some client fields into the contact document so they are
+    # available for the merge operation.
+    client_fields = ['case_style', 'case_county', 'cause_number', 'court_name']
+    if client:
+        for cf in client_fields:
+            contact[cf] = client[cf]
+
+    # Flatten dictionary andn do the merge.
+    flat_contact = flatten_dict(contact)
+    template_file_name = template_name('contact-letterhead', session['user']['preferred_username'])
+    merged_file_name = os.path.join(os.environ.get('DOCX_PATH'), f'tmp-{user_email}-letterhead.docx')
+
+    with MailMerge(template_file_name) as document:
+        document.merge(**flat_contact)
+        document.write(merged_file_name)
+    return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Contact.docx")
+
+
 @crm_routes.route('/crm/data/client_ids/', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
