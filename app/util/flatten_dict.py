@@ -41,6 +41,11 @@ def flatten_dict(d: dict, parent_key: str = '', sep: str = '_') -> dict:
 
     new_dict = dict(items)
 
+    # A fix to handle attorney's differently.
+    if 'attorney' in new_dict.get('job_title', '').lower():
+        new_dict['name_title'] = None
+        new_dict['name_suffix'] = "Esq."
+
     # Some fix-ups to compensate for issues in the docx-mailmerge package
     name = ""
     if new_dict.get('name_title'):
