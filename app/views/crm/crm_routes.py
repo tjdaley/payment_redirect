@@ -206,17 +206,22 @@ def add_client():
     form = ClientForm(request.form)
     child_form = ChildForm()  # Blank form for adding new children
     user_email = session['user']['preferred_username']
+    user = DBADMINS.admin_record(user_email)
     authorizations = _get_authorizations(user_email)
 
     client = {'_id': '0'}
     client['address'] = {}
     client['name'] = {}
+    default_access_list = user.get('default_access_list', user_email).lower()
+    if user_email.lower() not in default_access_list:
+        default_access_list = ",".join([user_email.lower(), default_access_list])
     return render_template(
         "crm/client.html",
         client=client,
         form=form,
         new_child=child_form,
         operation="Add New",
+        default_admins=default_access_list,
         authorizations=authorizations
     )
 

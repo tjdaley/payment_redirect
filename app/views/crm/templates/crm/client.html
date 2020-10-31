@@ -362,7 +362,11 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            {% if client._id == '0' %}
+                            {{render_field(form.admin_users, class_="form-control", value=default_admins)}}
+                            {% else %}
                             {{render_field(form.admin_users, class_="form-control", value=client.admin_users)}}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
