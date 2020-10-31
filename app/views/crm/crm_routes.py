@@ -47,7 +47,12 @@ crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
 @DECORATORS.auth_crm_user
 def list_client_contacts(client_id, page_num: int = 1):
     user_email = session['user']['preferred_username']
+    user = DBADMINS.admin_record(user_email)
+    user_ccs = user.get('default_cc_list', '').split(',')
     contacts = DBCONTACTS.get_list(user_email, client_id=client_id)
+    for contact in contacts:
+        contact_ccs = contact.get('cc_list', '').split(',')
+        contact['cc_list'] = ';'.join(user_ccs + contact_ccs)
     cl_name = DBCLIENTS.get_client_name(client_id)
     email_subject = DBCLIENTS.get_email_subject(client_id)
     authorizations = _get_authorizations(user_email)
@@ -69,7 +74,13 @@ def list_client_contacts(client_id, page_num: int = 1):
 @DECORATORS.auth_crm_user
 def list_contacts(page_num: int = 1):
     user_email = session['user']['preferred_username']
+    user = DBADMINS.admin_record(user_email)
+    user_ccs = user.get('default_cc_list', '').split(',')
     contacts = DBCONTACTS.get_list(user_email, page_num=page_num)
+    for contact in contacts:
+        contact_ccs = contact.get('cc_list', '').split(',')
+        contact['cc_list'] = ';'.join(user_ccs + contact_ccs)
+
     authorizations = _get_authorizations(user_email)
     return render_template(
         'crm/contacts.html',
@@ -78,7 +89,7 @@ def list_contacts(page_num: int = 1):
         prev_page_num=page_num - 1,
         next_page_num=page_num + 1,
         client_name=None,
-        email_subject=None
+        email_subject=''
     )
 
 

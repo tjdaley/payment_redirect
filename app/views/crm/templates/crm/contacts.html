@@ -49,7 +49,7 @@
         </td>
         {% if contact.email %}
         <td>
-            <a href="mailto:{{contact.email}}{% if email_subject %}?subject={{email_subject}}{% endif %}" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
+            <a href="mailto:{{contact.email}}?subject={{email_subject}}&cc={{contact.cc_list}}" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
                 data-placement="top" title="Send Email to {{contact.email}}" role="button">
             </a>
         </td>
