@@ -16,6 +16,7 @@ from .forms.TemplateForm import TemplateForm
 from .forms.UserForm import UserForm
 from util.logger import get_logger
 from util.template_manager import TemplateManager
+from util.template_name import template_name
 from util.email_sender import send_evergreen
 from util.dialer import Dialer
 import config
@@ -60,11 +61,11 @@ def add_template():
 @DECORATORS.is_logged_in
 @DECORATORS.is_admin_user
 @DECORATORS.auth_manage_templates
-def edit_template(template_name):
+def edit_template(email_template_name):
     form = TemplateForm(request.form)
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    template = TEMPLATE_MANAGER.get_template(user_email, template_name)
+    template = TEMPLATE_MANAGER.get_template(user_email, email_template_name)
     return render_template('template.html', template=template, form=form, authorizations=authorizations)
 
 
@@ -92,9 +93,9 @@ def save_template():
 @DECORATORS.is_logged_in
 @DECORATORS.is_admin_user
 @DECORATORS.auth_manage_templates
-def delete_template(template_name):
+def delete_template(email_template_name):
     user_email = session['user']['preferred_username']
-    result = TEMPLATE_MANAGER.delete_template(user_email, template_name)  # NOQA
+    result = TEMPLATE_MANAGER.delete_template(user_email, email_template_name)  # NOQA
     return redirect(url_for('admin_routes.list_templates'))
 
 
@@ -156,11 +157,10 @@ def save_user():
 
 @admin_routes.route('/admin/user/get/template/<string:template_name>/<string:user_email>/', methods=['GET'])
 @DECORATORS.is_logged_in
-def get_user_template(template_name: str, user_email: str):
-    filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-letterhead.docx')
-    if not os.path.exists(filename):
-        filename = os.path.join(os.environ.get('DOCX_PATH'), 'default-letterhead.docx')
+def get_user_template(docx_template_name: str, user_email: str):
+    filename = template_name('letterhead', user_email)
     return send_file(filename, as_attachment=True, cache_timeout=30)
+
 
 @admin_routes.route('/admin/user/<string:user_id>/', methods=['GET'])
 @DECORATORS.is_logged_in
