@@ -101,7 +101,16 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col">
-                                {{render_field(form.address.street, class_="form-control", value=client.address.street)}}
+                                {{form.address.street.label}}
+                                <div class="input-group">
+                                    {{form.address.street(class_="form-control", value=client.address.street)}}
+                                    <div class="input-group-append">
+                                        <div class="input-group-text" title="Download letter">
+                                            <a href="/crm/util/client_letter/{{client._id}}/" class="btn btn-sm fas fa-file-download"
+                                                role="button"></a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="form-row">
