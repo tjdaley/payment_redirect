@@ -5,6 +5,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify, send_file
+import io
 import json  # noqa
 from mailmerge import MailMerge
 import random
@@ -514,6 +515,18 @@ def get_client_ids():
     return jsonify(client_ids)
 
 
+@crm_routes.route('/crm/data/contact/vcard/<string:contact_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_download_vcards
+def get_vcard(contact_id):
+    contact = DBCONTACTS.get_one(contact_id)
+    vcard = _vcard(contact)
+    vcard_name = _vcard_name(contact)
+    fp = io.BytesIO(vcard.encode())
+    fp.seek(0)
+    return send_file(fp, as_attachment=True, attachment_filename=vcard_name)
+
+
 @crm_routes.route('/crm/data/court_types/<string:county>/', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
@@ -596,3 +609,80 @@ def _get_day_time():
 def _get_authorizations(user_email: str) -> list:
     database = DbAdmins()
     return database.authorizations(user_email)
+
+
+def _vcard_name(contact: dict) -> str:
+    """
+    Create the file name for a vcard from this contact.
+    """
+    name = contact.get('name', {})
+    title = name.get('title', '')
+    fname = name.get('first_name', '')
+    mname = name.get('middle_name', '')
+    lname = name.get('last_name', '')
+    suffix = name.get('suffix', '')
+    fullname = f'{title}_{fname}_{mname}_{lname}'
+    if suffix:
+        fullname += '_' + suffix
+    fullname = fullname.strip().replace(',', '_').replace('.', '_').replace('__', '_')
+    return fullname + '.vcf'
+
+
+def _vcard(contact: dict) -> str:
+    """
+    Create a vcard from a contact dict.
+
+    https://en.wikipedia.org/wiki/VCard#vCard_4.0
+    """
+    name = contact.get('name', {})
+    title = name.get('title', '')
+    fname = name.get('first_name', '')
+    mname = name.get('middle_name', '')
+    lname = name.get('last_name', '')
+    suffix = name.get('suffix', '')
+    fullname = f'{title} {fname} {mname} {lname}'
+    if suffix:
+        fullname += ', ' + suffix
+    fullname = fullname.strip().replace('  ', ' ')
+    org = contact.get('organization')
+    jtitle = contact.get('job_title')
+    telephone = contact.get('office_phone')
+    fax = contact.get('fax')
+    cell = contact.get('cell_phone')
+    email = contact.get('email')
+    address = contact.get('address', {})
+    street = address.get('street', '')
+    city = address.get('city', '')
+    state = address.get('state', '')
+    country = address.get('country', 'United States of America')
+    postal_code = address.get('postal_code')
+    note = contact.get('default_cc_list', None)
+
+    vcard = []
+    vcard.append('BEGIN:VCARD')
+    vcard.append('VERSION:4.0')
+    vcard.append('KIND:individual')
+    vcard.append(f'N:{lname};{fname};{mname};{title}')
+    vcard.append(f'FN:{fullname}')
+    if org:
+        vcard.append(f'ORG:{org}')
+    if jtitle:
+        vcard.append(f'TITLE:{jtitle}')
+    if telephone:
+        vcard.append(f'TEL;TYPE=work,voice:{telephone}')
+    if fax:
+        vcard.append(f'TEL;TYPE=work,fax:{fax}')
+    if cell:
+        vcard.append(f'TEL;TYPE=cell,voice:{cell}')
+    if email:
+        vcard.append(f'EMAIL:{email}')
+
+    addr_label = f'{street}\n{city}\\, {state} {postal_code}\\n{country}'
+    addr_parts = f'{street};{city};{state};{postal_code};{country}'
+    vcard.append(f'ADR;WORK;PREF:;;{addr_parts}\nLEBEL;WLRK;PREF;ENCODING=QUOTED-PRINTABLE:{addr_label}')
+    # vcard.append(f'ADR;TYPE=WORK;PREF=1;LABEL={addr_label};;{addr_parts}')
+
+    if note:
+        vcard.append(f'NOTE:Requests that emails be copied to: {note}')
+    vcard.append('END:VCARD')
+    return '\n'.join(vcard)

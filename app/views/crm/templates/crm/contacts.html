@@ -36,6 +36,9 @@
         <th>SMS</th>
         <th>Letter</th>
         <th>Link</th>
+        {% if 'DOWNLOAD_VCARD' in authorizations %}
+        <th>Vcard</th>
+        {% endif %}
     </tr>
     {% for contact in contacts %}
     <tr>
@@ -92,6 +95,11 @@
                 title="Link to client" data-tooltip="tooltip" data-toggle="modal">
             </button>
         </td>
+        {% if 'DOWNLOAD_VCARD' in authorizations %}
+        <td>
+            <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/"
+        </td>
+        {% endif %}
     </tr>
     {% endfor %}
 </table>
