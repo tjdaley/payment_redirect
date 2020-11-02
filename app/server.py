@@ -8,6 +8,7 @@ Copyright (c) 2020 by Thomas J. Daley, J.D.
 import os
 from flask import Flask, render_template, redirect, url_for
 from flask_session import Session
+from pymongo import MongoClient
 from waitress import serve
 
 import settings  # NOQA
@@ -49,7 +50,8 @@ def newlines_filter(value: str) -> str:
 app = Flask(__name__)
 app.config.from_mapping(
     CLIENT_SECRET=os.environ['AZURE_CLIENT_SECRET'],
-    SESSION_TYPE='filesystem',
+    SESSION_TYPE='mongodb',
+    SESSION_MONGODB=MongoClient(os.environ['DB_URL']),
     SECRET_KEY=os.environ.get('FLASK_FORM_SECRET_KEY', 'aas;ldfkjiruetnviupi842nvutj4iv')
 )
 Session(app)
