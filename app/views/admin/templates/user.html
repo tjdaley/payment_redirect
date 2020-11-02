@@ -55,6 +55,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{form.fee_agreement.label}}
+                        <div class="input-group">
+                            {{form.fee_agreement(class_="form-control", accept=".docx", value=user.fee_agreement)}}
+                            <div class="input-group-append">
+                                <div class="input-group-text" title="Download template">
+                                    <a href="/admin/user/get/template/fee-agreement/{{user.email}}/"
+                                        class="btn btn-sm fas fa-file-download" role="button"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

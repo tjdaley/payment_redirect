@@ -150,6 +150,14 @@ def save_user():
                 user_email = fields['email']
                 filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-contact-letterhead.docx')
                 letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+        if 'fee_agreement' in request.files:
+            print("*" * 10, " Fee Agreement Found")
+            template = request.files['fee_agreement']
+            if template.filename != '' and _allowed_file(template.filename):
+                user_email = fields['email']
+                filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-fee-agreement.docx')
+                print("*" * 10, "Fee agreement saving to", filename)
+                template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
         flash(result['message'], css_name)
         return redirect(url_for('admin_routes.list_users'))
 

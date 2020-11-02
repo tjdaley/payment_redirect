@@ -70,6 +70,9 @@ class UserForm(Form):
     contact_letterhead_template = FileField(
         "Contact letterhead template"
     )
+    fee_agreement = FileField(
+        "Fee agreement template"
+    )
     default_cc_list = StringField(
         "Default CC list"
     )
