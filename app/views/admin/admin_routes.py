@@ -19,6 +19,7 @@ from util.logger import get_logger
 from util.template_manager import TemplateManager
 from util.template_name import template_name
 from util.email_sender import send_evergreen
+from util.file_cache_manager import FileCacheManager
 from util.dialer import Dialer
 import config
 
@@ -120,23 +121,30 @@ def save_global_file():
     if form.validate():
         # save letterhead templates, if provided
         saved_files = []
+        cache_manager = FileCacheManager()
         if 'letterhead_template' in request.files:
             letterhead_template = request.files['letterhead_template']
             if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
-                filename = os.path.join(os.environ.get('DOCX_PATH'), f'default-letterhead.docx')
-                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                filename = 'default-letterhead.docx'
+                file_path = os.path.join(os.environ.get('DOCX_PATH'), filename)
+                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), file_path))
+                cache_manager.synchronize_file(filename)
                 saved_files.append(filename)
         if 'contact_letterhead_template' in request.files:
             letterhead_template = request.files['contact_letterhead_template']
             if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
-                filename = os.path.join(os.environ.get('DOCX_PATH'), f'default-contact-letterhead.docx')
-                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                filename = 'default-contact-letterhead.docx'
+                file_path = os.path.join(os.environ.get('DOCX_PATH'), filename)
+                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), file_path))
+                cache_manager.synchronize_file(filename)
                 saved_files.append(filename)
         if 'fee_agreement' in request.files:
             template = request.files['fee_agreement']
             if template.filename != '' and _allowed_file(template.filename):
-                filename = os.path.join(os.environ.get('DOCX_PATH'), f'default-fee-agreement.docx')
-                template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                filename = 'default-fee-agreement.docx'
+                file_path = os.path.join(os.environ.get('DOCX_PATH'), filename)
+                template.save(os.path.join(os.environ.get('DOCX_PATH'), file_path))
+                cache_manager.synchronize_file(filename)
                 saved_files.append(filename)
         if saved_files:
             if len(saved_files) == 1:
@@ -193,24 +201,31 @@ def save_user():
             css_name = 'danger'
 
         # save letterhead templates, if provided
+        cache_manager = FileCacheManager()
         if 'letterhead_template' in request.files:
             letterhead_template = request.files['letterhead_template']
             if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
                 user_email = fields['email']
-                filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-letterhead.docx')
-                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                filename = f'{user_email}-letterhead.docx'
+                file_path = os.path.join(os.environ.get('DOCX_PATH'), filename)
+                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), file_path))
+                cache_manager.synchronize_file(filename)
         if 'contact_letterhead_template' in request.files:
             letterhead_template = request.files['contact_letterhead_template']
             if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
                 user_email = fields['email']
-                filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-contact-letterhead.docx')
+                filename = f'{user_email}-contact-letterhead.docx'
+                file_path = os.path.join(os.environ.get('DOCX_PATH'), filename)
                 letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                cache_manager.synchronize_file(filename)
         if 'fee_agreement' in request.files:
             template = request.files['fee_agreement']
             if template.filename != '' and _allowed_file(template.filename):
                 user_email = fields['email']
-                filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-fee-agreement.docx')
+                filename = f'{user_email}-fee-agreement.docx'
+                file_path = os.path.join(os.environ.get('DOCX_PATH'), filename)
                 template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                cache_manager.synchronize_file(filename)
         flash(result['message'], css_name)
         return redirect(url_for('admin_routes.list_users'))
 
