@@ -476,12 +476,14 @@ def client_letter(client_id: str):
     flat_client = flatten_dict(client)
     template_file_name = template_name('letterhead', user_email)
     merged_file_name = os.path.join(os.environ.get('DOCX_PATH'), f'tmp-{user_email}-letterhead.docx')
+    today = _get_filename_date()
+    attachment_name = f"{flat_client['name_last_name']} - {today} - Letter to {flat_client['name_full_name']}.docx"
 
     try:
         with MailMerge(template_file_name) as document:
             document.merge(**flat_client)
             document.write(merged_file_name)
-        return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Client.docx")
+        return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename=attachment_name)
     except Exception as e:
         LOGGER.error("Error merging client letter: %s", str(e))
         LOGGER.error("\tUser Email: %s", user_email)
@@ -504,9 +506,14 @@ def contact_letter(contact_id: str, client_id: str):
     if client:
         for cf in client_fields:
             contact[cf] = client[cf]
+        client_name = f"{client['name']['last_name']} - "
+    else:
+        client_name = ''
 
     # Flatten dictionary andn do the merge.
     flat_contact = flatten_dict(contact)
+    today = _get_filename_date()
+    attachment_name = f"{client_name}{today} - Letter to {flat_contact['name_full_name']}.docx"
     template_file_name = template_name('contact-letterhead', user_email)
     merged_file_name = os.path.join(os.environ.get('DOCX_PATH'), f'tmp-{user_email}-letterhead.docx')
 
@@ -514,7 +521,7 @@ def contact_letter(contact_id: str, client_id: str):
         with MailMerge(template_file_name) as document:
             document.merge(**flat_contact)
             document.write(merged_file_name)
-        return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Contact.docx")
+        return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename=attachment_name)
     except Exception as e:
         LOGGER.error("Error merging client letter: %s", str(e))
         LOGGER.error("\tUser Email: %s", user_email)
@@ -622,6 +629,13 @@ def _get_day_time():
     if hour < 17:
         return "Afternoon"
     return "Evening"
+
+
+def _get_filename_date():
+    """
+    Returns the date in YYYY.MM.DD format for use in file names.
+    """
+    return dt.datetime.today().strftime('%Y.%m.%d')
 
 
 def _get_authorizations(user_email: str) -> list:
