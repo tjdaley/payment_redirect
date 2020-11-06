@@ -8,6 +8,7 @@ from boto3.s3.transfer import TransferConfig
 from botocore.exceptions import ClientError
 import os
 from dotenv import load_dotenv
+from util.logger import get_logger
 
 
 load_dotenv()
@@ -21,6 +22,7 @@ class FileCacheManager(object):
     of the locally cached file.
     """
     def __init__(self, s3_path: str = None, local_path: str = None):
+        self.logger = get_logger('fcm')
         if not s3_path:
             self.s3_path = os.environ['DOCX_S3_PATH']
         else:
@@ -50,20 +52,27 @@ class FileCacheManager(object):
         """
         s3 = _connect()
         s3_modified_date = _s3_modified_date(s3, self.s3_path, filename)
+        self.logger.error("S3 modified: %s", s3_modified_date)
         local_modified_date = _local_modified_date(self.local_path, filename)
+        self.logger.error("Local modified: %s", local_modified_date)
         local_filename = os.path.join(self.local_path, filename)
+        self.logger.error("Local filename: %s", local_filename)
 
         # See if file exists anywhere
         if not s3_modified_date and not local_modified_date:
+            self.logger("Template %s not found locally or on S3.", filename)
             return None
 
         # See if our file is newer than the S3 file
         if local_modified_date >= s3_modified_date:
+            self.logger.error("Local file is newer than S3")
             return local_filename
 
         # S3 file is newer . . . download it.
+        self.logger.error("S3 file is newer than local file")
         config = TransferConfig(use_threads=False)
         s3.Object(self.s3_path, filename).download_file(local_filename, Config=config)
+        self.logger.error("%s downloaded from S3", local_filename)
         return local_filename
 
     def synchronize_file(self, filename: str) -> bool:
