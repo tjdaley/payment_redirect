@@ -1,7 +1,7 @@
 """
 template_name.py - Get template name in a standard way.
 """
-import os
+from util.file_cache_manager import FileCacheManager
 
 
 def template_name(template_type: str, user_email: str):
@@ -15,10 +15,10 @@ def template_name(template_type: str, user_email: str):
     Returns:
         (str): Filename of template file.
     """
-    filename = os.path.join(os.environ.get('DOCX_PATH'), f'{user_email}-{template_type}.docx')
-
-    if not os.path.exists(filename):
-        filename = os.path.join(os.environ.get('DOCX_PATH'), f'default-{template_type}.docx')
-    if not os.path.exists(filename):
-        return None
-    return filename
+    filename = f'{user_email}-{template_type}.docx'
+    cache_manager = FileCacheManager()
+    file_path = cache_manager.get_filename(filename)
+    if not file_path:
+        filename = f'default-{template_type}.docx'
+        file_path = cache_manager.get_filename(filename)
+    return file_path
