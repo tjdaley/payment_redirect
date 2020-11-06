@@ -33,6 +33,11 @@
             {% endif %}
         </ul>
         <ul class="nav navbar-nav navbar-right">
+            {% if 'EDIT_GLOBAL_SETTINGS' in authorizations %}
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/global_settings"><i class="fas fa-users-cog"></i></a>
+            </li>
+            {% endif %}
             {% if session.get('user') %}
             <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
             {% else %}

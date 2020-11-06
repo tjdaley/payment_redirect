@@ -81,6 +81,7 @@ def auth_download_clients(f):
             return redirect(url_for(LOGIN_FUNCTION))
     return wrap
 
+
 # Decorator to see if user may download contact vcards
 def auth_download_vcards(f):
     @wraps(f)
@@ -119,6 +120,20 @@ def auth_crm_user(f):
             return f(*args, **kwargs)
         else:
             flash("Your account has not been authorized to access CRM features", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
+# Decorator to see if user is authorized to edit global settings
+def auth_edit_global_settings(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if AUTH.AUTH_EDIT_GLOBAL_SETTINGS in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized to edit global settings", "danger")
             return redirect(url_for(LOGIN_FUNCTION))
     return wrap
 

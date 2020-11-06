@@ -12,6 +12,7 @@ import urllib
 
 import views.decorators as DECORATORS
 from .forms.ClientForm import ClientForm
+from .forms.GlobalSettingsForm import GlobalSettingsForm
 from .forms.TemplateForm import TemplateForm
 from .forms.UserForm import UserForm
 from util.logger import get_logger
@@ -97,6 +98,60 @@ def delete_template(email_template_name):
     user_email = session['user']['preferred_username']
     result = TEMPLATE_MANAGER.delete_template(user_email, email_template_name)  # NOQA
     return redirect(url_for('admin_routes.list_templates'))
+
+
+@admin_routes.route('/admin/global_settings')
+@DECORATORS.is_logged_in
+@DECORATORS.auth_edit_global_settings
+def global_settings():
+    user_email = session['user']['preferred_username']
+    authorizations = _get_authorizations(user_email)
+    form = GlobalSettingsForm(request.form)
+    return render_template('global_settings.html', authorizations=authorizations, form=form)
+
+
+@admin_routes.route("/admin/global/save_file/", methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_edit_global_settings
+def save_global_file():
+    form = GlobalSettingsForm(request.form)
+    fields = dict(request.form)
+
+    if form.validate():
+        # save letterhead templates, if provided
+        saved_files = []
+        if 'letterhead_template' in request.files:
+            letterhead_template = request.files['letterhead_template']
+            if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
+                filename = os.path.join(os.environ.get('DOCX_PATH'), f'default-letterhead.docx')
+                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                saved_files.append(filename)
+        if 'contact_letterhead_template' in request.files:
+            letterhead_template = request.files['contact_letterhead_template']
+            if letterhead_template.filename != '' and _allowed_file(letterhead_template.filename):
+                filename = os.path.join(os.environ.get('DOCX_PATH'), f'default-contact-letterhead.docx')
+                letterhead_template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                saved_files.append(filename)
+        if 'fee_agreement' in request.files:
+            template = request.files['fee_agreement']
+            if template.filename != '' and _allowed_file(template.filename):
+                filename = os.path.join(os.environ.get('DOCX_PATH'), f'default-fee-agreement.docx')
+                template.save(os.path.join(os.environ.get('DOCX_PATH'), filename))
+                saved_files.append(filename)
+        if saved_files:
+            if len(saved_files) == 1:
+                message = "Saved " + saved_files[0]
+            else:
+                message = "Saved " + ", ".join(saved_files[:-1]) + ", and " + saved_files[-1]
+        flash(message, 'success')
+        return redirect('/crm')
+
+    user_email = session['user']['preferred_username']
+    authorizations = _get_authorizations(user_email)
+    form.groups.data = request.form['groups']
+    form.attorneys.data = request.form['attorneys']
+    form.authorizations.data = request.form['authorizations']
+    return render_template('user.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
 @admin_routes.route('/admin/users')

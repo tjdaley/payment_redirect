@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h1>Global Settings</h1>
+    {% from 'includes/_formhelpers.html' import render_field, render_checkbox %}
+    <form method='POST' action="/admin/global/save_file/" enctype="multipart/form-data">
+        <div class="card border-primary my-3">
+            <div class="card-header alert-primary">Master Templates</div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{form.letterhead_template.label}}
+                        <div class="input-group">
+                            {{form.letterhead_template(class_="form-control", accept=".docx")}}
+                            <div class="input-group-append">
+                                <div class="input-group-text" title="Download template">
+                                    <a href="/admin/global/get/template/letterhead/" class="btn btn-sm fas fa-file-download" role="button"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{form.contact_letterhead_template.label}}
+                        <div class="input-group">
+                            {{form.contact_letterhead_template(class_="form-control", accept=".docx")}}
+                            <div class="input-group-append">
+                                <div class="input-group-text" title="Download template">
+                                    <a href="/admin/global/get/template/contact-letterhead/"
+                                        class="btn btn-sm fas fa-file-download" role="button"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{form.fee_agreement.label}}
+                        <div class="input-group">
+                            {{form.fee_agreement(class_="form-control", accept=".docx")}}
+                            <div class="input-group-append">
+                                <div class="input-group-text" title="Download template">
+                                    <a href="/admin/global/get/template/fee-agreement/"
+                                        class="btn btn-sm fas fa-file-download" role="button"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary my-3" type="submit">Save</button>
+        <a href="/crm" class="btn btn-secondary my-3 mx-3">Cancel</a>
+    </form>
+{% endblock %}

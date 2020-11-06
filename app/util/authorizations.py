@@ -11,6 +11,7 @@ AUTH_SEND_EVERGREEN = 'SEND_EVERGREEN'
 AUTH_TEMPLATE_ADMIN = 'TEMPLATE_ADMIN'
 AUTH_USER_ADMIN = "USER_ADMIN"
 AUTH_EDIT_REFERRER = 'EDIT_REFERRER'
+AUTH_EDIT_GLOBAL_SETTINGS = 'EDIT_GLOBAL_SETTINGS'
 
 AUTHORIZATIONS = [
     {'key': AUTH_CRM_USER, 'description': "Access CRM features"},
@@ -20,7 +21,8 @@ AUTHORIZATIONS = [
     {'key': AUTH_SEND_EVERGREEN, 'description': "Send evergreen letters"},
     {'key': AUTH_TEMPLATE_ADMIN, 'description': "Administer email templates"},
     {'key': AUTH_USER_ADMIN, 'description': "Administer Users"},
-    {'key': AUTH_EDIT_REFERRER, 'description': "Edit referrer"}
+    {'key': AUTH_EDIT_REFERRER, 'description': "Edit referrer"},
+    {'key': AUTH_EDIT_GLOBAL_SETTINGS, 'description': "Edit global settings"}
 ]
 
 AUTHORIZATION_OPTIONS = [(a['key'], a['description']) for a in AUTHORIZATIONS]
