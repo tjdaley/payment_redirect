@@ -24,6 +24,7 @@ import views.decorators as DECORATORS
 from util.court_directory import CourtDirectory
 from util.dialer import Dialer
 from util.template_name import template_name
+from util.logger import get_logger
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 # from util.logger import get_logger
@@ -33,6 +34,7 @@ DBCONTACTS = DbContacts()
 DBCLIENTS = DbClients()
 DBNOTES = DbClientNotes()
 DBINTAKES = DbIntakes()
+LOGGER = get_logger('crm_routes')
 
 
 # Refresh court directory information on restart
@@ -472,13 +474,20 @@ def client_letter(client_id: str):
     user_email = session['user']['preferred_username']  # noqa
     client = DBCLIENTS.get_one(client_id)
     flat_client = flatten_dict(client)
-    template_file_name = template_name('letterhead', session['user']['preferred_username'])
+    template_file_name = template_name('letterhead', user_email)
     merged_file_name = os.path.join(os.environ.get('DOCX_PATH'), f'tmp-{user_email}-letterhead.docx')
 
-    with MailMerge(template_file_name) as document:
-        document.merge(**flat_client)
-        document.write(merged_file_name)
-    return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Client.docx")
+    try:
+        with MailMerge(template_file_name) as document:
+            document.merge(**flat_client)
+            document.write(merged_file_name)
+        return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Client.docx")
+    except Exception as e:
+        LOGGER.error("Error merging client letter: %s", str(e))
+        LOGGER.error("\tUser Email: %s", user_email)
+        LOGGER.error("\tTemplate  : %s", template_file_name)
+        LOGGER.error("\tMerged    : %s", merged_file_name)
+    return flash("Error merging client letter - Check logs.", 'error')
 
 
 @crm_routes.route('/crm/util/contact_letter/<string:contact_id>/<string:client_id>/', methods=['GET'])
@@ -497,13 +506,20 @@ def contact_letter(contact_id: str, client_id: str):
 
     # Flatten dictionary andn do the merge.
     flat_contact = flatten_dict(contact)
-    template_file_name = template_name('contact-letterhead', session['user']['preferred_username'])
+    template_file_name = template_name('contact-letterhead', user_email)
     merged_file_name = os.path.join(os.environ.get('DOCX_PATH'), f'tmp-{user_email}-letterhead.docx')
 
-    with MailMerge(template_file_name) as document:
-        document.merge(**flat_contact)
-        document.write(merged_file_name)
-    return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Contact.docx")
+    try:
+        with MailMerge(template_file_name) as document:
+            document.merge(**flat_contact)
+            document.write(merged_file_name)
+        return send_file(merged_file_name, as_attachment=True, cache_timeout=30, attachment_filename="Letter to Contact.docx")
+    except Exception as e:
+        LOGGER.error("Error merging client letter: %s", str(e))
+        LOGGER.error("\tUser Email: %s", user_email)
+        LOGGER.error("\tTemplate  : %s", template_file_name)
+        LOGGER.error("\tMerged    : %s", merged_file_name)
+    return flash("Error merging contact letter - Check logs.", 'error')
 
 
 @crm_routes.route('/crm/data/client_ids/', methods=['GET'])
