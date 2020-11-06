@@ -51,13 +51,13 @@ class FileCacheManager(object):
             (str): The absolute path of the file or None if not found.
         """
         s3 = _connect()
-        self.logger.error("Searching S3 bucket '%s' for key '%s'", self.s3_path, filename)
+        self.logger.debug("Searching S3 bucket '%s' for key '%s'", self.s3_path, filename)
         s3_modified_date = _s3_modified_date(s3, self.s3_path, filename)
-        self.logger.error("S3 modified: %s", s3_modified_date)
+        self.logger.debug("S3 modified: %s", s3_modified_date)
         local_modified_date = _local_modified_date(self.local_path, filename)
-        self.logger.error("Local modified: %s", local_modified_date)
+        self.logger.debug("Local modified: %s", local_modified_date)
         local_filename = os.path.join(self.local_path, filename)
-        self.logger.error("Local filename: %s", local_filename)
+        self.logger.debug("Local filename: %s", local_filename)
 
         # See if file exists anywhere
         if not s3_modified_date and not local_modified_date:
@@ -66,14 +66,14 @@ class FileCacheManager(object):
 
         # See if our file is newer than the S3 file
         if local_modified_date >= s3_modified_date:
-            self.logger.error("Local file is newer than S3")
+            self.logger.debug("Local file is newer than S3")
             return local_filename
 
         # S3 file is newer . . . download it.
-        self.logger.error("S3 file is newer than local file")
+        self.logger.debug("S3 file is newer than local file")
         config = TransferConfig(use_threads=False)
         s3.Object(self.s3_path, filename).download_file(local_filename, Config=config)
-        self.logger.error("%s downloaded from S3", local_filename)
+        self.logger.debug("%s downloaded from S3", local_filename)
         return local_filename
 
     def synchronize_file(self, filename: str) -> bool:
