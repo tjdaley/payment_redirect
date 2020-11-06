@@ -4,6 +4,7 @@ file_cache_manager.py - Manage a local cache of files synchronized through S3
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
 import boto3
+from boto3.s3.transfer import TransferConfig
 from botocore.exceptions import ClientError
 import os
 from dotenv import load_dotenv
@@ -61,7 +62,8 @@ class FileCacheManager(object):
             return local_filename
 
         # S3 file is newer . . . download it.
-        s3.Object(self.s3_path, filename).download_file(local_filename)
+        config = TransferConfig(use_threads=False)
+        s3.Object(self.s3_path, filename).download_file(local_filename, Config=config)
         return local_filename
 
     def synchronize_file(self, filename: str) -> bool:
