@@ -258,6 +258,14 @@ def show_user(user_id):
     return render_template('user.html', user=user, authorizations=authorizations, form=form)
 
 
+@admin_routes.route('/admin/global/get/template/<string:docx_template_name>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_edit_global_settings
+def get_user_template(docx_template_name: str):
+    filename = template_name(docx_template_name, 'default')
+    return send_file(filename, as_attachment=True, cache_timeout=30)
+
+
 @admin_routes.route('/admin')  # noqa
 @admin_routes.route("/clients", methods=['GET'])
 @DECORATORS.is_logged_in
