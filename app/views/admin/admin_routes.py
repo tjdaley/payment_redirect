@@ -261,7 +261,7 @@ def show_user(user_id):
 @admin_routes.route('/admin/global/get/template/<string:docx_template_name>/', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_edit_global_settings
-def get_user_template(docx_template_name: str):
+def get_global_template(docx_template_name: str):
     filename = template_name(docx_template_name, 'default')
     return send_file(filename, as_attachment=True, cache_timeout=30)
 
