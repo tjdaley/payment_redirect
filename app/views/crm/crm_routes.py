@@ -4,7 +4,7 @@ crm_routes.py - Direct a client to the payment page
 Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify, send_file
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify, send_file, Response
 import io
 import json  # noqa
 from mailmerge import MailMerge
@@ -25,6 +25,7 @@ from util.court_directory import CourtDirectory
 from util.dialer import Dialer
 from util.template_name import template_name
 from util.logger import get_logger
+from views.crm.forms.client_tabs import client_tabs
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 # from util.logger import get_logger
@@ -50,23 +51,7 @@ crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
 @DECORATORS.auth_crm_user
 def list_client_contacts(client_id, page_num: int = 1):
     user_email = session['user']['preferred_username']
-
-    # See if we have a client-specific set of emails to CC
-    client = DBCLIENTS.get_one(client_id)
-    our_cc_str = client.get('email_cc_list')
-
-    # If not, then use the default email CC list for this user
-    if not our_cc_str:
-        user = DBADMINS.admin_record(user_email)
-        our_cc_str = user.get('default_cc_list')
-
-    # Combine our CC list into the CC list for this contact
-    our_ccs = our_cc_str.split(',')
-    contacts = DBCONTACTS.get_list(user_email, client_id=client_id)
-    for contact in contacts:
-        contact_ccs = contact.get('cc_list', '').split(',')
-        contact['cc_list'] = ';'.join(our_ccs + contact_ccs)
-
+    contacts = _client_contacts(user_email, client_id)
     cl_name = DBCLIENTS.get_client_name(client_id)
     email_subject = DBCLIENTS.get_email_subject(client_id)
     authorizations = _get_authorizations(user_email)
@@ -142,7 +127,7 @@ def save_contact():
 
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    return render_template('/crm/client.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
+    return render_template('crm/client.html', client=fields, form=form, operation="Correct", tabs=client_tabs, authorizations=authorizations)
 
 
 @crm_routes.route('/crm/contact/search/<int:page_num>/', methods=['POST'])
@@ -254,6 +239,7 @@ def add_client():
         operation="Add New",
         default_admins=default_access_list,
         default_cc_list=user.get('default_cc_list', ''),
+        tabs=client_tabs,
         authorizations=authorizations
     )
 
@@ -282,12 +268,13 @@ def save_client():
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
     child_form = ChildForm()
     return render_template(
-        '/crm/client.html',
+        'crm/client.html',
         client=form.data,
         form=form,
         new_child=child_form,
         our_pay_url=our_pay_url,
         operation="Correct",
+        tabs=client_tabs,
         authorizations=authorizations
     )
 
@@ -309,6 +296,8 @@ def show_client(id):
 
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
+    contacts = _client_contacts(user_email, id)
+    email_subject = DBCLIENTS.get_email_subject(id)
     return render_template(
         'crm/client.html',
         client=client,
@@ -316,6 +305,9 @@ def show_client(id):
         new_child=child_form,
         our_pay_url=our_pay_url,
         default_cc_list=user.get('default_cc_list', ''),
+        tabs=client_tabs,
+        contacts=contacts,
+        email_subject=email_subject,
         authorizations=authorizations
     )
 
@@ -466,6 +458,22 @@ def update_intake():
         result = DBCLIENTS.save(client_doc, 'tdaley@koonsfuller.com')
 
     return jsonify(result)
+
+
+@crm_routes.route('/crm/util/contacts/csv/', methods=['GET'])
+@crm_routes.route('/crm/util/contacts/csv/<string:client_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_download_contacts
+def download_contacts(client_id: str = ''):
+    user_email = session['user']['preferred_username']  # noqa
+    contacts = DBCONTACTS.get_list_as_csv(user_email, client_id=client_id)
+    return Response(
+        contacts,
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': 'attachment; filename=contacts.csv'
+        }
+    )
 
 
 @crm_routes.route('/crm/util/client_letter/<string:client_id>/', methods=['GET'])
@@ -718,3 +726,33 @@ def _vcard(contact: dict) -> str:
         vcard.append(f'NOTE:Requests that emails be copied to: {note}')
     vcard.append('END:VCARD')
     return '\n'.join(vcard)
+
+
+def _client_contacts(user_email: str, client_id: str) -> list:
+    """
+    Get a list of contacts linked to the given client account.
+
+    Args:
+        user_email (str): Email of the logged-in user.
+        client_id (str): String version of the ObjectId identifying the record in the clients collection.
+
+    Returns:
+        (list): List of contact objects.
+    """
+    # See if we have a client-specific set of emails to CC
+    client = DBCLIENTS.get_one(client_id)
+    our_cc_str = client.get('email_cc_list')
+
+    # If not, then use the default email CC list for this user
+    if not our_cc_str:
+        user = DBADMINS.admin_record(user_email)
+        our_cc_str = user.get('default_cc_list')
+
+    # Combine our CC list into the CC list for this contact
+    our_ccs = our_cc_str.split(',')
+    contacts = DBCONTACTS.get_list(user_email, client_id=client_id)
+    for contact in contacts:
+        contact_ccs = contact.get('email_cc', '').split(',')
+        contact['cc_list'] = ';'.join(our_ccs + contact_ccs)
+
+    return contacts
