@@ -9,6 +9,7 @@ import json  # noqa
 import os
 from pymongo import ASCENDING
 from bson.objectid import ObjectId
+import pandas as pd
 
 from util.logger import get_logger
 from util.database import Database, normalize_telephone_number
@@ -87,6 +88,35 @@ class DbContacts(Database):
             return None
 
         return list(contacts)
+
+    def get_list_as_csv(self, email: str, client_id=None) -> str:
+        """
+        Return the client list as a CSV string.
+        """
+        if not client_id:
+            client_id = None
+        documents = self.get_list(email, client_id=client_id)
+
+        # Break out compound fields into individual columns
+        for document in documents:
+            name = document.get('name', {})
+            for key, value in name.items():
+                document[key] = value
+            address = document.get('address', {})
+            for key, value in address.items():
+                document[key] = value
+
+        contacts = _to_dataframe(documents)
+
+        # Drop columns that don't need to be downloaded
+        contacts = contacts.drop(
+            columns=[
+                '_id', 'name', 'address', 'linked_client_ids'
+            ])
+
+        # Create and return CSV file.
+        csv_export = contacts.to_csv(sep=",")
+        return csv_export
 
     def search(self, email: str, query: str, page_num: int = 1, page_size: int = 25, client_id: str = None) -> list:
         """
@@ -224,3 +254,18 @@ class DbContacts(Database):
         if result['success']:
             result['message'] = 'Contact successfully unlinked'
         return result
+
+
+def _to_dataframe(documents: dict):
+    """
+    Convert result set to dataframe.
+    """
+    contacts = pd.DataFrame(columns=[])
+    # pylint: disable=unused-variable
+    for num, contact in enumerate(documents):
+        # pylint: enable=unused-variable
+        contact_id = str(contact['_id'])
+        contact['_id'] = contact_id
+        series_obj = pd.Series(contact, name=contact_id)
+        contacts = contacts.append(series_obj)
+    return contacts
