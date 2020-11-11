@@ -4,7 +4,7 @@ ClientForm.py - CRUD form for a client.
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
 from flask_wtf import FlaskForm
-from wtforms import Form, FormField, validators, BooleanField, SelectField, FieldList, StringField
+from wtforms import Form, FormField, validators, BooleanField, SelectField, FieldList, StringField, TextAreaField
 from wtforms.fields.html5 import DateField, EmailField, TelField
 
 # pylint: disable=no-name-in-module
@@ -134,6 +134,7 @@ class ContactForm(Form):
     email_cc = StringField("Email CC")
     organization = StringField("Organization name")
     job_title = StringField("Job title")
+    notes = TextAreaField("Notes")
 
     @classmethod
     def get(cls) -> dict:
