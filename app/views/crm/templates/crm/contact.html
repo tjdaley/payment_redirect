@@ -110,7 +110,10 @@
             </div>
             <div class="form-row">
                 <div class="form-group col">
-                    {{render_field(form.notes, class_="form-control", value=contact.notes)}}
+                    {{form.notes.label()}}
+                    <div class="input-group">
+                        <textarea class="form-control rounded-3" id="notes" name="notes" rows="5">{{contact.notes}}</textarea>
+                    </div>
                 </div>
             </div>
         </div>
