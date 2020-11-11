@@ -82,6 +82,20 @@ def auth_download_clients(f):
     return wrap
 
 
+# Decorator to see if user may download contact lists
+def auth_download_contacts(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if AUTH.AUTH_DOWNLOAD_CONTACTS in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized to download contact lists", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
 # Decorator to see if user may download contact vcards
 def auth_download_vcards(f):
     @wraps(f)
