@@ -1,0 +1,33 @@
+<!--ADDRESS TAB-->
+<div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">Address</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col">
+                    {{form.address.street.label}}
+                    <div class="input-group">
+                        {{form.address.street(class_="form-control", value=client.address.street)}}
+                        <div class="input-group-append">
+                            <div class="input-group-text" title="Download letter">
+                                <a href="/crm/util/client_letter/{{client._id}}/"
+                                    class="btn btn-sm fas fa-file-download" role="button"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col">
+                    {{render_field(form.address.city, class_="form-control", value=client.address.city)}}
+                </div>
+                <div class="form-group col">
+                    {{render_field(form.address.state, class_="form-control", value=client.address.state)}}
+                </div>
+                <div class="form-group col">
+                    {{render_field(form.address.postal_code, class_="form-control", value=client.address.postal_code)}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

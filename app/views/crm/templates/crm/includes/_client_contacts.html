@@ -1,0 +1,195 @@
+<style>
+    .table-hover>tbody>tr>td.highlightable:hover {
+        background-color: #eedf0d !important;
+    }
+
+    .table-hover>tbody>tr:hover>td {
+        background-color: inherit;
+    }
+</style>
+<div class="tab-pane fade" id="contacts" role="tabpanel" aria-labelledby="contacts-tab">
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">
+            Case Contacts
+            <a class="btn btn-primary btn-sm float-right" href="{{url_for('crm_routes.add_contact')}}/{{client_id}}">ADD</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <tr>
+                    <th>Name</th>
+                    <th>Job</th>
+                    <th>Email</th>
+                    <th colspan="2">Call</th>
+                    <th>SMS</th>
+                    <th>Letter</th>
+                    {% if 'DOWNLOAD_VCARD' in authorizations %}
+                    <th>Vcard</th>
+                    {% endif %}
+                </tr>
+                {% for contact in contacts %}
+                <tr>
+                    <td class="highlightable">
+                        <a href="/crm/contact/{{contact._id}}">
+                            {{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}
+                        </a>
+                    </td>
+                    <td>
+                        {{contact.job_title}}
+                    </td>
+                    {% if contact.email %}
+                    <td>
+                        <a href="mailto:{{contact.email}}?subject={{email_subject}}&cc={{contact.cc_list}}" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
+                            data-placement="top" title="Send Email to {{contact.email}}" role="button">
+                        </a>
+                    </td>
+                    {% else %} 
+                    <td></td>
+                    {% endif %}
+                    {% if contact.office_phone.strip() != '' %}
+                    <td>
+                        <button class="btn btn-outline-secondary fa fa-phone" data-toggle="tooltip" data-placement="top"
+                            title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')">
+                        </button>
+                    </td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
+                    {% if contact.cell_phone.strip() != '' %}
+                    <td>
+                        <button class="btn btn-outline-secondary fa fa-mobile" data-toggle="tooltip" data-placement="top"
+                            title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')">
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-secondary fa fa-comments"
+                            data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.last_name}}"
+                            data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
+                            title="Send Text" data-tooltip="tooltip" data-toggle="modal">
+                        </button>
+                    </td>
+                    {% else %}
+                    <td></td>
+                    <td></td>
+                    {% endif %}
+                    <td>
+                        <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client._id or 0}}/"
+                    </td>
+                    {% if 'DOWNLOAD_VCARD' in authorizations %}
+                    <td>
+                        <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/"
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
+            <div>
+                {% if 'DOWNLOAD_CONTACTS' in authorizations %}
+                <a href="/crm/util/contacts/csv/{{client._id}}/" class="btn btn-sm btn-primary">Download</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+
+<!--MODAL FOR SENDING SMS MESSAGES-->
+<div class="modal fade" id="smsMessageModal" tabindex="-1" role="dialog" aria-labelledby="smsModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="smsModalLabel">Send Text Message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Telephone:</label>
+                        <input type="text" class="form-control" id="recipient-telephone">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-text" class="col-form-label">Message:</label>
+                        <textarea class="form-control" id="message-text" rows="5"></textarea>
+                    </div>
+                    <div class="alert alert-primary" id="message-result"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="send_message()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', clients_init);
+
+    function clients_init() {
+        $('[data-tooltip~="tooltip"]').tooltip();
+        $('#message-text').focus(function (event) {
+            $('#message-result').html('');
+        });
+
+        $('#smsMessageModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered modal
+            var recipient = button.data('name');
+            var telephone = button.data('telephone');
+            var modal = $(this);
+            modal.find('.modal-title').text('Send Message to ' + recipient);
+            modal.find('.modal-body input').val(telephone);
+            modal.find('.modal-body textarea').val('');
+            $('#message-result').html('');
+        }
+        );
+
+        $('#assignClientModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered modal
+            var cn_id = button.data('contactid');
+            var cn_name = button.data('name');
+            var cn_jobtitle = button.data('jobtitle');
+            var cn_org = button.data('organization');
+            var modal = $(this);
+            modal.find('#assigncontact_id').val(cn_id);
+            modal.find('#assignContactName').text(cn_name);
+            modal.find('#assignContactJobtitle').text(cn_jobtitle);
+            modal.find('#assignContactOrganization').text(cn_org);
+            populate_client_dropdown();
+            $('#assign-result').html('');
+        }
+        );
+    }
+
+    function dial(to_number) {
+        jQuery.get(
+            '/crm/util/dial/' + to_number + '/',
+            function (data) {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return false;
+                }
+                if (!data.success) {
+                    alert(data.message);
+                }
+            });
+    }
+
+    function send_message() {
+        var telephone = encodeURIComponent($('#recipient-telephone').val());
+        var message = encodeURIComponent($('#message-text').val());
+        $('#message-result').html('');
+        jQuery.get(
+            '/crm/util/send_message/' + telephone + '/' + message + '/',
+            function (data) {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return false;
+                }
+                $('#message-result').html(data.message);
+                $('#message-text').val('');
+            });
+    }
+
+</script>

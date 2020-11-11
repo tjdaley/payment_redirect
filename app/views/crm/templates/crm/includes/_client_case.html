@@ -1,0 +1,30 @@
+<!--CASE TAB-->
+<div class="tab-pane fade" id="case" role="tabpanel" aria-labelledby="case-tab">
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">Case Information</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md">
+                    {{render_field(form.case_county, class_="form-control", value=client.case_county)}}
+                </div>
+                <div class="form-group col-md">
+                    {{render_field(form.court_type, class_="form-control", value=client.court_type)}}
+                </div>
+                <div class="form-group col-md">
+                    {{render_field(form.court_name, class_="form-control", value=client.court_name)}}
+                </div>
+                <div class="form-group col-md">
+                    {{render_field(form.cause_number, class_="form-control", value=client.cause_number)}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md">
+                    {{render_field(form.case_style, class_="form-control", value=client.case_style)}}
+                </div>
+                <div class="form-group col-md-3">
+                    {{render_field(form.oag_number, class_="form-control", value=client.oag_number)}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

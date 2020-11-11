@@ -1,0 +1,36 @@
+<!--MARKETING TAB-->
+<div class="tab-pane fade" id="marketing" role="tabpanel" aria-labelledby="marketing-tab">
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">Marketing</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md">
+                    {{render_field(form.crm_state, class_="form-control", value=client.crm_state)}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md">
+                    {% if 'EDIT_REFERRER' in authorizations %}
+                    {{render_field(form.referrer.referred_to, class_="form-control", value=client.get('referrer', {}).get('referred_to', ''))}}
+                    {% else %}
+                    {{render_field(form.referrer.referred_to, class_="form-control", value=client.get('referrer', {}).get('referred_to', ''), readonly="Y")}}
+                    {% endif %}
+                </div>
+                <div class="form-group col-md">
+                    {% if 'EDIT_REFERRER' in authorizations %}
+                    {{render_field(form.referrer.source, class_="form-control", value=client.get('referrer', {}).get('source', ''))}}
+                    {% else %}
+                    {{render_field(form.referrer.source, class_="form-control", value=client.get('referrer', {}).get('source', ''), readonly="Y")}}
+                    {% endif %}
+                </div>
+                <div class="form-group col-md">
+                    {% if 'EDIT_REFERRER' in authorizations %}
+                    {{render_field(form.referrer.more_info, class_="form-control", value=client.get('referrer', {}).get('more_info', ''))}}
+                    {% else %}
+                    {{render_field(form.referrer.more_info, class_="form-control", value=client.get('referrer', {}).get('more_info', ''), readonly="Y")}}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

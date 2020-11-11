@@ -1,0 +1,95 @@
+<!--BILLING TAB-->
+<div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
+    <div class="card border-success my-3">
+        <div class="card-header alert-success">Billing Summary</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md">
+                    {{render_field(form.trust_balance, class_="form-control", value=client.trust_balance)}}
+                </div>
+                <div class="form-group col-md">
+                    {{render_field(form.unbilled_fees, class_="form-control", value=client.unbilled_fees)}}
+                </div>
+                <div class="form-group col-md">
+                    {{render_field(form.unbilled_costs, class_="form-control", value=client.unbilled_costs)}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col">
+                    {{render_field(form.target_retainer, class_="form-control", value=client.target_retainer)}}
+                </div>
+                <div class="form-group col">
+                    {{render_field(form.refresh_trigger, class_="form-control", value=client.refresh_trigger)}}
+                </div>
+                <div class="form-group col-md">
+                    &nbsp;
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md">
+                    {{form.mediation_retainer.label}}
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                {% if client.mediation_retainer_flag == 'Y' %}
+                                {{form.mediation_retainer_flag(value="Y", checked="Y")}}
+                                {% else %}
+                                {{form.mediation_retainer_flag(value="Y")}}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {{form.mediation_retainer(class_="form-control", value=client.mediation_retainer)}}
+                    </div>
+                </div>
+                <div class="form-group col-md">
+                    {{form.trial_retainer.label}}
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                {% if client.trial_retainer_flag == 'Y' %}
+                                {{form.trial_retainer_flag(value='Y', checked='Y')}}
+                                {% else %}
+                                {{form.trial_retainer_flag(value='Y')}}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {{form.trial_retainer(class_="form-control", value=client.trial_retainer)}}
+                    </div>
+                </div>
+                <div class="form-group col-md">
+                    {{form.payment_due.label}}
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-success far fa-lightbulb" title="Suggest a payment amount"
+                                type="button" onclick="suggestPaymentDue('Y')"></button>
+                        </div>
+                        {{form.payment_due(class_="form-control", value=client.payment_due or 0.00)}}
+                        <div class="input-group-append">
+                            <div class="input-group-text" title="Check for Final Bill">
+                                {% if client.final_bill_flag == 'Y' %}
+                                {{form.final_bill_flag(value="Y", checked="Y")}}
+                                {% else %}
+                                {{form.final_bill_flag(value="Y")}}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md col-sm-6">
+                    {{render_field(form.mediation_date, class_="form-control", value=client.mediation_date)}}
+                </div>
+                <div class="form-group col-md col-sm-6">
+                    {{render_field(form.trial_date, class_="form-control", value=client.trial_date)}}
+                </div>
+                <div class="form-group col-md col-sm-12">
+                    <label for="payment_url">Payment URL</label>
+                    <span id="payment_url"
+                        class="border border-primary rounded p-1">{{our_pay_url}}{{client.client_ssn}}{{client.client_dl}}{{client.check_digit}}</span>
+                    <div class="small">Must be updated if SSN or DL change.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

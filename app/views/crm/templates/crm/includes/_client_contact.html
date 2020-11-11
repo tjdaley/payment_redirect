@@ -1,0 +1,37 @@
+<!--CONTACT TAB-->
+<div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">Contact</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md">
+                    {{form.email.label()}}
+                    <div class="input-group">
+                        {% if client.email %}
+                        <div class="input-group-prepend">
+                            <a href="mailto:{{client.email}}?cc={{client.email_cc_list or default_cc_list}}"
+                                class="btn btn-outline-secondary fa fa-envelope pt-2" data-toggle="tooltip"
+                                data-placement="top" title="Send Email to {{client.email}}" role="button">
+                            </a>
+                        </div>
+                        {% endif %}
+                        {{form.email(class_="form-control", value=client.email)}}
+                    </div>
+                </div>
+                <div class="form-group col-md">
+                    {{form.telephone.label()}}
+                    <div class="input-group mb-3">
+                        {% if client.telephone %}
+                        <div class="input-group-prepend">
+                            <button class="btn btn-outline-secondary fa fa-phone"
+                                title="Call {{client.telephone | phone_number}}" type="button"
+                                onclick="dial('{{client.telephone}}')"></button>
+                        </div>
+                        {% endif %}
+                        {{form.telephone(class_="form-control", value=client.telephone)}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

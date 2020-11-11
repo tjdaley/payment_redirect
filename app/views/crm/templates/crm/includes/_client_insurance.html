@@ -1,0 +1,84 @@
+<!--INSURANCE TAB-->
+<div class="tab-pane fade" id="insurance" role="tabpanel" aria-labelledby="insurance-tab">
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">Insurance</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col">
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <b>{{form.health_ins.label()}}</b>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.health_ins.carrier, class_="form-control", value=client.get('health_ins',{}).get('carrier',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.health_ins.policy_holder, class_="form-control", value=client.get('health_ins',{}).get('policy_holder',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.health_ins.policy_number, class_="form-control", value=client.get('health_ins',{}).get('policy_number',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.health_ins.group_number, class_="form-control", value=client.get('health_ins',{}).get('group_number',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.health_ins.monthly_premium, class_="form-control", value=client.get('health_ins',{}).get('monthly_premium',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.health_ins.provided_through, class_="form-control", value=client.get('health_ins',{}).get('provided_through',''))}}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col">
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <b>{{form.dental_ins.label()}}</b>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.dental_ins.carrier, class_="form-control", value=client.get('dental_ins',{}).get('carrier',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.dental_ins.policy_holder, class_="form-control", value=client.get('dental_ins',{}).get('policy_holder',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.dental_ins.policy_number, class_="form-control", value=client.get('dental_ins',{}).get('policy_number',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.dental_ins.group_number, class_="form-control", value=client.get('dental_ins',{}).get('group_number',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.dental_ins.monthly_premium, class_="form-control", value=client.get('dental_ins',{}).get('monthly_premium',''))}}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            {{render_field(form.dental_ins.provided_through, class_="form-control", value=client.get('dental_ins',{}).get('provided_through',''))}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
