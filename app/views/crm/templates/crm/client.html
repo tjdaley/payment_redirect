@@ -43,6 +43,7 @@
     </form>
 
     {% include '/crm/includes/_client_add_child_modal.html' %}
+    {% include '/crm/includes/_client_send_sms_modal.html' %}
 
     <script>
         window.addEventListener('load', client_init);
@@ -79,7 +80,29 @@
                 console.log("MODAL APPEARS");
             }
             );
+
+            contacts_init();
         }
+
+        function contacts_init() {
+            $('[data-tooltip~="tooltip"]').tooltip();
+            $('#message-text').focus(function (event) {
+                $('#message-result').html('');
+            });
+
+            $('#smsMessageModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // Button that triggered modal
+                var recipient = button.data('name');
+                var telephone = button.data('telephone');
+                var modal = $(this);
+                modal.find('.modal-title').text('Send Message to ' + recipient);
+                modal.find('.modal-body input').val(telephone);
+                modal.find('.modal-body textarea').val('');
+                $('#message-result').html('');
+            }
+            );
+        }
+
 
         /**
          * Gets a list of court types for the given county when
@@ -225,6 +248,22 @@
             }
             if (isNaN(v)) v = 0.00
             return v;
+        }
+
+        function send_message() {
+            var telephone = encodeURIComponent($('#recipient-telephone').val());
+            var message = encodeURIComponent($('#message-text').val());
+            $('#message-result').html('');
+            jQuery.get(
+                '/crm/util/send_message/' + telephone + '/' + message + '/',
+                function (data) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return false;
+                    }
+                    $('#message-result').html(data.message);
+                    $('#message-text').val('');
+                });
         }
 
         function dial(to_number) {

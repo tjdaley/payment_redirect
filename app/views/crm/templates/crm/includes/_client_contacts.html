@@ -1,3 +1,4 @@
+<!--CONTACTS TAB-->
 <style>
     .table-hover>tbody>tr>td.highlightable:hover {
         background-color: #eedf0d !important;
@@ -48,7 +49,8 @@
                     {% if contact.office_phone.strip() != '' %}
                     <td>
                         <button class="btn btn-outline-secondary fa fa-phone" data-toggle="tooltip" data-placement="top"
-                            title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')">
+                            title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')"
+                            type="button">
                         </button>
                     </td>
                     {% else %}
@@ -57,14 +59,16 @@
                     {% if contact.cell_phone.strip() != '' %}
                     <td>
                         <button class="btn btn-outline-secondary fa fa-mobile" data-toggle="tooltip" data-placement="top"
-                            title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')">
+                            title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')"
+                            type="button">
                         </button>
                     </td>
                     <td>
+                        <!--Because this button shows up in a form, it must have type="button" or the form will be submitted.-->
                         <button class="btn btn-outline-secondary fa fa-comments"
                             data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.last_name}}"
                             data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
-                            title="Send Text" data-tooltip="tooltip" data-toggle="modal">
+                            title="Send Text" data-tooltip="tooltip" data-toggle="modal" type="button">
                         </button>
                     </td>
                     {% else %}
@@ -72,11 +76,11 @@
                     <td></td>
                     {% endif %}
                     <td>
-                        <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client._id or 0}}/"
+                        <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client._id or 0}}/"></a>
                     </td>
                     {% if 'DOWNLOAD_VCARD' in authorizations %}
                     <td>
-                        <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/"
+                        <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/"></a>
                     </td>
                     {% endif %}
                 </tr>
@@ -91,105 +95,3 @@
     </div>
 </div>
 <br />
-
-<!--MODAL FOR SENDING SMS MESSAGES-->
-<div class="modal fade" id="smsMessageModal" tabindex="-1" role="dialog" aria-labelledby="smsModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="smsModalLabel">Send Text Message</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="form-group">
-                        <label for="recipient-name" class="col-form-label">Telephone:</label>
-                        <input type="text" class="form-control" id="recipient-telephone">
-                    </div>
-                    <div class="form-group">
-                        <label for="message-text" class="col-form-label">Message:</label>
-                        <textarea class="form-control" id="message-text" rows="5"></textarea>
-                    </div>
-                    <div class="alert alert-primary" id="message-result"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="send_message()">Send</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    window.addEventListener('load', clients_init);
-
-    function clients_init() {
-        $('[data-tooltip~="tooltip"]').tooltip();
-        $('#message-text').focus(function (event) {
-            $('#message-result').html('');
-        });
-
-        $('#smsMessageModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered modal
-            var recipient = button.data('name');
-            var telephone = button.data('telephone');
-            var modal = $(this);
-            modal.find('.modal-title').text('Send Message to ' + recipient);
-            modal.find('.modal-body input').val(telephone);
-            modal.find('.modal-body textarea').val('');
-            $('#message-result').html('');
-        }
-        );
-
-        $('#assignClientModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered modal
-            var cn_id = button.data('contactid');
-            var cn_name = button.data('name');
-            var cn_jobtitle = button.data('jobtitle');
-            var cn_org = button.data('organization');
-            var modal = $(this);
-            modal.find('#assigncontact_id').val(cn_id);
-            modal.find('#assignContactName').text(cn_name);
-            modal.find('#assignContactJobtitle').text(cn_jobtitle);
-            modal.find('#assignContactOrganization').text(cn_org);
-            populate_client_dropdown();
-            $('#assign-result').html('');
-        }
-        );
-    }
-
-    function dial(to_number) {
-        jQuery.get(
-            '/crm/util/dial/' + to_number + '/',
-            function (data) {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return false;
-                }
-                if (!data.success) {
-                    alert(data.message);
-                }
-            });
-    }
-
-    function send_message() {
-        var telephone = encodeURIComponent($('#recipient-telephone').val());
-        var message = encodeURIComponent($('#message-text').val());
-        $('#message-result').html('');
-        jQuery.get(
-            '/crm/util/send_message/' + telephone + '/' + message + '/',
-            function (data) {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return false;
-                }
-                $('#message-result').html(data.message);
-                $('#message-text').val('');
-            });
-    }
-
-</script>
