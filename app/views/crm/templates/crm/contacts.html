@@ -30,14 +30,15 @@
 <table class="table table-sm table-hover">
     <tr>
         <th>Name</th>
-        <th class="d-none d-md-block">Job</th>
+        <th class="d-none d-md-table-cell">Job</th>
         <th>Email</th>
         <th colspan="2">Call</th>
         <th>SMS</th>
-        <th class="d-none d-md-block">Letter</th>
-        <th class="d-none d-md-block">Link</th>
+        <th class="d-none d-md-table-cell">Letter</th>
+        <th class="d-none d-md-table-cell">Link</th>
         {% if 'DOWNLOAD_VCARD' in authorizations %}
         <th>Vcard</th>
+        <th class="d-none d-md-table-cell"></th>
         {% endif %}
     </tr>
     {% for contact in contacts %}
@@ -85,10 +86,10 @@
         <td></td>
         <td></td>
         {% endif %}
-        <td class="d-none d-md-block">
+        <td class="d-none d-md-table-cell">
             <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client_id or 0}}/"></a>
         </td>
-        <td class="d-none d-md-block">
+        <td class="d-none d-md-table-cell">
             <button class="btn btn-outline-secondary fa fa-link" data-contactid="{{contact._id}}"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}"
                 data-jobtitle="{{contact.job_title}}" data-organization="{{contact.organization}}" data-target="#assignClientModal" data-placement="top"
@@ -101,7 +102,7 @@
                 title="VCard for Professionals" data-tooltip="tooltip">
             </a>
         </td>
-        <td class="d-none d-md-block">
+        <td class="d-none d-md-table-cell">
             <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/nonpro/"
                 title="VCard for Clients" data-tooltip="tooltip">
             </a>

@@ -22,7 +22,7 @@
                     <th>Email</th>
                     <th colspan="2">Call</th>
                     <th>SMS</th>
-                    <th>Letter</th>
+                    <th class="d-none d-md-table-cell">Letter</th>
                     {% if 'DOWNLOAD_VCARD' in authorizations %}
                     <th>Vcard</th>
                     {% endif %}
@@ -73,7 +73,7 @@
                     <td></td>
                     <td></td>
                     {% endif %}
-                    <td>
+                    <td class="d-none d-md-table-cell">
                         <a
                             class="btn btn-outline-secondary fas fa-file-download"
                             href="/crm/util/contact_letter/{{contact._id}}/{{client._id or 0}}/"
