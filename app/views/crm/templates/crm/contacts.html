@@ -30,12 +30,12 @@
 <table class="table table-sm table-hover">
     <tr>
         <th>Name</th>
-        <th>Job</th>
+        <th class="d-none d-md-block">Job</th>
         <th>Email</th>
         <th colspan="2">Call</th>
         <th>SMS</th>
-        <th>Letter</th>
-        <th>Link</th>
+        <th class="d-none d-md-block">Letter</th>
+        <th class="d-none d-md-block">Link</th>
         {% if 'DOWNLOAD_VCARD' in authorizations %}
         <th>Vcard</th>
         {% endif %}
@@ -47,7 +47,7 @@
                 {{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}
             </a>
         </td>
-        <td>
+        <td class="d-none d-md-block">
             {{contact.job_title}}
         </td>
         {% if contact.email %}
@@ -85,10 +85,10 @@
         <td></td>
         <td></td>
         {% endif %}
-        <td>
-            <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client_id or 0}}/"
+        <td class="d-none d-md-block">
+            <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client_id or 0}}/"></a>
         </td>
-        <td>
+        <td class="d-none d-md-block">
             <button class="btn btn-outline-secondary fa fa-link" data-contactid="{{contact._id}}"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}"
                 data-jobtitle="{{contact.job_title}}" data-organization="{{contact.organization}}" data-target="#assignClientModal" data-placement="top"
@@ -97,7 +97,14 @@
         </td>
         {% if 'DOWNLOAD_VCARD' in authorizations %}
         <td>
-            <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/"
+            <a class="btn btn-outline-primary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/pro/"
+                title="VCard for Professionals" data-tooltip="tooltip">
+            </a>
+        </td>
+        <td class="d-none d-md-block">
+            <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/nonpro/"
+                title="VCard for Clients" data-tooltip="tooltip">
+            </a>
         </td>
         {% endif %}
     </tr>

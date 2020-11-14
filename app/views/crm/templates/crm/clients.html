@@ -33,9 +33,9 @@
                 <th>Call</th>
                 <th>SMS</th>
                 <th>Notes</th>
-                <th>Mediation Date</th>
-                <th>Trial Date</th>
-                <th class="text-right">Trust Balance</th>
+                <th class="d-none d-md-block">Mediation Date</th>
+                <th class="d-none d-md-block">Trial Date</th>
+                <th class="text-right d-none d-md-block">Trust Balance</th>
             </tr>
             {% for client in clients %}
             <tr class="text-{{client._class}}">
@@ -92,9 +92,9 @@
                         href="/crm/notes/{{client._id}}/"
                     />
                 </td>
-                <td>{{client.mediation_date or ''}}</td>
-                <td>{{client.trial_date or ''}}</td>
-                <td class="text-right">{{"${:,.2f}".format(client.trust_balance or 0)}}</td>
+                <td class="d-none d-md-block">{{client.mediation_date or ''}}</td>
+                <td class="d-none d-md-block">{{client.trial_date or ''}}</td>
+                <td class="text-right d-none d-md-block">{{"${:,.2f}".format(client.trust_balance or 0)}}</td>
             </tr>
             {% endfor %}
         </table>
