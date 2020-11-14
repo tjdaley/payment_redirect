@@ -548,12 +548,12 @@ def get_client_ids():
     return jsonify(client_ids)
 
 
-@crm_routes.route('/crm/data/contact/vcard/<string:contact_id>/', methods=['GET'])
+@crm_routes.route('/crm/data/contact/vcard/<string:contact_id>/<string:type_name>/', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_download_vcards
-def get_vcard(contact_id):
+def get_vcard(contact_id, type_name):
     contact = DBCONTACTS.get_one(contact_id)
-    vcard = _vcard(contact)
+    vcard = _vcard(contact, (type_name == 'pro'))
     vcard_name = _vcard_name(contact)
     fp = io.BytesIO(vcard.encode())
     fp.seek(0)
@@ -668,11 +668,20 @@ def _vcard_name(contact: dict) -> str:
     return fullname + '.vcf'
 
 
-def _vcard(contact: dict) -> str:
+def _vcard(contact: dict, is_pro: bool) -> str:
     """
     Create a vcard from a contact dict.
 
-    https://en.wikipedia.org/wiki/VCard#vCard_4.0
+    Args:
+        contact (dict): Contact properties
+        is_pro (bool): Whether to format for sharing with a fellow professional.
+            If True, then vcard will include cell phone and email. Otherwise those
+            properties are not shared with non-professionals.
+    Returns:
+        (str): VCard string
+
+    Ref:
+        https://en.wikipedia.org/wiki/VCard#vCard_4.0
     """
     name = contact.get('name', {})
     title = name.get('title', '')
@@ -712,9 +721,9 @@ def _vcard(contact: dict) -> str:
         vcard.append(f'TEL;TYPE=work,voice:{telephone}')
     if fax:
         vcard.append(f'TEL;TYPE=work,fax:{fax}')
-    if cell:
+    if cell and is_pro:
         vcard.append(f'TEL;TYPE=cell,voice:{cell}')
-    if email:
+    if email and is_pro:
         vcard.append(f'EMAIL:{email}')
 
     addr_label = f'{street}\n{city}\\, {state} {postal_code}\\n{country}'
@@ -722,7 +731,7 @@ def _vcard(contact: dict) -> str:
     vcard.append(f'ADR;WORK;PREF:;;{addr_parts}\nLEBEL;WLRK;PREF;ENCODING=QUOTED-PRINTABLE:{addr_label}')
     # vcard.append(f'ADR;TYPE=WORK;PREF=1;LABEL={addr_label};;{addr_parts}')
 
-    if note:
+    if note and is_pro:
         vcard.append(f'NOTE:Requests that emails be copied to: {note}')
     vcard.append('END:VCARD')
     return '\n'.join(vcard)

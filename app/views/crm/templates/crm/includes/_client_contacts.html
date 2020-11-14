@@ -37,28 +37,26 @@
                     <td>
                         {{contact.job_title}}
                     </td>
-                    {% if contact.email %}
+                    
                     <td>
-                        <a href="mailto:{{contact.email}}?subject={{email_subject}}&cc={{contact.cc_list}}" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
+                        {% if contact.email %}
+                        <a  href="mailto:{{contact.email}}?subject={{email_subject}}&cc={{contact.cc_list}}"
+                            class="btn btn-outline-secondary fa fa-envelope" data-tooltip="tooltip"
                             data-placement="top" title="Send Email to {{contact.email}}" role="button">
                         </a>
+                        {% endif %}
                     </td>
-                    {% else %} 
-                    <td></td>
-                    {% endif %}
-                    {% if contact.office_phone.strip() != '' %}
                     <td>
-                        <button class="btn btn-outline-secondary fa fa-phone" data-toggle="tooltip" data-placement="top"
+                        {% if contact.office_phone.strip() != '' %}
+                        <button class="btn btn-outline-secondary fa fa-phone" data-tooltip="tooltip" data-placement="top"
                             title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')"
                             type="button">
                         </button>
+                        {% endif %}
                     </td>
-                    {% else %}
-                    <td></td>
-                    {% endif %}
                     {% if contact.cell_phone.strip() != '' %}
                     <td>
-                        <button class="btn btn-outline-secondary fa fa-mobile" data-toggle="tooltip" data-placement="top"
+                        <button class="btn btn-outline-secondary fa fa-mobile" data-tooltip="tooltip" data-placement="top"
                             title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')"
                             type="button">
                         </button>
@@ -76,11 +74,27 @@
                     <td></td>
                     {% endif %}
                     <td>
-                        <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client._id or 0}}/"></a>
+                        <a
+                            class="btn btn-outline-secondary fas fa-file-download"
+                            href="/crm/util/contact_letter/{{contact._id}}/{{client._id or 0}}/"
+                            title="Download letter"
+                            data-tooltip="tooltip">
+                        </a>
                     </td>
                     {% if 'DOWNLOAD_VCARD' in authorizations %}
                     <td>
-                        <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/"></a>
+                        <a
+                            class="btn btn-outline-primary far fa-address-card"
+                            href="/crm/data/contact/vcard/{{contact._id}}/pro/"
+                            title="VCard for Professionals"
+                            data-tooltip="tooltip">
+                        </a>
+                        <a 
+                            class="btn btn-outline-secondary far fa-address-card"
+                            href="/crm/data/contact/vcard/{{contact._id}}/nonpro/"
+                            title="VCard for Clients"
+                            data-tooltip="tooltip">
+                        </a>
                     </td>
                     {% endif %}
                 </tr>
