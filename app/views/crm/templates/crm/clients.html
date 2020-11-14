@@ -55,7 +55,7 @@
                     <a
                         href="mailto:{{client.email}}?subject={{client._email_subject}}&cc={{client.email_cc_list or default_cc_list}}"
                         class="btn btn-outline-secondary fa fa-envelope"
-                        data-toggle="tooltip" data-placement="top" title="Send Email to {{client.email}}"
+                        data-tooltip="tooltip" data-placement="top" title="Send Email to {{client.email}}"
                         role="button">
                     </a>
                 </td>
@@ -66,7 +66,7 @@
                 <td>
                     <button
                         class="btn btn-outline-secondary fa fa-phone"
-                        data-toggle="tooltip" data-placement="top" title="Call {{client.telephone | phone_number}}"
+                        data-tooltip="tooltip" data-placement="top" title="Call {{client.telephone | phone_number}}"
                         onclick="dial('{{client.telephone}}')">
                     </button>
                 </td>
@@ -88,7 +88,7 @@
                 <td>
                     <a
                         class="btn btn-outline-secondary fa fa-sticky-note"
-                        data-toggle="tooltip" data-placement="top" title="Notes"
+                        data-tooltip="tooltip" data-placement="top" title="Notes"
                         href="/crm/notes/{{client._id}}/"
                     />
                 </td>
