@@ -4,7 +4,7 @@ crm_routes.py - Direct a client to the payment page
 Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify, send_file, Response
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for, json, jsonify, send_file, Response
 import io
 import json  # noqa
 from mailmerge import MailMerge
@@ -544,8 +544,14 @@ def contact_letter(contact_id: str, client_id: str):
 @DECORATORS.auth_crm_user
 def get_client_ids():
     user_email = session['user']['preferred_username']
-    client_ids = DBCLIENTS.get_id_name_list(user_email)
-    return jsonify(client_ids)
+    client_ids = DBCLIENTS.get_id_name_list(user_email, crm_state='070:retained_active')
+
+    # jsonify() will sort client_ids by the key value, which we don't want.
+    # To maintain the order of the data without messing with global app settings,
+    # we create our own json string and build a response object.
+    json_string = json.dumps(client_ids, sort_keys=False)
+    response = Response(json_string, status=200, mimetype='application/json')
+    return response
 
 
 @crm_routes.route('/crm/data/contact/vcard/<string:contact_id>/<string:type_name>/', methods=['GET'])
