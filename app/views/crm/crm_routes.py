@@ -711,7 +711,7 @@ def _vcard(contact: dict, is_pro: bool) -> str:
     state = address.get('state', '')
     country = address.get('country', 'United States of America')
     postal_code = address.get('postal_code')
-    note = contact.get('default_cc_list', None)
+    note = contact.get('email_cc', None)
 
     vcard = []
     vcard.append('BEGIN:VCARD')
@@ -728,13 +728,13 @@ def _vcard(contact: dict, is_pro: bool) -> str:
     if fax:
         vcard.append(f'TEL;TYPE=work,fax:{fax}')
     if cell and is_pro:
-        vcard.append(f'TEL;TYPE=cell,voice:{cell}')
+        vcard.append(f'TEL;TYPE=cell,text,voice:{cell}')
     if email and is_pro:
         vcard.append(f'EMAIL:{email}')
 
-    addr_label = f'{street}\n{city}\\, {state} {postal_code}\\n{country}'
+    addr_label = f'{street}\\n{city}, {state} {postal_code}\\n{country}'
     addr_parts = f'{street};{city};{state};{postal_code};{country}'
-    vcard.append(f'ADR;WORK;PREF:;;{addr_parts}\nLEBEL;WLRK;PREF;ENCODING=QUOTED-PRINTABLE:{addr_label}')
+    vcard.append(f'ADR;WORK:;;{addr_parts}\nLABEL;WORK;PREF;ENCODING=QUOTED-PRINTABLE:{addr_label}')
     # vcard.append(f'ADR;TYPE=WORK;PREF=1;LABEL={addr_label};;{addr_parts}')
 
     if note and is_pro:
