@@ -674,7 +674,7 @@ def _vcard_name(contact: dict) -> str:
     return fullname + '.vcf'
 
 
-def _vcard(contact: dict, is_pro: bool) -> str:
+def _vcard40(contact: dict, is_pro: bool) -> str:
     """
     Create a vcard from a contact dict.
 
@@ -741,6 +741,78 @@ def _vcard(contact: dict, is_pro: bool) -> str:
         vcard.append(f'NOTE:Requests that emails be copied to: {note}')
     vcard.append('END:VCARD')
     return '\r\n'.join(vcard)
+
+
+def _vcard21(contact: dict, is_pro: bool) -> str:
+    """
+    Create a vcard from a contact dict.
+
+    Args:
+        contact (dict): Contact properties
+        is_pro (bool): Whether to format for sharing with a fellow professional.
+            If True, then vcard will include cell phone and email. Otherwise those
+            properties are not shared with non-professionals.
+    Returns:
+        (str): VCard string
+
+    Ref:
+        https://en.wikipedia.org/wiki/VCard#vCard_4.0
+    """
+    name = contact.get('name', {})
+    title = name.get('title', '')
+    fname = name.get('first_name', '')
+    mname = name.get('middle_name', '')
+    lname = name.get('last_name', '')
+    suffix = name.get('suffix', '')
+    fullname = f'{title} {fname} {mname} {lname}'
+    if suffix:
+        fullname += ', ' + suffix
+    fullname = fullname.strip().replace('  ', ' ')
+    org = contact.get('organization')
+    jtitle = contact.get('job_title')
+    telephone = contact.get('office_phone')
+    fax = contact.get('fax')
+    cell = contact.get('cell_phone')
+    email = contact.get('email')
+    address = contact.get('address', {})
+    street = address.get('street', '')
+    city = address.get('city', '')
+    state = address.get('state', '')
+    country = address.get('country', 'United States of America')
+    postal_code = address.get('postal_code')
+    note = contact.get('email_cc', None)
+
+    vcard = []
+    vcard.append('BEGIN:VCARD')
+    vcard.append('VERSION:2.1')
+    vcard.append(f'N:{lname};{fname};{mname};{title}')
+    vcard.append(f'FN:{fullname}')
+    if org:
+        vcard.append(f'ORG:{org}')
+    if jtitle:
+        vcard.append(f'TITLE:{jtitle}')
+    if telephone:
+        vcard.append(f'TEL;WORK;VOICE:{telephone}')
+    if fax:
+        vcard.append(f'TEL;WORK;FAX:{fax}')
+    if cell and is_pro:
+        vcard.append(f'TEL;CELL;TEXT:{cell}')
+    if email and is_pro:
+        vcard.append(f'EMAIL:{email}')
+
+    addr_label = f'{street}=0D=0A=\n{city}, {state} {postal_code}=0D=0A{country}'
+    addr_parts = f'{street};{city};{state};{postal_code};{country}'
+    vcard.append(f'ADR;WORK:;;{addr_parts}\nLABEL;WORK;PREF;ENCODING=QUOTED-PRINTABLE;CHARSET-UTF-8:{addr_label}')
+    # vcard.append(f'ADR;TYPE=WORK;PREF=1;LABEL={addr_label};;{addr_parts}')
+
+    if note and is_pro:
+        vcard.append(f'NOTE:Requests that emails be copied to: {note}')
+    vcard.append('END:VCARD')
+    return '\r\n'.join(vcard)
+
+
+def _vcard(contact: dict, is_pro: bool) -> str:
+    return _vcard21(contact, is_pro)
 
 
 def _client_contacts(user_email: str, client_id: str) -> list:
