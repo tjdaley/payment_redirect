@@ -798,7 +798,7 @@ def _vcard21(contact: dict, is_pro: bool) -> str:
     if cell and is_pro:
         vcard.append(f'TEL;CELL;TEXT:{cell}')
     if email and is_pro:
-        vcard.append(f'EMAIL:{email}')
+        vcard.append(f'EMAIL;PREF;WORK:{email}')
 
     addr_label = f'{street}=0D=0A=\n{city}, {state} {postal_code}=0D=0A{country}'
     addr_parts = f'{street};{city};{state};{postal_code};{country}'
