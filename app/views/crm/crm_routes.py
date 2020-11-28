@@ -740,7 +740,7 @@ def _vcard(contact: dict, is_pro: bool) -> str:
     if note and is_pro:
         vcard.append(f'NOTE:Requests that emails be copied to: {note}')
     vcard.append('END:VCARD')
-    return '\n'.join(vcard)
+    return '\r\n'.join(vcard)
 
 
 def _client_contacts(user_email: str, client_id: str) -> list:
