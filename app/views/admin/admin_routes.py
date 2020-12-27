@@ -1,12 +1,14 @@
 """
 admin_routes.py - Handle the administrative routes.
 
+_See_: https://github.com/Azure-Samples/ms-identity-python-webapp/blob/master/app.py
+
 Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import uuid
 import os
 import msal
-from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, send_file
+from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, send_file, jsonify
 import requests
 import urllib
 
@@ -476,6 +478,34 @@ def logout():
     )
 
 
+@admin_routes.route('/tasklists/')
+@DECORATORS.is_logged_in
+def tasklists():
+    return _graphcall(config.AZURE_TODO_LISTS_ENDPOINT)
+
+
+@admin_routes.route('/task/<string:tasklistid>/<string:taskid>/')
+@DECORATORS.is_logged_in
+def task(tasklistid: str, taskid: str):
+    endpoint = config.AZURE_TODO_TASK_ENDPOINT \
+        .replace('[todoTaskListId]', tasklistid) \
+        .replace('[taskId]', taskid)
+    return _graphcall(endpoint)
+
+
+@admin_routes.route('/tasks/<string:tasklistid>/')
+@DECORATORS.is_logged_in
+def tasks(tasklistid: str):
+    endpoint = config.AZURE_TODO_TASKS_ENDPOINT.replace('[todoTaskListId]', tasklistid)
+    return _graphcall(endpoint)
+
+
+@admin_routes.route('/users')
+@DECORATORS.is_logged_in
+def users():
+    return _graphcall(config.AZURE_USERS_ENDPOINT)
+
+
 def cleanup_client(client: dict):
     """
     Turn arrays into CSV lists for human editing.
@@ -524,13 +554,55 @@ def _get_token_from_cache(scope=None):
         return result
 
 
-def _get_users():
+def _get_users() -> dict:
+    """
+    Get list of users.
+
+    Could also be implemented as:
+
+    def _get_users():
+        return _graphcall(config.AZURE_USERS_ENDPOINT)
+    """
     token = _get_token_from_cache(config.AZURE_SCOPE)
     if not token:
         return redirect(url_for(os.environ['LOGIN_FUNCTION']))
     graph_data = requests.get(
         config.AZURE_USERS_ENDPOINT,
         headers={'Authorization': 'Bearer ' + token['access_token']},
+    ).json()
+    return graph_data
+
+
+def _graphcall(endpoint: str) -> dict:
+    """
+    Make a call to a Microsoft Office 365 Graph endpoint.
+
+    Args:
+        endpoint (str): URL of endpoint.
+
+    Returns:
+        (dict): Data returned by Microsoft Office 365 Graph endpoint.
+    """
+    token = _get_token_from_cache(config.AZURE_SCOPE)
+    if not token:
+        return redirect(url_for(os.environ['LOGIN_FUNCTION']))
+    graph_data = requests.get(  # Use token to call downstream service
+        endpoint,
+        headers={'Authorization': 'Bearer ' + token['access_token']},
+        ).json()
+    
+    if 'error' in graph_data:
+        return graph_data['error']['message']
+    return jsonify(graph_data)
+
+
+def _get_task_lists():
+    token = _get_token_from_cache(config.AZURE_SCOPE)
+    if not token:
+        return redirect(url_for(os.environ['LOGIN_FUNCTION']))
+    graph_data = requests.get(
+        config.AZURE_TODO_LISTS_ENDPOINT,
+        headers={'Authorization': 'Bearer' + token['access_token']},
     ).json()
     return graph_data
 
