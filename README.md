@@ -35,6 +35,49 @@ $ cd app
 $ vi .env
 ```
 
+## AZURE Configuration
+This application uses Microsoft Azure services for authentication and plan management. For the application
+to work properly you'll need to create an Azure app as follows:
+
+1. Login to your Azure portal by browsing to [https://portal.azure.com](https://portal.azure.com)
+2. At the top of the portal, search for "App Registration"
+3. Register a new app.
+   A. Name: your users will see this
+   B. Supported Account Types: Select the top option, "Accounts in this organizational directory only (Default Directory only - single tenant)
+   C. Redirect URI: The URL to your installation plus "/getAToken", e.g. on a test machine "http://localhost:5000/getAToken" and on
+      production server it might be "https://myurl.com/getAToken"
+   D. Click "REGISTER"
+4. After you save your registration, select the app you just registered to bring up the full configuration screen.
+   A. OVERVIEW
+      i. Redirect URIs: Click here if you need to add another URI. For example, if you entered your test machine's URI at step 3.C above
+         now you can add your production machine.
+   B. BRANDING
+      i. NAME: Whatever you want. Users will see this.
+      ii. UPLOAD NEW LOGO: Upload your logo file.
+      iii. HOME PAGE URL: https://yoururl.com/crm
+      iv. TERMS OF SERVICE URL: https://yoururl.com/terms_and_conditions
+      v. PRIVACY STATEMENT: https://yoururl.com/privacy
+   C. AUTHENTICATION
+      i. FRONT-CHANNEL LOGOUT URL: https://yoururl.com/logout
+      ii. IMPLICIT GRANT AND HYBRID FLOWS: Don't select either option.
+      iii. SUPPORTED ACCOUNT TYPES: Select "Accounts in this organizational directory only (XXX - Single Tenant)
+   D. CERTIFICATES & SECRETS
+      i. CLIENT SECRETS: Add a new client secret and save the **VALUE** and the **ID** properties.
+   E. API PERMISSIONS: You'll need to grant the following permissions (delegated):
+      i. openid
+      ii. profile
+      iii. Tasks.ReadWrite
+      iv. Tasks.ReadWrite.Shared
+      v. User.Read
+      vi. User.ReadBasic.All
+
+      To grant these permissions:
+      i. Click "Add a permission"
+      ii. Click "Microsoft Graph" under the "Microsoft APIs" tab
+      iii. Selected "Delegated permissions"
+      iv. Type in the permission name from the list above and select each one.
+      
+
 ## Startup
 ```python
 python3 server.py
