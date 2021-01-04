@@ -1,0 +1,69 @@
+{% extends 'layout.html' %}
+{% block body %}
+<style>
+    .table-hover>tbody>tr>td.highlightable:hover{
+        background-color: #eedf0d!important;
+    }
+
+    .table-hover>tbody>tr:hover>td{
+        background-color: inherit;
+    }
+</style>
+<span class="h1 my-3">Docket</span>
+
+<div class="row">
+    <div class="col">
+        <table class="table table-sm table-hover">
+            <tr>
+                <th style="width: 16%">Client</th>
+                <th style="width: 24%">Case</th>
+                <th style="width: 16%">Players</th>
+                <th style="width: 16%">Dates</th>
+                <th>Tasks</th>
+            </tr>
+            {% for client in clients %}
+            <tr class="text-{{client._class}}">
+                <td class="highlightable">
+                    {{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}<br />
+                    <a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a><br />
+                    Trust: {{"${:,.2f}".format(client.trust_balance or 0)}}<br />
+                    Retainer: {{"${:,.2f}".format(client.target_retainer or 0)}}
+                </td>
+                <td>
+                    {% if client.case_type == 'XXXX' %}
+                    {{client.case_style}}<br />
+                    {% elif client.case_type %}
+                    {{ client.case_type | case_type }}<br />
+                    {% else %}
+                    {{ client.case_style }}<br />
+                    {% endif %}
+                    {{client.cause_number}}<br />
+                    {{client.court_name}}<br />
+                    {{client.case_county}}
+                </td>
+                <td>
+                    Players Go Here
+                </td>
+                <td>
+                    Ret: {{client.retained_date}}<br />
+                    Filed: {{client.filed_date or ''}}<br />
+                    Med: {{client.mediation_date or ''}}<br />
+                    Trial: {{client.trial_date or ''}}<br/>
+                </td>
+                <td>
+                    {% for bucket in client.tasks %}
+                    {{bucket.bucket_name}}<br />
+                    <ul>
+                       {% for task in bucket.tasks %}
+                       <li>{{task.title}} {{task.assigned_to}} {{task.due_date[5:10]}}</li>
+                       {% endfor %}
+                    </ul>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+{% endblock %}
