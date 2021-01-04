@@ -60,11 +60,6 @@ class Database(object):
             (bool): True if successful, otherwise False.
         """
         if self.dbconn:
-            self.logger.debug(
-                "Reusing database connection to %s at %s",
-                DB_NAME,
-                DB_URL
-            )
             return True
 
         success = False
