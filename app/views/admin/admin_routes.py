@@ -7,9 +7,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import uuid
 import os
-import msal
 from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, send_file, jsonify
-import requests
 import urllib
 
 import views.decorators as DECORATORS
@@ -17,7 +15,6 @@ from .forms.ClientForm import ClientForm
 from .forms.GlobalSettingsForm import GlobalSettingsForm
 from .forms.TemplateForm import TemplateForm
 from .forms.UserForm import UserForm
-from util.logger import get_logger
 from util.template_manager import TemplateManager
 from util.template_name import template_name
 from util.email_sender import send_evergreen
@@ -29,8 +26,12 @@ from util.db_admins import DbAdmins
 from util.db_clients import DbClients
 from util.database import multidict2dict
 from util.db_users import DbUsers
+from util.msftgraph import MicrosoftGraph
+from util.userlist import Users
 DBUSERS = DbUsers()
 DBCLIENTS = DbClients()
+MSFT = MicrosoftGraph()
+USERS = None  # We need an authenticated user before we can populate the list
 
 TEMPLATE_MANAGER = TemplateManager()
 
@@ -257,7 +258,8 @@ def show_user(user_id):
     form.groups.data = user['groups']
     form.attorneys.data = user['attorneys']
     form.authorizations.data = user['authorizations']
-    return render_template('user.html', user=user, authorizations=authorizations, form=form)
+    tasklists = MSFT.graphcall(config.AZURE_TODO_LISTS_ENDPOINT).get('value', [])
+    return render_template('user.html', user=user, authorizations=authorizations, tasklists=tasklists, form=form)
 
 
 @admin_routes.route('/admin/global/get/template/<string:docx_template_name>/', methods=['GET'])
@@ -437,7 +439,7 @@ def ring_central_logout():
 @admin_routes.route('/login', methods=['GET'])
 def login():
     session['state'] = str(uuid.uuid4())
-    auth_url = _build_auth_url(scopes=config.AZURE_SCOPE, state=session['state'])
+    auth_url = MSFT.build_auth_url(scopes=config.AZURE_SCOPE, state=session['state'])
     firm_name = os.environ.get('FIRM_NAME', "The Firm")
     firm_admin_email = os.environ.get('FIRM_ADMIN_EMAIL')
     return render_template('login.html', firm_name=firm_name, auth_url=auth_url, firm_admin_email=firm_admin_email)
@@ -454,17 +456,20 @@ def authorized():
         flash(f"Login error - {message}", 'danger')
         return render_template("auth_error.html", result=request.args)
     if request.args.get('code'):
-        cache = _load_cache()
+        cache = MSFT.load_cache()
         redirect_uri = os.environ.get('AZURE_REDIRECT_PATH')
-        result = _build_msal_app(cache=cache).acquire_token_by_authorization_code(
+        result = MSFT.build_msal_app(
+            cache=cache
+        ).acquire_token_by_authorization_code(
             request.args['code'],
-            scopes=config.AZURE_SCOPE,  # Misspelled scope would cause HTTP 400 error here
-            redirect_uri=redirect_uri
-        )
+            scopes=config.
+            AZURE_SCOPE,  # Misspelled scope would cause HTTP 400 error here
+            redirect_uri=redirect_uri)
         if 'error' in result:
             return render_template('auth_error.html', result=result)
         session['user'] = result.get('id_token_claims')
-        _save_cache(cache)
+        MSFT.save_cache(cache)
+
     return redirect(url_for('admin_routes.list_clients'))
 
 
@@ -478,32 +483,83 @@ def logout():
     )
 
 
+@admin_routes.route('/docket')
+@DECORATORS.is_logged_in
+def docket_report():
+    user_email = session['user']['preferred_username']
+    authorizations = _get_authorizations(user_email)
+    clients = DBCLIENTS.get_list(user_email)
+    _load_user_list()
+    _load_tasks(clients)
+    return render_template("docket.html",
+                           clients=clients,
+                           authorizations=authorizations,
+                           )
+
+
 @admin_routes.route('/tasklists/')
 @DECORATORS.is_logged_in
-def tasklists():
-    return _graphcall(config.AZURE_TODO_LISTS_ENDPOINT)
+def get_tasklists():
+    return MSFT.browser_graphcall(config.AZURE_TODO_LISTS_ENDPOINT)
 
 
 @admin_routes.route('/task/<string:tasklistid>/<string:taskid>/')
 @DECORATORS.is_logged_in
-def task(tasklistid: str, taskid: str):
+def get_task(tasklistid: str, taskid: str):
     endpoint = config.AZURE_TODO_TASK_ENDPOINT \
         .replace('[todoTaskListId]', tasklistid) \
         .replace('[taskId]', taskid)
-    return _graphcall(endpoint)
+    return MSFT.browser_graphcall(endpoint)
 
 
 @admin_routes.route('/tasks/<string:tasklistid>/')
 @DECORATORS.is_logged_in
-def tasks(tasklistid: str):
+def get_tasks(tasklistid: str):
     endpoint = config.AZURE_TODO_TASKS_ENDPOINT.replace('[todoTaskListId]', tasklistid)
-    return _graphcall(endpoint)
+    return MSFT.browser_graphcall(endpoint)
 
 
 @admin_routes.route('/users')
 @DECORATORS.is_logged_in
-def users():
-    return _graphcall(config.AZURE_USERS_ENDPOINT)
+def get_users():
+    return MSFT.browser_graphcall(config.AZURE_USERS_ENDPOINT)
+
+
+@admin_routes.route('/user/<string:user_id>')
+@DECORATORS.is_logged_in
+def get_user(user_id: str):
+    endpoint = config.AZURE_USER_ENDPOINT.replace('[id]', user_id)
+    return MSFT.browser_graphcall(endpoint)
+
+
+@admin_routes.route('/plans')
+@DECORATORS.is_logged_in
+def get_plans():
+    group_id = os.environ.get('AZURE_GROUP_ID', '')
+    endpoint = config.AZURE_PLANNER_PLANS_ENDPOINT.replace('[group-id]', group_id)
+    return MSFT.browser_graphcall(endpoint)
+
+
+@admin_routes.route('/plan/buckets/<string:planid>/')
+@DECORATORS.is_logged_in
+def get_plan_buckets(planid: str):
+    endpoint = config.AZURE_PLANNER_BUCKETS_ENDPOINT.replace(
+        '[plan-id]', planid)
+    return MSFT.browser_graphcall(endpoint)
+
+
+@admin_routes.route('/plan/bucket/<string:bucketid>/')
+@DECORATORS.is_logged_in
+def get_plan_bucket(bucketid: str):
+    endpoint = config.AZURE_PLANNER_BUCKET_ENDPOINT.replace('[id]', bucketid)
+    return MSFT.browser_graphcall(endpoint)
+
+
+@admin_routes.route('/plan/bucket/<string:bucketid>/tasks/')
+@DECORATORS.is_logged_in
+def get_bucket_tasks(bucketid: str):
+    endpoint = config.AZURE_PLANNER_BUCKET_TASKS_ENDPOINT.replace('[id]', bucketid)
+    return MSFT.browser_graphcall(endpoint)
 
 
 def cleanup_client(client: dict):
@@ -512,99 +568,6 @@ def cleanup_client(client: dict):
     """
     client['attorney_initials'] = ",".join(client['attorney_initials'])
     client['admin_users'] = ",".join(client['admin_users'])
-
-
-def _build_msal_app(cache=None, authority=None):
-    client_id = os.environ['AZURE_CLIENT_ID']
-    client_secret = os.environ['AZURE_CLIENT_SECRET']
-    config_authority = os.environ['AZURE_AUTHORITY']
-    return msal.ConfidentialClientApplication(
-        client_id, authority=authority or config_authority,
-        client_credential=client_secret, token_cache=cache)
-
-
-def _build_auth_url(authority=None, scopes: list = None, state=None):
-    redirect_uri = os.environ.get('AZURE_REDIRECT_PATH')
-    get_logger("pmtredir.admin").info("B %s", redirect_uri)
-    return _build_msal_app(authority=authority).get_authorization_request_url(
-        scopes or [],
-        state=state or str(uuid.uuid4()),
-        redirect_uri=redirect_uri)
-
-
-def _load_cache():
-    cache = msal.SerializableTokenCache()
-    if session.get("token_cache"):
-        cache.deserialize(session["token_cache"])
-    return cache
-
-
-def _save_cache(cache):
-    if cache.has_state_changed:
-        session["token_cache"] = cache.serialize()
-
-
-def _get_token_from_cache(scope=None):
-    cache = _load_cache()  # This web app maintains one cache per session
-    cca = _build_msal_app(cache=cache)
-    accounts = cca.get_accounts()
-    if accounts:  # So all account(s) belong to the current signed-in user
-        result = cca.acquire_token_silent(scope, account=accounts[0])
-        _save_cache(cache)
-        return result
-
-
-def _get_users() -> dict:
-    """
-    Get list of users.
-
-    Could also be implemented as:
-
-    def _get_users():
-        return _graphcall(config.AZURE_USERS_ENDPOINT)
-    """
-    token = _get_token_from_cache(config.AZURE_SCOPE)
-    if not token:
-        return redirect(url_for(os.environ['LOGIN_FUNCTION']))
-    graph_data = requests.get(
-        config.AZURE_USERS_ENDPOINT,
-        headers={'Authorization': 'Bearer ' + token['access_token']},
-    ).json()
-    return graph_data
-
-
-def _graphcall(endpoint: str) -> dict:
-    """
-    Make a call to a Microsoft Office 365 Graph endpoint.
-
-    Args:
-        endpoint (str): URL of endpoint.
-
-    Returns:
-        (dict): Data returned by Microsoft Office 365 Graph endpoint.
-    """
-    token = _get_token_from_cache(config.AZURE_SCOPE)
-    if not token:
-        return redirect(url_for(os.environ['LOGIN_FUNCTION']))
-    graph_data = requests.get(  # Use token to call downstream service
-        endpoint,
-        headers={'Authorization': 'Bearer ' + token['access_token']},
-        ).json()
-    
-    if 'error' in graph_data:
-        return graph_data['error']['message']
-    return jsonify(graph_data)
-
-
-def _get_task_lists():
-    token = _get_token_from_cache(config.AZURE_SCOPE)
-    if not token:
-        return redirect(url_for(os.environ['LOGIN_FUNCTION']))
-    graph_data = requests.get(
-        config.AZURE_TODO_LISTS_ENDPOINT,
-        headers={'Authorization': 'Bearer' + token['access_token']},
-    ).json()
-    return graph_data
 
 
 def _update_compound_fields(fields, field_list):
@@ -633,3 +596,118 @@ def _get_authorizations(user_email: str) -> list:
 def _allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def _load_user_list():
+    # If this is our first authenticated user, populate the users list.
+    try:
+        global USERS
+        if not USERS:
+            print("* " * 40)
+            print("Populating USERS")
+            print("* " * 40)
+            USERS = Users(MSFT.graphcall(config.AZURE_USERS_ENDPOINT))
+    except Exception as e:
+        print(str(e))
+
+
+def _load_plans() -> dict:
+    """
+    Load a list of plans, indexed by client's billing ID
+    There is one plan per client.
+    """
+    group_id = os.environ.get('AZURE_GROUP_ID', '')
+    endpoint = config.AZURE_PLANNER_PLANS_ENDPOINT.replace('[group-id]', group_id)
+    graph_data = MSFT.graphcall(endpoint)
+    print('Graph Data for Plans'.center(80, '-'))
+    print(graph_data)
+    graph_plans = graph_data.get('value', [])
+    print('Graph Plans'.center(80, '-'))
+    print(graph_plans)
+    plans = {}
+    for plan in graph_plans:
+        title = plan.get('title', '')
+        open_paren = title.find('(')
+        close_paren = title.find(')', open_paren + 1)
+        if close_paren > open_paren and open != -1:
+            client_id = title[open_paren+1:close_paren]
+            plans[client_id] = {
+                'title': title,
+                'id': plan.get('id'),
+            }
+    return plans
+
+
+def _load_tasks(clients: dict):
+    """
+    Load all client to-do lists in place.
+
+    Args:
+        clients (dict): list of clients for this user.
+    """
+    plans = _load_plans()
+    print('PLANS'.center(80, '-'))
+    print(plans)
+    for client in clients:
+        billing_id = client.get('billing_id')
+        _load_client_tasks(client, plans.get(billing_id, []))
+    print('Clients'.center(80, '|'))
+    print(clients[0])
+
+
+def _load_client_tasks(client: dict, plan: dict):
+    """
+    Load all tasks for one client.
+
+    **NOTE**: This method will update the _client_ dict.
+    """
+    print('Loading Client Tasks for Plan'.center(80, '-'))
+    print(plan)
+    print(' -' * 40)
+    print(client)
+    if not plan:
+        client['tasks'] = []
+        return
+
+    endpoint = config.AZURE_PLANNER_BUCKETS_ENDPOINT.replace(
+        '[plan-id]', plan['id'])
+    buckets = MSFT.graphcall(endpoint).get('value', [])
+    tasks = []
+    for bucket in buckets:
+        bucket_tasks = _load_bucket_tasks(bucket.get('id'))
+        tasks.append({'bucket_name': bucket.get('name', ''), 'tasks': bucket_tasks})
+    client['tasks'] = tasks
+
+
+def _load_bucket_tasks(bucket_id) -> list:
+    """
+    Load a list of tasks for this bucket.
+    """
+    endpoint = config.AZURE_PLANNER_BUCKET_TASKS_ENDPOINT.replace('[id]', bucket_id)
+    graph_tasks = MSFT.graphcall(endpoint).get('value', [])
+    tasks = []
+    for task in graph_tasks:
+        due_date = task.get('dueDateTime', '')
+        title = task.get('title', '')
+        assigned_str = _decode_task_assignments(task.get('assignments', {}))
+        tasks.append(
+            {
+                'title': title,
+                'assigned_to': assigned_str,
+                'due_date': due_date,
+            }
+        )
+    return tasks
+
+
+def _decode_task_assignments(assignments: dict):
+    """
+    The assignments are a dict where the keys are user ids.
+    You might have expected a list of assignments. But that's not MSFT implemented this.
+    """
+    _load_user_list()
+    users = []
+    for user_id, assignment in assignments.items():
+        users_name = USERS.get_field(user_id, USERS.UserFields.FIRST_NAME)
+        users.append(users_name)
+    return '(' + ', '.join(users) + ')'
