@@ -24,6 +24,34 @@ COURTESY_TITLES = [
     ('Hon.', "Hon.")
 ]
 
+CASE_TYPES = [
+    ('DIV', "Divorce"),
+    ('DIVC', "Divorce w Child"),
+    ('SAPCR', "Orig SAPCR"),
+    ('MOD', "Modification"),
+    ('ENF', "Enforcement"),
+    ('PREN', "Prenup"),
+    ('POST', "Postnup"),
+    ('EXCH', "Prop Conv/Exch"),
+    ('ADOP', "Adoption"),
+    ('TERM', "Termination"),
+    ('ADL', "Ad Litem Appt"),
+    ('AMIC',"Amicus Appt"),
+    ('RECV', "Receivership"),
+    ('APP', "Appeal"),
+    ('MAND', "Mandamus"),
+    ('PROT', "FV Protective Order"),
+    ('DECL', "Declaratory J'ment"),
+    ('SPEC', "Special Appearance"),
+    ('XFER', "Transfer"),
+    ('ADV', "Advice/Consult"),
+    ('EXP', "Expert Testimony"),
+    ('DMST', "Discovery Master"),
+    ('MTORT', "Marital Torts"),
+    ('INTV', "Intervenor"),
+    ('XXXX', "Other")
+]
+
 CRM_STATES = [
     ('000:none', "Select"),
     ('001:contact', "Initial contact"),
@@ -287,6 +315,7 @@ class ClientForm(FlaskForm):
         validate_choice=False
     )
     cause_number = StringField("Cause number")
+    case_type = SelectField("Case type", choices=CASE_TYPES)
     oag_number = StringField("OAG number")
     case_style = StringField("Style")
     client_dob = DateField(
