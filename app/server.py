@@ -19,6 +19,7 @@ from views.admin.admin_routes import admin_routes
 from views.crm.crm_routes import crm_routes
 from views.payment.payment_routes import payment_routes
 from views.admin.forms.ClientForm import CRM_STATES
+from views.admin.forms.ClientForm import CASE_TYPES
 
 
 DATABASE = Database()
@@ -36,6 +37,10 @@ def crm_state_filter(value):
         if crm_state[0] == value:
             return crm_state[1]
     return value
+
+
+def case_type_filter(value):
+    return dict(CASE_TYPES).get(value, None)
 
 
 def newlines_filter(value: str) -> str:
@@ -62,6 +67,7 @@ app.register_blueprint(payment_routes)
 app.jinja_env.filters['phone_number'] = phone_filter
 app.jinja_env.filters['crm_state'] = crm_state_filter
 app.jinja_env.filters['newlines'] = newlines_filter
+app.jinja_env.filters['case_type'] = case_type_filter
 
 
 @app.route('/', methods=['GET'])
