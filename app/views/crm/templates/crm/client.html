@@ -37,6 +37,7 @@
             {% include '/crm/includes/_client_id.html' %}
             {% include '/crm/includes/_client_insurance.html' %}
             {% include '/crm/includes/_client_billing.html' %}
+            {% include '/crm/includes/_client_plan.html' %}
         </div>
         <button class="btn btn-primary my-3" type="submit">Save</button>
         <a href="/crm" class="btn btn-secondary my-3 mx-3">Cancel</a>
@@ -55,18 +56,30 @@
             var e = document.getElementById('case_county');
             if (!e) {
                 alert('case_county control missing');
+                return;
             }
-            else {
-                e.addEventListener("change", county_change);
-            }
-
+            e.addEventListener("change", county_change);
+ 
             e = document.getElementById('court_type');
             if (!e) {
                 alert('court_type control missing');
+                return;
             }
-            else {
-                e.addEventListener("change", court_type_change);
+            e.addEventListener("change", court_type_change);
+
+            e = document.getElementById('btn_load_plan');
+            if (!e) {
+                alert('btn_load_plan control missing');
+                return;
             }
+            e.addEventListener("click", load_case_plan);
+
+            e = document.getElementById('btn_init_disclosures');
+            if (!e) {
+                alert('btn_init_disclosures control missing');
+                return;
+            }
+            e.addEventListener("click", create_disclosures_plan);
 
             $('#addChildModal').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget); // Button that triggered modal
@@ -267,10 +280,93 @@
         }
 
         function dial(to_number) {
-            opts = {
+            var opts = {
                 to_number: to_number
             };
             dialer.dial(opts);
+        }
+
+        function load_case_plan() {
+            var url = "{{ url_for('crm_routes.get_client_plan', client_id=client.billing_id)}}";
+            jQuery.get(
+                url,
+                function(data) {
+                    console.log(data);
+                    show_case_plan(data);
+                }
+            );
+        }
+
+        function begin_plan(title) {
+            var html = ''.concat(
+                '<div class="form-row">\n\t<h3>', title, '</h3>\n</div>', task_titles());
+            return html;
+        }
+
+        function task_titles() {
+            var html = ''.concat(
+                '\n\t<div class="form-row">',
+                '\n\t\t<div class="form-group col-md-6">Task</div>',
+                '\n\t\t<div class="form-group col-md-3">Owner</div>',
+                '\n\t\t<div class="form-group col-md-1">Due</div>',
+                '\n\t\t<div class="form-group col-md-1">%</div>',
+                '\n\t\t<div class="form-group col-md-1">Done</div>',
+                '\n\t</div>\n');
+            return html;
+        }
+
+        function plan_task(task) {
+            var html = ''.concat(
+                '\n\t<div class="form-row">',
+                '\n\t\t<div class="form-group col-md-6">', task.title, '</div>',
+                '\n\t\t<div class="form-group col-md-3">', task.assigned_to, '</div>',
+                '\n\t\t<div class="form-group col-md-1">', task.due_date.substring(5, 10), '</div>',
+                '\n\t\t<div class="form-group col-md-1">', task.percent_complete, '%</div>',
+                '\n\t\t<div class="form-group col-md-1">', task.complete_date.substring(5, 10), '</div>',
+                '\n\t</div>\n');
+            return html;
+
+        }
+
+        function end_plan() {
+            return '';
+        }
+
+        function create_case_plan_html(plan) {
+            var html = '';
+            plan.forEach((bucket) => {
+                var title = bucket.title;
+                console.log(title);
+                html += begin_plan(title);
+                bucket.tasks.forEach((task) => {
+                    html += plan_task(task);
+                });
+                html += end_plan();
+            });
+            return html;
+        }
+
+        function show_case_plan(plan) {
+            var html = create_case_plan_html(plan);
+            e = document.getElementById('case_plan');
+            if (!e) {
+                alert('case_plan element missing');
+            }
+            else {
+                e.innerHTML = html;
+            }
+            console.log(html);
+        }
+
+        function create_disclosures_plan() {
+            var url = "{{ url_for('crm_routes.create_plan', client_id=client.billing_id, plan_type=2)}}";
+            jQuery.get(
+                url,
+                function (data) {
+                    console.log(data);
+                    load_case_plan();
+                }
+            );
         }
         
     </script>
