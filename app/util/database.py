@@ -118,7 +118,7 @@ def csv_to_list(doc: dict, csv_fields: list):
     an actual list.
     """
     for field in csv_fields:
-        if field in doc:
+        if field in doc and isinstance(doc[field], (str)):
             doc[field] = doc[field].strip().lower().split(',')
 
 
