@@ -12,7 +12,7 @@ from pymongo import MongoClient
 from waitress import serve
 
 import settings  # NOQA
-import config # NOQA
+import msftconfig # NOQA
 
 from util.database import Database, do_upgrades
 from views.admin.admin_routes import admin_routes
