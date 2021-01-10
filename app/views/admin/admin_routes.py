@@ -7,7 +7,7 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import uuid
 import os
-from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, send_file, jsonify
+from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, send_file
 import urllib
 
 import views.decorators as DECORATORS
@@ -20,7 +20,7 @@ from util.template_name import template_name
 from util.email_sender import send_evergreen
 from util.file_cache_manager import FileCacheManager
 from util.dialer import Dialer
-import config
+import msftconfig
 
 from util.db_admins import DbAdmins
 from util.db_clients import DbClients
@@ -258,7 +258,7 @@ def show_user(user_id):
     form.groups.data = user['groups']
     form.attorneys.data = user['attorneys']
     form.authorizations.data = user['authorizations']
-    tasklists = MSFT.graphcall(config.AZURE_TODO_LISTS_ENDPOINT).get('value', [])
+    tasklists = MSFT.graphcall(msftconfig.AZURE_TODO_LISTS_ENDPOINT).get('value', [])
     return render_template('user.html', user=user, authorizations=authorizations, tasklists=tasklists, form=form)
 
 
@@ -439,7 +439,7 @@ def ring_central_logout():
 @admin_routes.route('/login', methods=['GET'])
 def login():
     session['state'] = str(uuid.uuid4())
-    auth_url = MSFT.build_auth_url(scopes=config.AZURE_SCOPE, state=session['state'])
+    auth_url = MSFT.build_auth_url(scopes=msftconfig.AZURE_SCOPE, state=session['state'])
     firm_name = os.environ.get('FIRM_NAME', "The Firm")
     firm_admin_email = os.environ.get('FIRM_ADMIN_EMAIL')
     return render_template('login.html', firm_name=firm_name, auth_url=auth_url, firm_admin_email=firm_admin_email)
@@ -462,7 +462,7 @@ def authorized():
             cache=cache
         ).acquire_token_by_authorization_code(
             request.args['code'],
-            scopes=config.
+            scopes=msftconfig.
             AZURE_SCOPE,  # Misspelled scope would cause HTTP 400 error here
             redirect_uri=redirect_uri)
         if 'error' in result:
@@ -500,13 +500,13 @@ def docket_report():
 @admin_routes.route('/tasklists/')
 @DECORATORS.is_logged_in
 def get_tasklists():
-    return MSFT.browser_graphcall(config.AZURE_TODO_LISTS_ENDPOINT)
+    return MSFT.browser_graphcall(msftconfig.AZURE_TODO_LISTS_ENDPOINT)
 
 
 @admin_routes.route('/task/<string:tasklistid>/<string:taskid>/')
 @DECORATORS.is_logged_in
 def get_task(tasklistid: str, taskid: str):
-    endpoint = config.AZURE_TODO_TASK_ENDPOINT \
+    endpoint = msftconfig.AZURE_TODO_TASK_ENDPOINT \
         .replace('[todoTaskListId]', tasklistid) \
         .replace('[taskId]', taskid)
     return MSFT.browser_graphcall(endpoint)
@@ -515,20 +515,20 @@ def get_task(tasklistid: str, taskid: str):
 @admin_routes.route('/tasks/<string:tasklistid>/')
 @DECORATORS.is_logged_in
 def get_tasks(tasklistid: str):
-    endpoint = config.AZURE_TODO_TASKS_ENDPOINT.replace('[todoTaskListId]', tasklistid)
+    endpoint = msftconfig.AZURE_TODO_TASKS_ENDPOINT.replace('[todoTaskListId]', tasklistid)
     return MSFT.browser_graphcall(endpoint)
 
 
 @admin_routes.route('/users')
 @DECORATORS.is_logged_in
 def get_users():
-    return MSFT.browser_graphcall(config.AZURE_USERS_ENDPOINT)
+    return MSFT.browser_graphcall(msftconfig.AZURE_USERS_ENDPOINT)
 
 
 @admin_routes.route('/user/<string:user_id>')
 @DECORATORS.is_logged_in
 def get_user(user_id: str):
-    endpoint = config.AZURE_USER_ENDPOINT.replace('[id]', user_id)
+    endpoint = msftconfig.AZURE_USER_ENDPOINT.replace('[id]', user_id)
     return MSFT.browser_graphcall(endpoint)
 
 
@@ -536,14 +536,21 @@ def get_user(user_id: str):
 @DECORATORS.is_logged_in
 def get_plans():
     group_id = os.environ.get('AZURE_GROUP_ID', '')
-    endpoint = config.AZURE_PLANNER_PLANS_ENDPOINT.replace('[group-id]', group_id)
+    endpoint = msftconfig.AZURE_PLANNER_PLANS_ENDPOINT.replace('[group-id]', group_id)
+    return MSFT.browser_graphcall(endpoint)
+
+
+@admin_routes.route('/plan/<string:planid>')
+@DECORATORS.is_logged_in
+def get_plan(planid: str):
+    endpoint = msftconfig.AZURE_PLANNER_PLAN_ENDPOINT.replace('[plan-id]', planid)
     return MSFT.browser_graphcall(endpoint)
 
 
 @admin_routes.route('/plan/buckets/<string:planid>/')
 @DECORATORS.is_logged_in
 def get_plan_buckets(planid: str):
-    endpoint = config.AZURE_PLANNER_BUCKETS_ENDPOINT.replace(
+    endpoint = msftconfig.AZURE_PLANNER_BUCKETS_ENDPOINT.replace(
         '[plan-id]', planid)
     return MSFT.browser_graphcall(endpoint)
 
@@ -551,14 +558,14 @@ def get_plan_buckets(planid: str):
 @admin_routes.route('/plan/bucket/<string:bucketid>/')
 @DECORATORS.is_logged_in
 def get_plan_bucket(bucketid: str):
-    endpoint = config.AZURE_PLANNER_BUCKET_ENDPOINT.replace('[id]', bucketid)
+    endpoint = msftconfig.AZURE_PLANNER_BUCKET_ENDPOINT.replace('[id]', bucketid)
     return MSFT.browser_graphcall(endpoint)
 
 
 @admin_routes.route('/plan/bucket/<string:bucketid>/tasks/')
 @DECORATORS.is_logged_in
 def get_bucket_tasks(bucketid: str):
-    endpoint = config.AZURE_PLANNER_BUCKET_TASKS_ENDPOINT.replace('[id]', bucketid)
+    endpoint = msftconfig.AZURE_PLANNER_BUCKET_TASKS_ENDPOINT.replace('[id]', bucketid)
     return MSFT.browser_graphcall(endpoint)
 
 
@@ -606,7 +613,7 @@ def _load_user_list():
             print("* " * 40)
             print("Populating USERS")
             print("* " * 40)
-            USERS = Users(MSFT.graphcall(config.AZURE_USERS_ENDPOINT))
+            USERS = Users(MSFT.graphcall(msftconfig.AZURE_USERS_ENDPOINT))
     except Exception as e:
         print(str(e))
 
@@ -617,7 +624,7 @@ def _load_plans() -> dict:
     There is one plan per client.
     """
     group_id = os.environ.get('AZURE_GROUP_ID', '')
-    endpoint = config.AZURE_PLANNER_PLANS_ENDPOINT.replace('[group-id]', group_id)
+    endpoint = msftconfig.AZURE_PLANNER_PLANS_ENDPOINT.replace('[group-id]', group_id)
     graph_data = MSFT.graphcall(endpoint)
     print('Graph Data for Plans'.center(80, '-'))
     print(graph_data)
@@ -669,7 +676,7 @@ def _load_client_tasks(client: dict, plan: dict):
         client['tasks'] = []
         return
 
-    endpoint = config.AZURE_PLANNER_BUCKETS_ENDPOINT.replace(
+    endpoint = msftconfig.AZURE_PLANNER_BUCKETS_ENDPOINT.replace(
         '[plan-id]', plan['id'])
     buckets = MSFT.graphcall(endpoint).get('value', [])
     tasks = []
@@ -683,7 +690,7 @@ def _load_bucket_tasks(bucket_id) -> list:
     """
     Load a list of tasks for this bucket.
     """
-    endpoint = config.AZURE_PLANNER_BUCKET_TASKS_ENDPOINT.replace('[id]', bucket_id)
+    endpoint = msftconfig.AZURE_PLANNER_BUCKET_TASKS_ENDPOINT.replace('[id]', bucket_id)
     graph_tasks = MSFT.graphcall(endpoint).get('value', [])
     tasks = []
     for task in graph_tasks:
