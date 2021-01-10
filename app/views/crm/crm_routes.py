@@ -8,6 +8,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 import io
 import json  # noqa
 from mailmerge import MailMerge
+import msftconfig
 import random
 import os
 
@@ -26,6 +27,9 @@ from util.dialer import Dialer
 from util.template_name import template_name
 from util.logger import get_logger
 from views.crm.forms.client_tabs import client_tabs
+from views.crm.plan_templates import PlanTemplates
+from util.msftgraph import MicrosoftGraph
+from util.userlist import Users
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 # from util.logger import get_logger
@@ -35,6 +39,9 @@ DBCONTACTS = DbContacts()
 DBCLIENTS = DbClients()
 DBNOTES = DbClientNotes()
 DBINTAKES = DbIntakes()
+MSFT = MicrosoftGraph()
+PLAN_TEMPLATES = PlanTemplates()
+USERS = None
 LOGGER = get_logger('crm_routes')
 
 
@@ -595,6 +602,102 @@ def save_note(text, tags, client_id, note_id):
     return jsonify(DBNOTES.save(user_email, note))
 
 
+@crm_routes.route('/crm/data/plan/get/<string:client_id>/')
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def get_client_plan(client_id):
+    user_email = session['user']['preferred_username']
+    plan_id = _client_plan_id(client_id, user_email)
+    if not plan_id:
+        return {'success': True, 'plan_found': False, 'message': f"Plan not found for client {client_id}"}
+    endpoint = msftconfig.AZURE_PLANNER_PLAN_ENDPOINT.replace('[plan-id]', plan_id)
+    # planner_plan = MSFT.graphcall(endpoint)
+
+    plan = []
+    endpoint = msftconfig.AZURE_PLANNER_BUCKETS_ENDPOINT.replace(
+        '[plan-id]', plan_id)
+    buckets = MSFT.graphcall(endpoint).get('value', [])
+
+    for bucket in buckets:
+        tasks = _load_bucket_tasks(bucket.get('id'))
+        plan.append({'title': bucket.get('name'), 'tasks': tasks})
+
+    return jsonify(plan)
+
+
+@crm_routes.route('/crm/data/plan/create/<string:client_id>/<int:plan_type>/')
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def create_plan(client_id: str, plan_type: int):
+    """
+    Create a plan based on a template.
+
+    Args:
+        client_id (str): Client's billing ID
+        plan_type (int): One of the plan_templates enumeration values
+    """
+    user_email = session['user']['preferred_username']
+    template = PLAN_TEMPLATES.get(plan_type)
+    if not template:
+        return jsonify({'success': False, 'message': f"Unable to load template of type {plan_type}"})
+
+    # Our reference names are a little different.
+    # Our Lingo            Microsoft Planner
+    # --------------       -----------------
+    # Client               Plan
+    # Plan                 Bucket
+    # Task                 Task
+    result = MSFT.create_bucket_from_template(_client_plan_id(client_id, user_email), template)
+    return jsonify(result)
+
+
+def _load_bucket_tasks(bucket_id: str) -> list:
+    """
+    Load a list of tasks for this bucket.
+    """
+    endpoint = msftconfig.AZURE_PLANNER_BUCKET_TASKS_ENDPOINT.replace('[id]', bucket_id)
+    graph_tasks = MSFT.graphcall(endpoint).get('value', [])
+    tasks = []
+    for task in graph_tasks:
+        print('* ' * 40)
+        print(task)
+        due_date = task.get('dueDateTime', '')
+        title = task.get('title', '')
+        assigned_str = _decode_task_assignments(task.get('assignments', {}))
+        tasks.append({
+            'title': title,
+            'assigned_to': assigned_str,
+            'due_date': due_date,
+            'start_date': task.get('startDateTime') or '____________________',
+            'percent_complete': task.get('percentComplete'),
+            'complete_date': task.get('completedDateTime') or '____________________'
+        })
+    return tasks
+
+
+def _decode_task_assignments(assignments: dict):
+    """
+    The assignments are a dict where the keys are user ids.
+    You might have expected a list of assignments. But that's not MSFT implemented this.
+    """
+    _load_user_list()
+    users = []
+    for user_id, assignment in assignments.items():
+        users_name = USERS.get_field(user_id, USERS.UserFields.FIRST_NAME)
+        users.append(users_name)
+    return '(' + ', '.join(users) + ')'
+
+
+def _load_user_list():
+    # If this is our first authenticated user, populate the users list.
+    try:
+        global USERS
+        if not USERS:
+            USERS = Users(MSFT.graphcall(msftconfig.AZURE_USERS_ENDPOINT))
+    except Exception as e:
+        print(str(e))
+
+
 def _client_row_class(client: dict) -> str:
     """
     Set the row class depending on what's in the client record.
@@ -843,3 +946,71 @@ def _client_contacts(user_email: str, client_id: str) -> list:
         contact['cc_list'] = ';'.join(our_ccs + contact_ccs)
 
     return contacts
+
+
+def _client_plan_id(client_id: str, user_email: str) -> str:
+    """
+    Retrieve id of Microsoft planner plan associated with this client.
+
+    Have we saved the plan id to the client record?
+        YES: Verify that plan id is still valid.
+            YES: Return plan id
+            NO : Clear plan id from client record, search as per below
+        NO : Is client id found in any of the plans?
+            YES: Save that plan ID to the client's record and return the plan id
+            NO : Return None
+    """
+    plan_key = 'm365_plan_id'
+    client = DBCLIENTS.get_by_billing_id(client_id)
+    if not client:
+        return None
+
+    plan_id = client.get(plan_key, None)
+    if plan_id:
+        if _validate_plan_id(plan_id):
+            return plan_id
+        client[plan_key] = None
+        DBCLIENTS.save(client, user_email)
+
+    plan_id = _search_client_plan_id(client_id)
+    if plan_id:
+        client[plan_key] = plan_id
+        DBCLIENTS.save(client, user_email)
+
+    return plan_id
+
+
+def _validate_plan_id(plan_id: str) -> bool:
+    """
+    Verify that the given plan id exists and is accessible.
+    """
+    endpoint = msftconfig.AZURE_PLANNER_PLAN_ENDPOINT.replace('[plan-id]', plan_id)
+    graph_response = MSFT.graphcall(endpoint)
+    print(graph_response)
+    return ('error' not in graph_response)
+
+
+def _search_client_plan_id(search_client_id):
+    """
+    Search plans for one relating to this client.
+
+    This searches the title of the plan, looking for the client's
+    billing id in parentheses, e.g. "DALEY, Thomas J. (99999)", where "99999"
+    is the billing id.
+
+    All of the client plans belong to the same Azure Group.
+    """
+    group_id = os.environ.get('AZURE_GROUP_ID', '')
+    endpoint = msftconfig.AZURE_PLANNER_PLANS_ENDPOINT.replace('[group-id]', group_id)
+    graph_data = MSFT.graphcall(endpoint)
+    graph_plans = graph_data.get('value', [])
+
+    for plan in graph_plans:
+        title = plan.get('title', '')
+        open_paren = title.find('(')
+        close_paren = title.find(')', open_paren + 1)
+        if close_paren > open_paren and open != -1:
+            client_id = title[open_paren+1:close_paren]
+            if client_id == search_client_id:
+                return plan.get('id')
+    return None
