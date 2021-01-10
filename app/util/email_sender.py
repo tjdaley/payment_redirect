@@ -12,7 +12,7 @@ from botocore.exceptions import ClientError  # NOQA
 import settings  # NOQA
 
 from util.template_manager import TemplateManager
-import config  # NOQA
+import msftconfig  # NOQA
 from util.logger import get_logger
 
 from util.db_clients import DbClients, TRIAL_RETAINER_DUE, MEDIATION_RETAINER_DUE, EVERGREEN_PAYMENT_DUE
