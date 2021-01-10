@@ -196,6 +196,20 @@ class DbClients(Database):
         document = self.dbconn[COLLECTION_NAME].find_one(filter_)
         return document
 
+    def get_by_billing_id(self, billing_id) -> dict:
+        """
+        Return a client record given a billing ID.
+        """
+        filter_ = {}
+        try:
+            filter_['billing_id'] = billing_id
+        except ValueError:
+            return None
+
+        # Locate matching client document
+        document = self.dbconn[COLLECTION_NAME].find_one(filter_)
+        return document
+
     def get_client_name(self, client_id, include_title: bool = True) -> str:
         """
         Return a client name string.
