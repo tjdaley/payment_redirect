@@ -2,5 +2,8 @@
     "python.linting.pylintEnabled": false,
     "python.linting.pycodestyleEnabled": false,
     "python.linting.pylamaEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "python.pythonPath": "c:\\Users\\Tom\\Documents\\Local Projects\\payment_redirect\\venv2\\Scripts\\python.exe",
+    "python.linting.flake8Enabled": false,
+    "python.linting.pylamaArgs": ["--ignore E501"]
 }
