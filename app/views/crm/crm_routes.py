@@ -11,6 +11,7 @@ from mailmerge import MailMerge
 import msftconfig
 import random
 import os
+from csutils import combined_payment_schedule, payments_made, compliance_report, violations, enforcement_report
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
@@ -50,6 +51,20 @@ LOGGER = get_logger('crm_routes')
 DIRECTORY = CourtDirectory()
 
 crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
+
+@crm_routes.route('/client_tools/<string:client_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def client_tools(client_id: str):
+    user_email = session['user']['preferred_username']
+    user = DBADMINS.admin_record(user_email)
+    client = DBCLIENTS.get_one(client_id)
+    authorizations = _get_authorizations(user_email)
+    return render_template(
+        'crm/tools.html',
+        client=client,
+        authorizations=authorizations
+    )
 
 
 @crm_routes.route('/crm/client_contacts/<string:client_id>/<int:page_num>/', methods=['GET'])
