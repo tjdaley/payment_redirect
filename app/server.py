@@ -43,6 +43,15 @@ def case_type_filter(value):
     return dict(CASE_TYPES).get(value, None)
 
 
+def fullname_filter(value):
+    return " ".join([
+        value.get('last_name', '').upper()+",",
+        value.get('first_name', ''),
+        value.get('middle_name', ''),
+        value.get('suffix', '')]
+    )
+
+
 def newlines_filter(value: str) -> str:
     """
     Convert newlines to <br /> for displaying on browser.
@@ -66,6 +75,7 @@ app.register_blueprint(crm_routes)
 app.register_blueprint(payment_routes)
 app.jinja_env.filters['phone_number'] = phone_filter
 app.jinja_env.filters['crm_state'] = crm_state_filter
+app.jinja_env.filters['fullname'] = fullname_filter
 app.jinja_env.filters['newlines'] = newlines_filter
 app.jinja_env.filters['case_type'] = case_type_filter
 
