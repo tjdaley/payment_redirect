@@ -127,6 +127,32 @@
             </div>
         </div>
 
+        <div class="card border-primary my-3">
+            <div class="card-header alert-primary">Task Lists</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Shared?</th>
+                                <th>Sync?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for tasklist in tasklists %}
+                            <tr>
+                                <td>{{tasklist.displayName}}</td>
+                                <td>{{tasklist.isShared}}</td>
+                                <td>{{tasklist.id in user.sync_tasklists}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <button class="btn btn-primary my-3" type="submit">Save</button>
         <a href="/admin/users" class="btn btn-secondary my-3 mx-3">Cancel</a>
     </form>

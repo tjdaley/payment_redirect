@@ -60,11 +60,6 @@ class Database(object):
             (bool): True if successful, otherwise False.
         """
         if self.dbconn:
-            self.logger.debug(
-                "Reusing database connection to %s at %s",
-                DB_NAME,
-                DB_URL
-            )
             return True
 
         success = False
@@ -123,7 +118,7 @@ def csv_to_list(doc: dict, csv_fields: list):
     an actual list.
     """
     for field in csv_fields:
-        if field in doc:
+        if field in doc and isinstance(doc[field], (str)):
             doc[field] = doc[field].strip().lower().split(',')
 
 
