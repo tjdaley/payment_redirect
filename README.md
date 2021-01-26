@@ -25,7 +25,7 @@ redirected to a payment URL with the amount pre-filled.
 ```
 git clone https://github.com/tjdaley/payment_redirect
 python3 -m venv env
-./env/bin/activate
+./venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
@@ -68,6 +68,10 @@ character is a check-digit, for now A-Z.
 
 For example, if the user's Social Security number is XXX-XX-X123 and their
 driver's license number is XXXXX456, the *client_id* would be '123456V'.
+
+## Azure Configuration
+
+Start at [portal.azure.com](https://portal.azure.com).
 
 ## Author
 
