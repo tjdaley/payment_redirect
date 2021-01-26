@@ -29,6 +29,7 @@
                 {% endif %}
                 <th>Billing ID</th>
                 <th>Client Name</th>
+                <th></th>
                 <th>Email</th>
                 <th>Call</th>
                 <th>SMS</th>
@@ -49,6 +50,14 @@
                 </td>
                 <td class="highlightable">
                     {{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}
+                </td>
+                <td>
+                    <a
+                        href="/client_tools/{{client._id}}/"
+                        class="btn btn-outline-secondary fas fa-tools"
+                        data-tooltip="tooltip" data-placement="top" title="Client Tools"
+                        role="button">
+                    </a>
                 </td>
                 {% if client.email %}
                 <td>
