@@ -82,7 +82,7 @@ app.jinja_env.filters['case_type'] = case_type_filter
 
 @app.route('/', methods=['GET'])
 def index():
-    return redirect(url_for('payment_routes.identify_client'))
+    return redirect(url_for('crm_routes.list_clients'))
 
 
 @app.route('/privacy')
