@@ -1,0 +1,18 @@
+:root {
+    --main-bg-color: #949599;
+    --logo-bg-color: #ffffff;
+    --text-color: #075698;
+    --hover-text-color: var(--text-color);
+  }
+
+.nav-link{
+      color: var(--text-color);
+      font-weight: bold;
+  }
+
+  .nav-link:hover {
+      color: var(--hover-text-color);
+      font-weight: bold;
+      background-color: var(--logo-bg-color, white);
+      border-radius: 8px;
+  }
