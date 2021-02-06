@@ -694,18 +694,34 @@ def _load_bucket_tasks(bucket_id) -> list:
     graph_tasks = MSFT.graphcall(endpoint).get('value', [])
     tasks = []
     for task in graph_tasks:
+        print(' TASK '.center(80, "*"))
+        print(task)
         due_date = task.get('dueDateTime', '')
         title = task.get('title', '')
         assigned_str = _decode_task_assignments(task.get('assignments', {}))
+        percent_complete = task.get('percentComplete', 0)
+        css_classes = __select_css_classes(task.get('appliedCategories', {}))
         tasks.append(
             {
                 'title': title,
                 'assigned_to': assigned_str,
                 'due_date': due_date,
+                'percent_complete': percent_complete,
+                'css_classes': css_classes
             }
         )
     return tasks
 
+
+def __select_css_classes(categories: dict):
+    """
+    Pick a superior css class for this item.
+    This assumes the most important category is #1. This is set up in Microsoft Planner at the plan level.
+    """
+    for task_label in range(1, 7, 1):
+        if f'category{task_label}' in categories:
+            return f'task_category task_category_{task_label}'
+    return 'task_category'
 
 def _decode_task_assignments(assignments: dict):
     """
