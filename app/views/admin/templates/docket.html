@@ -55,7 +55,13 @@
                     {{bucket.bucket_name}}<br />
                     <ul>
                        {% for task in bucket.tasks %}
-                       <li>{{task.title}} {{task.assigned_to}} {{task.due_date[5:10]}}</li>
+                       <li class="{{task.css_classes}}">
+                            {% if task.percent_complete == 100 %}<del>{% endif %}
+                            {% if task.percent_complete > 0 and task.percent_complete < 100 %}<strong>{%endif%}
+                                {{task.title}} {{task.assigned_to}} {{task.due_date[5:10]}}
+                            {% if task.percent_complete > 0  and task.percent_complete < 100 %}</strong>{%endif%}
+                            {% if task.percent_complete == 100 %}</del>{% endif %}
+                        </li>
                        {% endfor %}
                     </ul>
                     {% endfor %}
