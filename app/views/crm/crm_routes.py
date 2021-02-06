@@ -519,7 +519,7 @@ def client_letter(client_id: str):
         LOGGER.error("\tUser Email: %s", user_email)
         LOGGER.error("\tTemplate  : %s", template_file_name)
         LOGGER.error("\tMerged    : %s", merged_file_name)
-    flash("Error merging client letter - Check logs.", 'error')
+    flash("Error merging client letter - Check logs.", 'danger')
     return redirect(url_for('crm_routes.list_clients'))
 
 
@@ -557,7 +557,7 @@ def contact_letter(contact_id: str, client_id: str):
         LOGGER.error("\tUser Email: %s", user_email)
         LOGGER.error("\tTemplate  : %s", template_file_name)
         LOGGER.error("\tMerged    : %s", merged_file_name)
-    flash("Error merging contact letter - Check logs.", 'error')
+    flash("Error merging contact letter - Check logs.", 'danger')
     return redirect(url_for('crm_routes.list_clients'))
 
 
