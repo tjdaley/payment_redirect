@@ -10,6 +10,11 @@
       font-weight: bold;
   }
 
+.nav-link.active {
+      color: var(--text-color, black) !important;
+      background-color: var(--main-bg-color, lightgray) !important;
+}
+
   .nav-link:hover {
       color: var(--hover-text-color);
       font-weight: bold;
