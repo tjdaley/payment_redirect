@@ -58,7 +58,7 @@
                        <li class="{{task.css_classes}}">
                             {% if task.percent_complete == 100 %}<del>{% endif %}
                             {% if task.percent_complete > 0 and task.percent_complete < 100 %}<strong>{%endif%}
-                                {{task.title}} {{task.assigned_to}} {{task.due_date[5:10]}}
+                                {{task.title}} {{task.assigned_to}} {%if task.due_date %} {{task.due_date[5:10]}} {%endif%}
                             {% if task.percent_complete > 0  and task.percent_complete < 100 %}</strong>{%endif%}
                             {% if task.percent_complete == 100 %}</del>{% endif %}
                         </li>
