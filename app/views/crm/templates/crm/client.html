@@ -156,9 +156,19 @@
          */
         function save_child() {
             var next_index = $('#child_count').val();
-            create_new_child_form(next_index);
+            new_child = create_new_child_form(next_index);
+            child_list = document.getElementById("child-list");
+            child_list.append(new_child);
             populate_new_child_form(next_index);
             $("#addChildModal").modal('hide');
+            next_index = parseInt(next_index);
+            $('#child_count').val(next_index+1);
+            document.getElementById("addChildForm").reset();
+            e = document.getElementById("childTitle");
+            e.classList.remove('alert-primary');
+            e.classList.add('alert-warning');
+            e = document.getElementById('childWarning');
+            e.innerHTML = "- YOU MUST CLICK [SAVE] TO SAVE THE CHILD" + (next_index > 1 ? "REN" : "");
         }
 
         /**
@@ -167,6 +177,57 @@
          */
         function create_new_child_form(next_index) {
             console.log("Creating new child form with index of " + next_index);
+            /*
+            * Rename the XX fields and IDs to the next_index value.
+            * 
+            * <div class="border border-primary rounded mb-3 hidden child_template">
+                    <div class="form-row mx-4">
+                        <div class="form-group col-md">
+                            <label for="children-XX-name-first_name">First name</label>
+                            <input class="form-control" id="children-XX-name-first_name" name="children-XX-name-first_name" type="text">
+                        </div>
+                    </div>
+                </div>
+            */
+            var rows = [
+                [
+                    {label: "First name", iclass: ["form-control"], id: "children-XX-name-first_name", name: "children-XX-name-first_name", type:"text", dclass: ["form-group", "col-md"]},
+                    {label: "Middle name", iclass: ["form-control"], id: "children-XX-name-middle_name", name: "children-XX-name-middle_name", type:"text", dclass: ["form-group", "col-md"]},
+                    {label: "Last name", iclass: ["form-control"], id: "children-XX-name-last_name", name: "children-XX-name-last_name", type:"text", dclass: ["form-group", "col-md"]},
+                    {label: "Suffix", iclass: ["form-control"], id: "children-XX-name-suffix", name: "children-XX-name-suffix", type:"text", dclass: ["form-group", "col-md-2"]},
+                ],
+                [
+                    {label: "Sex", iclass: ["form-control"], id: "children-XX-sex", name: "children-XX-sex", type:"text", dclass: ["form-group", "col-md"]},
+                    {label: "Birth date", iclass: ["form-control"], id: "children-XX-dob", name: "children-XX-dob", type:"text", dclass: ["form-group", "col-md"]},
+                    {label: "Home state", iclass: ["form-control"], id: "children-XX-home_state", name: "children-XX-home_state", type:"text", dclass: ["form-group" ,"col-md"]},
+                    {label: "SSN", iclass: ["form-control"], id: "children-XX-ssn", name: "children-XX-ssn", type:"text", dclass: ["form-group", "col-md-2"]},
+                ]
+            ]
+
+            var newChild = document.createElement("div");
+            newChild.classList.add("border", "border-warning", "rounded", "mb-3");
+
+            rows.forEach((row) => {
+                var newRow = document.createElement("div");
+                newRow.classList.add("form-row", "mx-4");
+                row.forEach((field) => {
+                    var outterDiv = document.createElement("div");
+                    outterDiv.classList.add(...field.dclass);
+                    var newLabel = document.createElement("label");
+                    newLabel.htmlFor = field.id.replace("XX", next_index);
+                    newLabel.textContent = field.label;
+                    var newInput = document.createElement("input");
+                    newInput.setAttribute('type', field.type);
+                    newInput.classList.add(...field.iclass);
+                    newInput.setAttribute("id", field.id.replace("XX", next_index));
+                    newInput.setAttribute("name", field.name.replace("XX", next_index));
+                    outterDiv.append(newLabel);
+                    outterDiv.append(newInput);
+                    newRow.append(outterDiv);
+                });
+                newChild.append(newRow);
+            });
+            return newChild;
         }
 
         /**
