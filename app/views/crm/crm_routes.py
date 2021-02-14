@@ -18,6 +18,7 @@ from csutils import combined_payment_schedule, payments_made, compliance_report,
 from util.db_admins import DbAdmins
 from util.database import multidict2dict
 from util.db_clients import DbClients, intake_to_client
+from util.db_client_discovery import DbClientDiscovery
 from util.db_client_notes import DbClientNotes
 from util.db_contacts import DbContacts
 from util.flatten_dict import flatten_dict
@@ -38,6 +39,7 @@ from views.admin.forms.ClientForm import ChildForm, ClientForm, ContactForm
 DBADMINS = DbAdmins()
 DBCONTACTS = DbContacts()
 DBCLIENTS = DbClients()
+DBDISCOVERY = DbClientDiscovery()
 DBNOTES = DbClientNotes()
 DBINTAKES = DbIntakes()
 MSFT = MicrosoftGraph()
@@ -200,6 +202,7 @@ def show_contact(contact_id: str, client_id: str = '0'):
 
 
 @crm_routes.route('/crm', methods=['GET'])
+@crm_routes.route('/clients', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def list_clients():
@@ -210,6 +213,8 @@ def list_clients():
     for client in clients:
         client['_class'] = _client_row_class(client)
         client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
+        client['_notes_flag'] = DBNOTES.has_any(client['_id'])
+        client['_discovery_flag'] = DBDISCOVERY.has_any(client['_id'])
     return render_template(
         'crm/clients.html',
         clients=clients,
