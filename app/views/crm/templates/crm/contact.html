@@ -94,7 +94,33 @@
             </div>
             <div class="form-row">
                 <div class="form-group col-md">
-                    {{render_field(form.address.street, class_="form-control", value=contact.address.street)}}
+                    <div class="input-group">
+                        {{form.address.street(class_="form-control", value=contact.address.street)}}
+                        <div class="input-group-append">
+                            <div class="input-group-text" title="Download letter">
+                                <a href="/crm/util/contact_letter/{{contact._id}}/{{client_id or 0}}/"
+                                    class="btn btn-sm fas fa-file-download" role="button">
+                                </a>
+                                <button
+                                    class="btn btn-sm fa fa-ellipsis-v"
+                                    role="button"
+                                    type="button"
+                                    aria-label="Copy multiline address to clipboard"
+                                    title="Copy multiline address to clipboard"
+                                    onclick="copyMultineAddressToClipboard()">
+                                </button>
+                                <button
+                                    class="btn btn-sm fa fa-ellipsis-h"
+                                    role="button"
+                                    type="button"
+                                    aria-label="Copy single line address to clipboard"
+                                    title="Copy one-line address to clipboard"
+                                    onclick="copyOneLineAddressToClipboard()">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             <div class="form-row">
@@ -129,6 +155,43 @@
             to_number: to_number
         };
         dialer.dial(opts);
+    }
+
+    function formatAddress(delimiter) {
+        var title = document.getElementById('name-title').value;
+        if (title) title += " ";
+        var fname = document.getElementById('name-first_name').value;
+        if (fname) fname += " ";
+        var mname = document.getElementById('name-middle_name').value;
+        if (mname) mname += " ";
+        var lname = document.getElementById('name-last_name').value;
+        var suffix = document.getElementById('name-suffix').value;
+        if (lname && suffix) {
+            lname += " ";
+        }
+        var organization = document.getElementById('organization').value;
+        var street = document.getElementById('address-street').value;
+        var city = document.getElementById('address-city').value;
+        var state = document.getElementById('address-state').value;
+        var zip = document.getElementById('address-postal_code').value;
+        var address = title + fname + mname + lname + suffix + delimiter + organization + delimiter + street + delimiter + city + ", " + state + " " + zip;
+        return address;
+    }
+
+    function copyMultineAddressToClipboard() {
+        copyToClipboard(formatAddress("\n"));
+    }
+
+    function copyOneLineAddressToClipboard() {
+        copyToClipboard(formatAddress(", "));
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            /* set */
+        }, function() {
+            /* failed */
+        });
     }
         
 </script>

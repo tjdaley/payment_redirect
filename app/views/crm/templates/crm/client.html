@@ -429,6 +429,42 @@
                 }
             );
         }
+
+        function formatAddress(delimiter) {
+            var title = document.getElementById('name-title').value;
+            if (title) title += " ";
+            var fname = document.getElementById('name-first_name').value;
+            if (fname) fname += " ";
+            var mname = document.getElementById('name-middle_name').value;
+            if (mname) mname += " ";
+            var lname = document.getElementById('name-last_name').value;
+            var suffix = document.getElementById('name-suffix').value;
+            if (lname && suffix) {
+                lname += " ";
+            }
+            var street = document.getElementById('address-street').value;
+            var city = document.getElementById('address-city').value;
+            var state = document.getElementById('address-state').value;
+            var zip = document.getElementById('address-postal_code').value;
+            var address = title + fname + mname + lname + suffix + delimiter + street + delimiter + city + ", " + state + " " + zip;
+            return address;
+        }
+
+        function copyMultineAddressToClipboard() {
+            copyToClipboard(formatAddress("\n"));
+        }
+
+        function copyOneLineAddressToClipboard() {
+            copyToClipboard(formatAddress(", "));
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                /* set */
+            }, function() {
+                /* failed */
+            });
+        }
         
     </script>
 {% endblock %}

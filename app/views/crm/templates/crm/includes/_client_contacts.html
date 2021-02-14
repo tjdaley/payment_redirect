@@ -30,7 +30,7 @@
                 {% for contact in contacts %}
                 <tr>
                     <td class="highlightable">
-                        <a href="/crm/contact/{{contact._id}}">
+                        <a href="/crm/contact/{{contact._id}}/{{client._id}}">
                             {{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}
                         </a>
                     </td>

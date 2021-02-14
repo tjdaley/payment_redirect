@@ -185,17 +185,18 @@ def search_contacts(page_num: int = 1):
     )
 
 
-@crm_routes.route('/crm/contact/<string:id>/', methods=['GET'])
+@crm_routes.route('/crm/contact/<string:contact_id>/', methods=['GET'])
+@crm_routes.route('/crm/contact/<string:contact_id>/<string:client_id>/', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
-def show_contact(id: str):
+def show_contact(contact_id: str, client_id: str = '0'):
     form = ContactForm(request.form)
     user_email = session['user']['preferred_username']
-    contact = DBCONTACTS.get_one(id)
+    contact = DBCONTACTS.get_one(contact_id)
     form.name.title.data = contact.get('name', {}).get('title', None)
     form.address.state.data = contact.get('address', {}).get('state', None)
     authorizations = _get_authorizations(user_email)
-    return render_template('crm/contact.html', contact=contact, authorizations=authorizations, form=form)
+    return render_template('crm/contact.html', contact=contact, client_id=client_id, authorizations=authorizations, form=form)
 
 
 @crm_routes.route('/crm', methods=['GET'])

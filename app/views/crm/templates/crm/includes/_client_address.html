@@ -12,6 +12,22 @@
                             <div class="input-group-text" title="Download letter">
                                 <a href="/crm/util/client_letter/{{client._id}}/"
                                     class="btn btn-sm fas fa-file-download" role="button"></a>
+                                <button
+                                    class="btn btn-sm fa fa-ellipsis-v"
+                                    role="button"
+                                    type="button"
+                                    aria-label="Copy multiline address to clipboard"
+                                    title="Copy multiline address to clipboard"
+                                    onclick="copyMultineAddressToClipboard()">
+                                </button>
+                                <button
+                                    class="btn btn-sm fa fa-ellipsis-h"
+                                    role="button"
+                                    type="button"
+                                    aria-label="Copy single line address to clipboard"
+                                    title="Copy one-line address to clipboard"
+                                    onclick="copyOneLineAddressToClipboard()">
+                                </button>
                             </div>
                         </div>
                     </div>
