@@ -34,6 +34,7 @@
                 <th>Call</th>
                 <th>SMS</th>
                 <th>Notes</th>
+                <th>Discovery</th>
                 <th class="d-none d-md-table-cell">Mediation Date</th>
                 <th class="d-none d-md-table-cell">Trial Date</th>
                 <th class="text-right d-none d-md-block">Trust Balance</th>
@@ -96,10 +97,19 @@
                 </td>
                 <td>
                     <a
-                        class="btn btn-outline-secondary fa fa-sticky-note"
+                        class="btn fa fa-sticky-note {% if client._notes_flag %}btn-outline-success{%else%}btn-outline-secondary{%endif%}"
                         data-tooltip="tooltip" data-placement="top" title="Notes"
                         href="/crm/notes/{{client._id}}/"
-                    />
+                    ></a>
+                </td>
+                <td>
+                    {% if client._discovery_flag %}
+                    <a
+                        class="btn btn-outline-secondary fas fa-binoculars"
+                        data-tooltip="tooltip" data-placement="top" title="Discovery"
+                        href="/crm/discovery/{{client._id}}/"
+                    ></a>
+                    {%endif%}
                 </td>
                 <td class="d-none d-md-table-cell">{{client.mediation_date or ''}}</td>
                 <td class="d-none d-md-table-cell">{{client.trial_date or ''}}</td>
