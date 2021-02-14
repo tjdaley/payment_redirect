@@ -40,16 +40,20 @@ class Database(object):
     database product or implementation, e.g. mongo, mysql, dynamodb, flat
     files, etc.
     """
-    database_connection = None
+    database_connections = {}
+    logger = None
 
-    def __init__(self):
+    def __init__(self, db_name: str = DB_NAME):
         """
         Instance initializer.
         """
+        if Database.logger is None:
+            Database.logger = get_logger('database')
         self.client = None
-        self.dbconn = Database.database_connection
-        self.logger = get_logger('database')
+        self.dbconn = Database.database_connections.get(db_name)
+        self.logger = Database.logger
         self.last_inserted_id = None
+        self.db_name = db_name
         self.connect()
 
     def connect(self) -> bool:
@@ -59,7 +63,9 @@ class Database(object):
         Returns:
             (bool): True if successful, otherwise False.
         """
-        if self.dbconn:
+        if self.db_name in Database.database_connections:
+            self.dbconn = Database.database_connections[self.db_name]
+            self.logger.debug("Reusing connection to %s for %s", self.db_name, self.__class__.__name__)
             return True
 
         success = False
@@ -67,18 +73,19 @@ class Database(object):
         try:
             # pep8: disable E501
             self.logger.debug(
-                "Connecting to database %s at %s",
-                DB_NAME,
-                DB_URL)
+                "Connecting to database %s at %s for %s",
+                self.db_name,
+                DB_URL,
+                self.__class__.__name__)
             client = MongoClient(DB_URL)
-            dbconn = client[DB_NAME]
+            dbconn = client[self.db_name]
             self.client = client
             self.dbconn = dbconn
-            Database.database_connection = dbconn
-            self.logger.info("Connected to database.")
+            Database.database_connections[self.db_name] = dbconn
+            self.logger.info("Connected to database %s.", self.db_name)
             success = True
         except Exception as e:
-            self.logger.error("Error connecting to database: %s", e)
+            self.logger.error("Error connecting to database %s: %s", self.db_name, e)
 
         return success
 
