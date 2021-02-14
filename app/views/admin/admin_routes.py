@@ -271,7 +271,7 @@ def get_global_template(docx_template_name: str):
 
 
 @admin_routes.route('/admin')  # noqa
-@admin_routes.route("/clients", methods=['GET'])
+# @admin_routes.route("/clients", methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.is_admin_user
 def list_clients():
