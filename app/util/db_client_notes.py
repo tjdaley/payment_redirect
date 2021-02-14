@@ -70,6 +70,21 @@ class DbClientNotes(Database):
 
         return list(notes)
 
+    def has_any(self, clients_id: str) -> bool:
+        """
+        See if there are any notes for this client. This is used in rendering the UI.
+
+        Args:
+            clients_id (str): ID of client for whom we are to check for notes.
+        
+        Returns:
+            (bool): True if there are notes; otherwise False
+        """
+        notes = self.dbconn[COLLECTION_NAME].find_one({'clients_id': ObjectId(clients_id)})
+        if notes:
+            return True
+        return False
+
     def search(self, email: str, clients_id: str, query: str, page_num: int = 1, page_size: int = 25) -> list:
         """
         Search for notes matching the words in *query*.
@@ -111,7 +126,7 @@ class DbClientNotes(Database):
         doc['last_editor'] = email
         doc['last_edit_date'] = datetime.now()
 
-        # Insert new contact record
+        # Insert new notes record
         if doc['_id'] == '0':
             del doc['_id']
             doc['created_by'] = email
@@ -124,7 +139,7 @@ class DbClientNotes(Database):
             message = "Failed to add new note"
             return {'success': False, 'message': message}
 
-        # Update existing contact record
+        # Update existing notes record
         filter_ = {'_id': ObjectId(doc['_id'])}
         del doc['_id']
         result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
