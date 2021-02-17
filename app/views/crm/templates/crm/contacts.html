@@ -202,6 +202,16 @@
                         <label for="assignClientId" class="col-form-label">Client:</label>
                         <select class="form-control" id="assignClientId"></select>
                     </div>
+                    <div class="form-group">
+                        <label for="assignRole" class="col-form-label">Role:</label>
+                        <input id="assignRole" class="form-control" />
+                        <small id="assignRoleHelp" class="form-text text-muted">Describe this person's role in this case, e.g. OC, OP, Custody Evaluator</small> 
+                    </div>
+                    <div class="form-group">
+                        <label for="assignEmailCc" class="col-form-label">Email CC:</label>
+                        <input id="assignEmailCc" class="form-control" />
+                        <small id="emailHelp" class="form-text text-muted">Applies to this case only.</small>
+                    </div>
                     <div class="alert alert-primary" id="assign-result"></div>
                 </form>
             </div>
@@ -296,17 +306,22 @@
     function assign_contact() {
         var contact_id = $('#assigncontact_id').val();
         var client_id = $('#assignClientId').val();
+        var role = $('#assignRole').val();
+        var email_cc = $('#assignEmailCc').val();
+        var post_data = {role: role, email_cc: email_cc};
         $('#message-result').html('');
 
-        jQuery.get(
+        jQuery.post(
             '/crm/util/assign_contact/' + contact_id + '/' + client_id + '/',
+            post_data,
             function (data) {
                 if (data.redirect) {
                     window.location.href = data.redirect;
                     return false;
                 }
                 $('#assign-result').html(data.message);
-            });
+            },
+            'json');
     }
 </script>
 {% endblock %}

@@ -19,6 +19,7 @@ from util.db_admins import DbAdmins
 from util.database import multidict2dict
 from util.db_clients import DbClients, intake_to_client
 from util.db_client_discovery import DbClientDiscovery
+from util.db_clients_contacts import DbClientsContacts
 from util.db_client_notes import DbClientNotes
 from util.db_contacts import DbContacts
 from util.flatten_dict import flatten_dict
@@ -39,6 +40,7 @@ from views.admin.forms.ClientForm import ChildForm, ClientForm, ContactForm
 DBADMINS = DbAdmins()
 DBCONTACTS = DbContacts()
 DBCLIENTS = DbClients()
+DBCLIENT_CONTACTS = DbClientsContacts()
 DBDISCOVERY = DbClientDiscovery()
 DBNOTES = DbClientNotes()
 DBINTAKES = DbIntakes()
@@ -325,6 +327,7 @@ def show_client(id):
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
     contacts = _client_contacts(user_email, id)
+    print('@@@@@@@@@@@@ I HAVE ', len(contacts), "CONTACTS")
     email_subject = DBCLIENTS.get_email_subject(id)
     return render_template(
         'crm/client.html',
@@ -344,7 +347,7 @@ def show_client(id):
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def add_note():
-    fields = multidict2dict(request.form)
+    
     client_id = fields.get('clients_id', None)
     client = DBCLIENTS.get_one(client_id)
     if not client:
@@ -442,12 +445,15 @@ def send_sms_message(to_number, message):
     return jsonify(response)
 
 
-@crm_routes.route('/crm/util/assign_contact/<string:contact_id>/<string:client_id>/')
+@crm_routes.route('/crm/util/assign_contact/<string:contact_id>/<string:client_id>/', methods=['POST'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def assign_contact_to_client(contact_id: str, client_id: str):
     user_email = session['user']['preferred_username']
-    result = DBCONTACTS.link(user_email, client_id, contact_id)
+    fields = multidict2dict(request.form)
+    fields['contacts_id'] = contact_id
+    fields['clients_id'] = client_id
+    result = DBCLIENT_CONTACTS.save(user_email, fields)
     return jsonify(result)
 
 
@@ -456,7 +462,7 @@ def assign_contact_to_client(contact_id: str, client_id: str):
 @DECORATORS.auth_crm_user
 def unassign_contact_from_client(contact_id: str, client_id: str):
     user_email = session['user']['preferred_username']
-    result = DBCONTACTS.unlink(user_email, client_id, contact_id)
+    result = DBCLIENT_CONTACTS.unlink(user_email, client_id, contact_id)
     return jsonify(result)
 
 
@@ -961,11 +967,16 @@ def _client_contacts(user_email: str, client_id: str) -> list:
 
     # Combine our CC list into the CC list for this contact
     our_ccs = our_cc_str.split(',')
-    contacts = DBCONTACTS.get_list(user_email, client_id=client_id)
+    contacts = DBCLIENT_CONTACTS.get_list(user_email, clients_id=client_id)
+    if contacts is None:
+        return []
+
+    print("@@@@@@@@@ Received", len(contacts), "contacts")
     for contact in contacts:
-        contact_ccs = contact.get('email_cc', '').split(',')
+        contact_ccs = (contact.get('email_cc', '')).split(',')
         contact['cc_list'] = ';'.join(our_ccs + contact_ccs)
 
+    print("@@@@@@@@@ Returning", len(contacts), "contacts")
     return contacts
 
 

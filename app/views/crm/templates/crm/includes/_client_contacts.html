@@ -31,41 +31,41 @@
                 <tr>
                     <td class="highlightable">
                         <a href="/crm/contact/{{contact._id}}/{{client._id}}">
-                            {{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}
+                            {{contact._contact.name.title}} {{contact._contact.name.first_name}} {{contact._contact.name.middle_name}} {{contact._contact.name.last_name}} {{contact._contact.name.suffix}}
                         </a>
                     </td>
                     <td>
-                        {{contact.job_title}}
+                        {{contact.role or contact._contact.job_title}}
                     </td>
                     
                     <td>
-                        {% if contact.email %}
-                        <a  href="mailto:{{contact.email}}?subject={{email_subject}}&cc={{contact.cc_list}}"
+                        {% if contact._contact.email %}
+                        <a  href="mailto:{{contact._contact.email}}?subject={{email_subject}}&cc={{contact.cc_list}}"
                             class="btn btn-outline-secondary fa fa-envelope" data-tooltip="tooltip"
-                            data-placement="top" title="Send Email to {{contact.email}}" role="button">
+                            data-placement="top" title="Send Email to {{contact._contact.email}}" role="button">
                         </a>
                         {% endif %}
                     </td>
                     <td>
-                        {% if contact.office_phone.strip() != '' %}
+                        {% if contact._contact.office_phone.strip() != '' %}
                         <button class="btn btn-outline-secondary fa fa-phone" data-tooltip="tooltip" data-placement="top"
-                            title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')"
+                            title="Call Office: {{contact._contact.office_phone | phone_number}}" onclick="dial('{{contact._contact.office_phone}}')"
                             type="button">
                         </button>
                         {% endif %}
                     </td>
-                    {% if contact.cell_phone.strip() != '' %}
+                    {% if contact._contact.cell_phone.strip() != '' %}
                     <td>
                         <button class="btn btn-outline-secondary fa fa-mobile" data-tooltip="tooltip" data-placement="top"
-                            title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')"
+                            title="Call cell: {{contact._contact.cell_phone | phone_number}}" onclick="dial('{{contact._contact.cell_phone}}')"
                             type="button">
                         </button>
                     </td>
                     <td>
                         <!--Because this button shows up in a form, it must have type="button" or the form will be submitted.-->
                         <button class="btn btn-outline-secondary fa fa-comments"
-                            data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.last_name}}"
-                            data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
+                            data-name="{{contact._contact.name.title}} {{contact._contact.name.first_name}} {{contact._contact.name.last_name}}"
+                            data-telephone="{{contact._contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
                             title="Send Text" data-tooltip="tooltip" data-toggle="modal" type="button">
                         </button>
                     </td>
@@ -76,7 +76,7 @@
                     <td class="d-none d-md-table-cell">
                         <a
                             class="btn btn-outline-secondary fas fa-file-download"
-                            href="/crm/util/contact_letter/{{contact._id}}/{{client._id or 0}}/"
+                            href="/crm/util/contact_letter/{{contact.contacts_id}}/{{contact.clients_id or 0}}/"
                             title="Download letter"
                             data-tooltip="tooltip">
                         </a>
@@ -85,13 +85,13 @@
                     <td>
                         <a
                             class="btn btn-outline-primary far fa-address-card"
-                            href="/crm/data/contact/vcard/{{contact._id}}/pro/"
+                            href="/crm/data/contact/vcard/{{contact.contacts_id}}/pro/"
                             title="VCard for Professionals"
                             data-tooltip="tooltip">
                         </a>
                         <a 
                             class="btn btn-outline-secondary far fa-address-card"
-                            href="/crm/data/contact/vcard/{{contact._id}}/nonpro/"
+                            href="/crm/data/contact/vcard/{{contact.contacts_id}}/nonpro/"
                             title="VCard for Clients"
                             data-tooltip="tooltip">
                         </a>
@@ -102,7 +102,7 @@
             </table>
             <div>
                 {% if 'DOWNLOAD_CONTACTS' in authorizations %}
-                <a href="/crm/util/contacts/csv/{{client._id}}/" class="btn btn-sm btn-primary">Download</a>
+                <a href="/crm/util/contacts/csv/{{client_id}}/" class="btn btn-sm btn-primary">Download</a>
                 {% endif %}
             </div>
         </div>

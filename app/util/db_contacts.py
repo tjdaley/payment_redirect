@@ -205,57 +205,6 @@ class DbContacts(Database):
         message = f"No updates applied to {contact_name}'s record ({result.modified_count})"
         return {'success': False, 'message': message}
 
-    def link(self, email: str, client_id: str, contact_id: str):
-        """
-        Link a contact to a client.
-        """
-        contact = self.dbconn[COLLECTION_NAME].find({'_id': ObjectId(contact_id)})
-        if not contact:
-            return {'success': False, 'message': 'Could not find contact ID'}
-
-        new_doc = {}
-        if 'linked_client_ids' not in contact:
-            new_doc['linked_client_ids'] = []
-        else:
-            new_doc['linked_client_ids'] = contact['linked_client_ids']
-
-        cl_id = ObjectId(client_id)
-        if cl_id in new_doc['linked_client_ids']:
-            return {'success': True, 'message': 'Contact was already linked'}
-
-        new_doc['linked_client_ids'].append(cl_id)
-        new_doc['_id'] = contact_id
-        result = self.save(email, new_doc)
-        if result['success']:
-            result['message'] = 'Contact successfully linked'
-        return result
-
-    def unlink(self, email: str, client_id: str, contact_id: str):
-        """
-        Unlink a contact from a client.
-        """
-        contact = self.dbconn[COLLECTION_NAME].find({'_id': ObjectId(contact_id)})
-        if not contact:
-            return {'success': False, 'message': 'Could not find contact ID'}
-
-        new_doc = {}
-        if 'linked_client_ids' not in contact:
-            new_doc['linked_client_ids'] = []
-        else:
-            new_doc['linked_client_ids'] = contact['linked_client_ids']
-
-        cl_id = ObjectId(client_id)
-        if cl_id not in new_doc['linked_client_ids']:
-            return {'success': True, 'message': 'Contact was not linked'}
-
-        new_doc['linked_client_ids'].remove(cl_id)
-        new_doc['_id'] = contact_id
-        result = self.save(email, new_doc)
-        if result['success']:
-            result['message'] = 'Contact successfully unlinked'
-        return result
-
-
 def _to_dataframe(documents: dict):
     """
     Convert result set to dataframe.
