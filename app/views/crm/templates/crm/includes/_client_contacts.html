@@ -18,7 +18,7 @@
             <table class="table table-sm table-hover">
                 <tr>
                     <th>Name</th>
-                    <th>Job</th>
+                    <th>Role <i class="far fa-edit" title="Edit by clicking and typing a new role description"></i></th>
                     <th>Email</th>
                     <th colspan="2">Call</th>
                     <th>SMS</th>
@@ -35,7 +35,7 @@
                             {{contact._contact.name.title}} {{contact._contact.name.first_name}} {{contact._contact.name.middle_name}} {{contact._contact.name.last_name}} {{contact._contact.name.suffix}}
                         </a>
                     </td>
-                    <td>
+                    <td contenteditable="true" class="editable_contact_role" data-clients-contacts-id="{{contact._id}}">
                         {{contact.role or contact._contact.job_title}}
                     </td>
                     

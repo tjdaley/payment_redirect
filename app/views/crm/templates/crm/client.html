@@ -84,15 +84,35 @@
             $('#addChildModal').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget); // Button that triggered modal
                 console.log("MODAL TRIGGERED");
-                //event.preventDefault();
-                //return false;
-            }
-            );
+            });
+
             $('#addChildModal').on('shown.bs.modal', function (event) {
                 var button = $(event.relatedTarget); // Button that triggered modal
                 console.log("MODAL APPEARS");
-            }
-            );
+            });
+
+            $('.editable_contact_role').on('blur', function (event) {
+                var new_role = event.target.textContent;
+                var record_id = event.target.dataset.clientsContactsId;
+                var post_data = {
+                    role: new_role,
+                    id: record_id
+                };
+                jQuery.post(
+                    '/crm/util/update_contact_role',
+                    post_data,
+                    function (data) {
+                        if (data.success)
+                        {
+                            // meh
+                        }
+                        else
+                        {
+                            console.log(data);
+                        }
+                    },
+                    'json');
+            });
 
             contacts_init();
         }

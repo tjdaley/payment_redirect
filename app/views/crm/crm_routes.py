@@ -444,6 +444,16 @@ def send_sms_message(to_number, message):
     return jsonify(response)
 
 
+@crm_routes.route('/crm/util/update_contact_role', methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def update_contact_role():
+    user_email = session['user']['preferred_username']
+    fields = multidict2dict(request.form)
+    result = DBCLIENT_CONTACTS.update_role(user_email, fields['id'], fields['role'])
+    return jsonify(result)
+
+
 @crm_routes.route('/crm/util/assign_contact/<string:contact_id>/<string:client_id>/', methods=['POST'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user

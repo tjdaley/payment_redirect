@@ -219,6 +219,31 @@ class DbClientsContacts(Database):
         print("@@@ Doc Count", doc_count, filter_)
         return doc_count != 0
 
+    def update_role(self, email: str, record_id: str, new_role: str) -> dict:
+        """
+        Update a contacts role within a client matter.
+
+        Args:
+            email (str): Email of user making the request (ignored for now)
+            record_id (str): String representation of _id for the clients_contacts doc
+            new_role (str): New value for the 'role' field.
+
+        Returns:
+            (dict): Having the properties 'success': bool, and 'message': str
+        """
+        try:
+            filter_ = {
+                '_id': ObjectId(record_id)
+            }
+            result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': {'role': new_role}})
+        except Exception as e:
+            return {'success': False, 'message': str(e)}
+        if result.modified_count == 1:
+            return {'success': True, 'message': f"Contact's role updated to {new_role}."}
+        if result.matched_count == 1:
+            return {'success': True, 'message': "Contact's role was not changed."}
+        return {'success': False, 'message': "Update failed - could not find record to update"}
+
     def save(self, email: str, unfiltered_doc: dict) -> dict:
         """
         Save a clients_contacts record
