@@ -327,7 +327,6 @@ def show_client(id):
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
     contacts = _client_contacts(user_email, id)
-    print('@@@@@@@@@@@@ I HAVE ', len(contacts), "CONTACTS")
     email_subject = DBCLIENTS.get_email_subject(id)
     return render_template(
         'crm/client.html',
@@ -971,12 +970,10 @@ def _client_contacts(user_email: str, client_id: str) -> list:
     if contacts is None:
         return []
 
-    print("@@@@@@@@@ Received", len(contacts), "contacts")
     for contact in contacts:
         contact_ccs = (contact.get('email_cc', '')).split(',')
         contact['cc_list'] = ';'.join(our_ccs + contact_ccs)
 
-    print("@@@@@@@@@ Returning", len(contacts), "contacts")
     return contacts
 
 
