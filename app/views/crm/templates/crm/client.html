@@ -465,6 +465,26 @@
                 /* failed */
             });
         }
+
+        function dim_row(element_id) {
+            e = document.getElementById(element_id);
+            if (e) {
+                e.classList.add("table-dark");
+            }
+        }
+
+        function unlink(client_id, contact_id, row_element_id, contact_name) {
+            if (!window.confirm("Press OK to unlink " + contact_name + " from this client."))
+                return false;
+            var url = "/crm/util/unassign_contact/" + contact_id + "/" + client_id + "/";
+            jQuery.get(
+                url,
+                function (data) {
+                    console.log(data);
+                    dim_row(row_element_id);
+                }
+            )
+        }
         
     </script>
 {% endblock %}

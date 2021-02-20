@@ -25,10 +25,11 @@
                     <th class="d-none d-md-table-cell">Letter</th>
                     {% if 'DOWNLOAD_VCARD' in authorizations %}
                     <th>Vcard</th>
+                    <th>Unlink</th>
                     {% endif %}
                 </tr>
                 {% for contact in contacts %}
-                <tr>
+                <tr id="cn_row_{{contact._id}}">
                     <td class="highlightable">
                         <a href="/crm/contact/{{contact._id}}/{{client._id}}">
                             {{contact._contact.name.title}} {{contact._contact.name.first_name}} {{contact._contact.name.middle_name}} {{contact._contact.name.last_name}} {{contact._contact.name.suffix}}
@@ -97,6 +98,12 @@
                         </a>
                     </td>
                     {% endif %}
+                    <td>
+                        <button class="btn btn-danger fas fa-user-minus"
+                            title="Unlink {{contact._contact.name.title}} {{contact._contact.name.first_name}} {{contact._contact.name.last_name}}"
+                            data-placement="top" data-tooltip="tooltip" type="button"
+                            onclick="unlink('{{contact._client._id}}', '{{contact._contact._id}}', 'cn_row_{{contact._id}}', '{{contact._contact.name.title}} {{contact._contact.name.first_name}} {{contact._contact.name.last_name}}')"
+                    </td>
                 </tr>
                 {% endfor %}
             </table>

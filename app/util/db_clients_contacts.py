@@ -27,7 +27,8 @@ class DbClientsContacts(Database):
     permitted_cols = [
         'clients_id', 'contacts_id', 'email_cc', 'role', 'notes',
         'last_editor', 'last_edit_date',
-        'created_by', 'created_date'
+        'created_by', 'created_date',
+        'active'
     ]
 
     def get_one(self, id: str) -> dict:
@@ -74,11 +75,12 @@ class DbClientsContacts(Database):
             filter_ = {
                 '$and': [
                     where,
-                    {'clients_id': ObjectId(clients_id)}
+                    {'clients_id': ObjectId(clients_id)},
+                    {'active': True}
                 ]
             }
         else:
-            filter_ = {'clients_id': ObjectId(clients_id)}
+            filter_ = {'clients_id': ObjectId(clients_id), 'active': True}
 
         contacts = self.dbconn[COLLECTION_NAME].find(filter_).sort(order_by).skip(skips).limit(page_size)
 
@@ -128,7 +130,7 @@ class DbClientsContacts(Database):
                 ]
             }
         else:
-            filter_ = {'contacts_id': ObjectId(cliecontacts_idnts_id)}
+            filter_ = {'contacts_id': ObjectId(contacts_id)}
 
         contacts = self.dbconn[COLLECTION_NAME].find(filter_).sort(order_by).skip(skips).limit(page_size)
 
@@ -151,7 +153,7 @@ class DbClientsContacts(Database):
 
         Args:
             clients_id (str): ID of client for whom we are to check for contacts.
-        
+
         Returns:
             (bool): True if there are notes; otherwise False
         """
@@ -162,7 +164,7 @@ class DbClientsContacts(Database):
 
     def unlink(self, email: str, clients_id: str, contacts_id: str) -> bool:
         """
-        Mark a clients_contacts intersection records as inactive.
+        Mark a clients_contacts intersection record as inactive.
 
         Args:
             email (str): Email of user requesting the unlink.
@@ -176,13 +178,56 @@ class DbClientsContacts(Database):
             'clients_id': ObjectId(clients_id),
             'contacts_id': ObjectId(contacts_id)
         }
-        result = self.dbconn[COLLECTION_NAME].delete_one(filter_)
-        return True
+        result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': {'active': False}})
+        return result.modified_count == 1
+
+    def relink(self, email: str, clients_id: str, contacts_id: str) -> bool:
+        """
+        Mark a clients_contacts intersection record as active.
+
+        Args:
+            email (str): Email of user requesting the unlink.
+            clients_id (str): Clients_ID to be unlinked
+            contacts_id (str): Contacts_ID to be unlinked
+
+        Returns:
+            (bool): True if successful, otherwise False
+        """
+        filter_ = {
+            'clients_id': ObjectId(clients_id),
+            'contacts_id': ObjectId(contacts_id)
+        }
+        result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': {'active': True}})
+        return result.modified_count == 1
+
+    def was_linked(self, clients_id: str, contacts_id: str) -> bool:
+        """
+        Check is a contact is or was ever linked linked to a client.
+
+        Args:
+            clients_id (str): Clients_ID to be queried
+            contacts_id (str): Contacts_ID to be queried
+
+        Returns:
+            (bool): True if linked now or in the past, otherwise False
+        """
+        filter_ = {
+            'clients_id': ObjectId(clients_id),
+            'contacts_id': ObjectId(contacts_id)
+        }
+        doc_count = self.dbconn[COLLECTION_NAME].count_documents(filter_)
+        print("@@@ Doc Count", doc_count, filter_)
+        return doc_count != 0
 
     def save(self, email: str, unfiltered_doc: dict) -> dict:
         """
         Save a clients_contacts record
         """
+        # Perseve string versions for is_linked and relink functions
+        clients_id_str = unfiltered_doc['clients_id']
+        contacts_id_str = unfiltered_doc['contacts_id']
+
+        # Convert IDs to a saveable format and note who requested this insert/update
         unfiltered_doc['clients_id'] = ObjectId(unfiltered_doc['clients_id'])
         unfiltered_doc['contacts_id'] = ObjectId(unfiltered_doc['contacts_id'])
         unfiltered_doc['last_editor'] = email
@@ -196,6 +241,10 @@ class DbClientsContacts(Database):
         # denormalizing the database to the point that we lose track of ground-truth.
         doc = {k:unfiltered_doc[k] for k in DbClientsContacts.permitted_cols if k in unfiltered_doc}
 
+        # Default to active when linking in a new contact
+        if 'active' not in doc:
+            doc['active'] = True
+
         # Now add some sort hints for retrieval
         client = DbClientsContacts.DBCLIENTS.get_one(doc['clients_id'])
         contact = DbClientsContacts.DBCONTACTS.get_one(doc['contacts_id'])
@@ -204,6 +253,13 @@ class DbClientsContacts(Database):
 
         # Insert new clients_contacts record
         if _id == '0':
+            # If there is an inactive link, reactivate it . . .
+            if self.was_linked(clients_id_str, contacts_id_str):
+                self.relink('', clients_id_str, contacts_id_str)
+                message = "Contact relinked to client"
+                return {'success': True, 'message': message}
+
+            # . . . Otherwise, insert a new record.
             doc['created_by'] = email
             doc['created_date'] = datetime.now()
 
