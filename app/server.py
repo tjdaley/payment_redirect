@@ -102,6 +102,6 @@ if __name__ == "__main__":
     # app.jinja_env.globals.update(_build_auth_url=_build_auth_url)
     port = int(os.environ.get('LISTEN_PORT', '8088'))
     if DEBUG == 1:
-        app.run(debug=DEBUG, port=port)
+        app.run(debug=True, port=port)
     else:
         serve(app, host='0.0.0.0', port=port)
