@@ -61,7 +61,6 @@ crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
 @DECORATORS.auth_crm_user
 def client_tools(client_id: str):
     user_email = session['user']['preferred_username']
-    user = DBADMINS.admin_record(user_email)
     client = DBCLIENTS.get_one(client_id)
     authorizations = _get_authorizations(user_email)
     return render_template(
@@ -156,10 +155,10 @@ def add_contact():
 @DECORATORS.auth_crm_user
 def save_contact():
     form = ContactForm()
-    form.process(formdata=request.form)
+    form.process(formdata=request.form)  # noqa pylint: disable=no-member
 
     if form.validate():
-        fields = form.data
+        fields = form.data  # noqa pylint: disable=no-member
         fields['_id'] = request.form.get('_id', '0')
         user_email = session['user']['preferred_username']
         result = DBCONTACTS.save(user_email, fields)
@@ -298,10 +297,10 @@ def add_client():
 @DECORATORS.auth_crm_user
 def save_client():
     form = ClientForm()
-    form.process(formdata=request.form)
+    form.process(formdata=request.form)  # noqa pylint: disable=no-member
 
     if form.validate():
-        fields = form.data
+        fields = form.data  # noqa pylint: disable=no-member
         fields['_id'] = request.form.get('_id', '0')
         user_email = session['user']['preferred_username']
         result = DBCLIENTS.save(fields, user_email)
@@ -318,7 +317,7 @@ def save_client():
     child_form = ChildForm()
     return render_template(
         'crm/client.html',
-        client=form.data,
+        client=form.data,  # noqa pylint: disable=no-member
         form=form,
         new_child=child_form,
         our_pay_url=our_pay_url,
@@ -338,7 +337,7 @@ def show_client(id):
     user = DBADMINS.admin_record(user_email)
     client = DBCLIENTS.get_one(id)
     _cleanup_client(client)
-    form.process(data=client)
+    form.process(data=client)  # noqa pylint: disable=no-member
 
     form.court_type.choices = DIRECTORY.get_court_type_tuples(client.get('case_county'))
     form.court_name.choices = DIRECTORY.get_court_tuples(client.get('case_county'), client.get('court_type'))
@@ -365,7 +364,7 @@ def show_client(id):
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def add_note():
-    
+    fields = multidict2dict(request.form)
     client_id = fields.get('clients_id', None)
     client = DBCLIENTS.get_one(client_id)
     if not client:
@@ -737,7 +736,7 @@ def _decode_task_assignments(assignments: dict):
     """
     _load_user_list()
     users = []
-    for user_id, assignment in assignments.items():
+    for user_id, assignment in assignments.items():  # noqa pylint: disable=unused-variable
         users_name = USERS.get_field(user_id, USERS.UserFields.FIRST_NAME)
         users.append(users_name)
     return '(' + ', '.join(users) + ')'

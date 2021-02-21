@@ -235,7 +235,7 @@ class DbClients(Database):
 
         return None
 
-    def save(self, fields, user_email) -> dict:
+    def save(self, fields: dict, user_email: str = None) -> dict:
         """
         Save a client record, if the user is permitted to do so.
         """
@@ -253,7 +253,7 @@ class DbClients(Database):
                     del doc['_id']
 
                 doc['active_flag'] = 'Y'
-                if user_email.lower() not in doc['admin_users']:
+                if user_email is not None and user_email.lower() not in doc['admin_users']:
                     doc['admin_users'].append(user_email.lower())
 
                 # Create a reference field

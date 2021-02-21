@@ -73,11 +73,11 @@ Session(app)
 app.register_blueprint(admin_routes)
 app.register_blueprint(crm_routes)
 app.register_blueprint(payment_routes)
-app.jinja_env.filters['phone_number'] = phone_filter
-app.jinja_env.filters['crm_state'] = crm_state_filter
-app.jinja_env.filters['fullname'] = fullname_filter
-app.jinja_env.filters['newlines'] = newlines_filter
-app.jinja_env.filters['case_type'] = case_type_filter
+app.jinja_env.filters['phone_number'] = phone_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['crm_state'] = crm_state_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['fullname'] = fullname_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['newlines'] = newlines_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['case_type'] = case_type_filter  # noqa pylint: disable=no-member
 
 
 @app.route('/', methods=['GET'])
