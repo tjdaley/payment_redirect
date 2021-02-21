@@ -93,6 +93,25 @@ def list_client_contacts(client_id, page_num: int = 1):
     )
 
 
+@crm_routes.route('/crm/contact_clients/<string:contact_id>/<int:page_num>/', methods=['GET'])
+@crm_routes.route('/crm/contact_clients/<string:contact_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def list_contact_clients(contact_id, page_num: int = 1):
+    user_email = session['user']['preferred_username']
+    clients = DBCLIENT_CONTACTS.get_clients(None, contact_id)
+    cn_name = DBCONTACTS.get_contact_name(contact_id)
+    authorizations = _get_authorizations(user_email)
+    return render_template(
+        'crm/contact_clients.html',
+        clients=clients,
+        authorizations=authorizations,
+        prev_page_num=page_num - 1,
+        next_page_num=page_num + 1,
+        contact_name=cn_name
+    )
+
+
 @crm_routes.route('/crm/contacts', methods=['GET'])
 @crm_routes.route('/crm/contacts/<int:page_num>/', methods=['GET'])
 @DECORATORS.is_logged_in
@@ -196,7 +215,7 @@ def search_contacts(page_num: int = 1):
 def show_contact(contact_id: str, client_id: str = '0'):
     form = ContactForm(request.form)
     user_email = session['user']['preferred_username']
-    contact = DBCONTACTS.get_one(contact_id)
+    contact = DBCONTACTS.get_one(contact_id, with_case_count=True)
     form.name.title.data = contact.get('name', {}).get('title', None)
     form.address.state.data = contact.get('address', {}).get('state', None)
     authorizations = _get_authorizations(user_email)

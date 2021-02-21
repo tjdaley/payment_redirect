@@ -1,0 +1,62 @@
+{% extends 'layout.html' %}
+{% block body %}
+<style>
+    .table-hover>tbody>tr>td.highlightable:hover {
+        background-color: #eedf0d !important;
+    }
+
+    .table-hover>tbody>tr:hover>td {
+        background-color: inherit;
+    }
+</style>
+<span class="h1 my-3">Cases with {{contact_name}}</span>
+<div class="row">
+    <div class="col">
+        <table class="table table-sm table-hover">
+            <tr>
+                <th>CRM State</th>
+                <th>Role</th>
+                <th>Billing ID</th>
+                <th>Attorney</th>
+                <th>Client Name</th>
+                <th>Case Type</th>
+                <th>County</th>
+                <th>Retained</th>
+                <th>Closed</th>
+            </tr>
+            {% for client in clients %}
+            <tr>
+                <td>
+                    {{client._client.crm_state | crm_state}}
+                </td>
+                <td>
+                    {{client.role}}
+                </td>
+                <td>
+                    <a href="/crm/client/{{client._client._id}}/">{{client._client.billing_id}}</a>
+                </td>
+                <td>
+                    {{client._client.attorney_initials[0]}}
+                </td>
+                <td>
+                    {{client._client.name.last_name.upper()}}, {{client._client.name.first_name}} {{client._client.name.middle_name}}
+                    {{client._client.name.suffix}}
+                </td>
+                <td>
+                    {{client._client.case_type | case_type}}
+                </td>
+                <td>
+                    {{client._client.case_county}} County, {{client._client.court_name}}
+                </td>
+                <td>
+                    {{client._client.retained_date}}
+                </td>
+                <td>
+                    {{client._client.completion_date or ""}}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}

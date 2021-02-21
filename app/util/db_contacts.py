@@ -28,20 +28,27 @@ class DbContacts(Database):
     """
     Encapsulates a database accessor for contacts
     """
-    def get_one(self, id: str) -> dict:
+    def get_one(self, id: str, with_case_count: bool = False) -> dict:
         """
         Return a contact record given an ID.
 
         Args:
             id (str): The mongodb ID of the contact to retrieve
+            with_case_count (bool): If True, will add _case_count to the record
         Returns:
             (dict): The located document or None
         """
+        contact_id = ObjectId(id)
         try:
-            filter_ = {'_id': ObjectId(id)}
+            filter_ = {'_id': contact_id}
             document = self.dbconn[COLLECTION_NAME].find_one(filter_)
         except Exception:
-            document = None
+            return None
+
+        if with_case_count:
+            filter_ = {'contacts_id': contact_id}
+            case_count = self.dbconn['clients_contacts'].count_documents(filter_)
+            document['_case_count'] = case_count
         return document
 
     def get_list(self, email: str, where: dict = {}, page_num: int = 1, page_size: int = 25, client_id: str = None) -> list:
@@ -117,6 +124,16 @@ class DbContacts(Database):
         # Create and return CSV file.
         csv_export = contacts.to_csv(sep=",")
         return csv_export
+
+    def get_contact_name(self, contact_id, include_title: bool = True) -> str:
+        """
+        Return a contact name string.
+        """
+        contact = self.get_one(contact_id)
+        if contact:
+            return make_contact_name(contact, include_title)
+        return None
+
 
     def search(self, email: str, query: str, page_num: int = 1, page_size: int = 25, client_id: str = None) -> list:
         """
@@ -204,6 +221,28 @@ class DbContacts(Database):
 
         message = f"No updates applied to {contact_name}'s record ({result.modified_count})"
         return {'success': False, 'message': message}
+
+
+def make_contact_name(contact: dict, include_title: bool = True) -> str:
+    """
+    Create a contact_name string from parts.
+
+    Args:
+        contact (dict): Document from contacts collection.
+        include_title (bool): Whether to include the title field as a prefix.
+    Returns:
+        (str): Contact name string.
+    """
+    if 'name' not in contact:
+        return 'No Name Provided'
+
+    if include_title:
+        first_index = 0
+    else:
+        first_index = 1
+    return " ".join(list(contact['name'].values())[first_index:-1])
+
+
 
 def _to_dataframe(documents: dict):
     """

@@ -135,17 +135,22 @@ class DbClientsContacts(Database):
         contacts = self.dbconn[COLLECTION_NAME].find(filter_).sort(order_by).skip(skips).limit(page_size)
 
         if not contacts:
+            print("@@@@@ NO CLIENT_CONTACTS")
             return None
+        print(contacts)
 
         # Join the two tables.
         # The underscore indicates that the data in that column are read-only
+        contacts = list(contacts)
         for contact in contacts:
+            print("@@@@ Enriching for role", contact)
             client = DbClientsContacts.DBCLIENTS.get_one(contact['clients_id'])
             contact['_client'] =  client
             contact = DbClientsContacts.DBCONTACTS.get_one(contact['contacts_id'])
             contact['_contact'] = contact
 
-        contacts = list(contacts)
+        print("@@@@ Found", len(contacts), "CLIENT_CONTACTS")
+        return contacts
 
     def has_any(self, clients_id: str) -> bool:
         """
