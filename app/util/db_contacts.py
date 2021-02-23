@@ -42,10 +42,11 @@ class DbContacts(Database):
         try:
             filter_ = {'_id': contact_id}
             document = self.dbconn[COLLECTION_NAME].find_one(filter_)
-        except Exception:
+        except Exception as e:
+            self.logger.error("Error retrieving contact: %s", str(e))
             return None
 
-        if with_case_count:
+        if with_case_count and document:
             filter_ = {'contacts_id': contact_id}
             case_count = self.dbconn['clients_contacts'].count_documents(filter_)
             document['_case_count'] = case_count
