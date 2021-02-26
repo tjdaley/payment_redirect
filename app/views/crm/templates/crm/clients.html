@@ -69,7 +69,7 @@
                 <td>
                     {% if client.email %}
                     <a
-                        href="mailto:{{client.email}}?subject={{client._email_subject}}&cc={{client.email_cc_list or default_cc_list}}"
+                        href="mailto:{{client.email}}?subject={{client._email_subject}}&cc={{client._email_cc_list}}"
                         class="btn btn-outline-secondary fa fa-envelope"
                         data-tooltip="tooltip" data-placement="top" title="Send Email to {{client.email}}"
                         role="button">
