@@ -161,7 +161,7 @@
 
     <button class="btn btn-primary my-3" type="submit">Save</button>
     <a href="/crm/contacts" class="btn btn-secondary my-3 mx-3">Cancel</a>
-    {%if contact._case_count > 0 %}
+    {%if "_case_count" in contact and contact._case_count > 0 %}
     <a href="/crm/contact_clients/{{contact._id}}/" class="btn btn-secondary float-right">Linked Cases: {{contact._case_count}}</a>
     {%endif%}
 </form>
