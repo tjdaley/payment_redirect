@@ -74,7 +74,8 @@ client_tabs = [{
     'a_class': default_a_class,
     'name': 'plan',
     'label': "Plan",
-    'selected': 'false'
+    'selected': 'false',
+    'required_authorization': 'PIONEER_USER'
 }, {
     'li_class': default_li_class,
     'a_class': default_a_class,

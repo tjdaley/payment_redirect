@@ -29,12 +29,16 @@
                 {% endif %}
                 <th>Billing ID</th>
                 <th>Client Name</th>
+                {% if 'PIONEER_USER' in authorizations %}
                 <th></th>
+                {%endif%}
                 <th>Email</th>
                 <th>Call</th>
                 <th>SMS</th>
                 <th>Notes</th>
+                {% if 'PIONEER_USER' in authorizations %}
                 <th>Discovery</th>
+                {%endif%}
                 <th class="d-none d-md-table-cell">Mediation Date</th>
                 <th class="d-none d-md-table-cell">Trial Date</th>
                 <th class="text-right d-none d-md-block">Trust Balance</th>
@@ -52,6 +56,7 @@
                 <td class="highlightable">
                     {{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}
                 </td>
+                {% if 'PIONEER_USER' in authorizations %}
                 <td>
                     <a
                         href="/client_tools/{{client._id}}/"
@@ -60,29 +65,26 @@
                         role="button">
                     </a>
                 </td>
-                {% if client.email %}
+                {%endif%}
                 <td>
+                    {% if client.email %}
                     <a
                         href="mailto:{{client.email}}?subject={{client._email_subject}}&cc={{client.email_cc_list or default_cc_list}}"
                         class="btn btn-outline-secondary fa fa-envelope"
                         data-tooltip="tooltip" data-placement="top" title="Send Email to {{client.email}}"
                         role="button">
                     </a>
+                    {% endif %}
                 </td>
-                {% else %}
-                <td></td>
-                {% endif %}
-                {% if client.telephone.strip() != '' %}
                 <td>
+                    {% if client.telephone.strip() != '' %}
                     <button
                         class="btn btn-outline-secondary fa fa-phone"
                         data-tooltip="tooltip" data-placement="top" title="Call {{client.telephone | phone_number}}"
                         onclick="dial('{{client.telephone}}')">
                     </button>
+                    {%endif%}
                 </td>
-                {% else %}
-                <td></td>
-                {% endif %}
                 <td>
                     <button
                         class="btn btn-outline-secondary fa fa-comments"
@@ -102,6 +104,7 @@
                         href="/crm/notes/{{client._id}}/"
                     ></a>
                 </td>
+                {% if 'PIONEER_USER' in authorizations %}
                 <td>
                     {% if client._discovery_flag %}
                     <a
@@ -111,6 +114,7 @@
                     ></a>
                     {%endif%}
                 </td>
+                {%endif%}
                 <td class="d-none d-md-table-cell">{{client.mediation_date or ''}}</td>
                 <td class="d-none d-md-table-cell">{{client.trial_date or ''}}</td>
                 <td class="text-right d-none d-md-table-cell">{{"${:,.2f}".format(client.trust_balance or 0)}}</td>

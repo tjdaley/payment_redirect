@@ -152,6 +152,20 @@ def auth_edit_global_settings(f):
     return wrap
 
 
+# Decorator to see if user is a test user (crash test dummy)
+def auth_pioneer(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if AUTH.AUTH_PIONEER in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized as a test user", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
 def _get_authorizations(user_email: str) -> list:
     database = DbAdmins()
     return database.authorizations(user_email)
