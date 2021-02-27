@@ -116,6 +116,59 @@ driver's license number is XXXXX456, the *client_id* would be '123456V'.
 
 Start at [portal.azure.com](https://portal.azure.com).
 
+## Email Lists
+
+There are several email lists that are combined in differnt ways, depending on the context of the email.
+
+Here are the lists:
+1. clients.email_cc_list
+1. clients.admin_users
+2. admins.default_cc_list
+3. contacts.email_cc
+4. clients_contacts.email_cc
+
+### Emails to Clients
+
+When generating an email to our client, we combine these lists:
+1. If clients.email_cc_list is populated, use clients.email_cc_list.
+2. Otherwise use clients.admin_users
+
+_Client wants all emails copied to another person_
+So, if a client has a parent or other person who is to be copied on all emails,
+populate the clients.email_cc_list with the email addresses provided by the client
+to copy **AND** include internal email addresses that should receive all client
+communications.
+
+For example: Suppose the client wants all emails to her to be copied to her brother at
+brother@family.com and that the following internal people need to be copied: tom@lawfirm.com and james@lawfirm.com. In that
+scenario, populate clients.email_cc_list as follows: ```brother@family.com;tom@lawfirm.com;james@lawfirm.com```.
+
+_Some internal people who have access to this client record do NOT want to be copied on all emails to the client_
+Say lawyer1@lawfirm.com; lawyer2@lawfirm.com, and para1@lawfirm.com all have access to this client. That means
+that each of those emails is in the clients.admin_users list. However, suppose laweryer1@lawfirm.com does NOT want
+to be copied on all client emails. To override this list, and assuming the client did not ask for someone to
+be copied on all emails, populate clients.email_cc_list as follows: ```lawer2@lawfirm.com;para1@lawfirm.com```. In
+doing that, lawye1@lawfirm.com will still have access to the case file, but will not receive emails sent to clients.
+
+### Emails to Contacts in Connection with a Case
+
+When generating an email to a contact in connection with a case, e.g. clicking the email button from within the
+_players_ tab of the _client_ view, we use these lists:
+1. If clients_contacts.email_cc is populated, use clients_contacts.email_cc
+2. Otherwise, combine contacts.email_cc with clients.admin_users
+
+_Contact wants all emails sent to an assistant, specific to this case._
+When linking the contact to the case, specify an email cc list. This list must contain the emails that the contact
+wants us to copy PLUS internal emails that should be copied when emailing this contact.
+
+_Some internal people who have access to this client record do NOT want to be copied on all emails to the contact_
+Say lawyer1@lawfirm.com; lawyer2@lawfirm.com, and para1@lawfirm.com all have access to this client. That means
+that each of those emails is in the clients.admin_users list. However, suppose laweryer1@lawfirm.com does NOT want
+to be copied on all emails to a particular contact. To override this list, and assuming the contact did not ask for someone to
+be copied on all emails, populate clients_contacts.email_cc as follows: ```lawer2@lawfirm.com;para1@lawfirm.com```. In
+doing that, lawye1@lawfirm.com will still have access to the case file, but will not receive emails sent to this contact.
+
+
 ## Author
 
 Thomas J. Daley, J.D. is an active family law litigation attorney practicing primarily in Collin County, Texas, a family law mediator, and software developer. My Texas based family law practice is limited to divorce, child custody, child support, enforcment, and modification suits. [Web Site](https://koonsfuller.com/attorneys/tom-daley/)
