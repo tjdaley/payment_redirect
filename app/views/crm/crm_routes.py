@@ -69,6 +69,8 @@ def client_tools(client_id: str):
         authorizations=authorizations
     )
 
+"""
+Commented out 02/27/2021 by TJD
 
 @crm_routes.route('/crm/client_contacts/<string:client_id>/<int:page_num>/', methods=['GET'])
 @crm_routes.route('/crm/client_contacts/<string:client_id>/', methods=['GET'])
@@ -90,7 +92,7 @@ def list_client_contacts(client_id, page_num: int = 1):
         email_subject=email_subject,
         client_id=client_id
     )
-
+"""
 
 @crm_routes.route('/crm/contact_clients/<string:contact_id>/<int:page_num>/', methods=['GET'])
 @crm_routes.route('/crm/contact_clients/<string:contact_id>/', methods=['GET'])
@@ -118,10 +120,10 @@ def list_contact_clients(contact_id, page_num: int = 1):
 def list_contacts(page_num: int = 1):
     user_email = session['user']['preferred_username']
     user = DBADMINS.admin_record(user_email)
-    user_ccs = user.get('default_cc_list', '').split(',')
+    user_ccs = user.get('default_cc_list', '').replace(',', ';').split(';')
     contacts = DBCONTACTS.get_list(user_email, page_num=page_num)
     for contact in contacts:
-        contact_ccs = contact.get('cc_list', '').split(',')
+        contact_ccs = contact.get('cc_list', '').replace(',', ';').split(';')
         contact['cc_list'] = ';'.join(user_ccs + contact_ccs)
 
     authorizations = _get_authorizations(user_email)
@@ -235,7 +237,7 @@ def list_clients():
         client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
         client['_notes_flag'] = DBNOTES.has_any(client['_id'])
         client['_discovery_flag'] = DBDISCOVERY.has_any(client['_id'])
-        client['_email_cc_list'] = _fix_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
+        client['_email_cc_list'] = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
     return render_template(
         'crm/clients.html',
         clients=clients,
@@ -260,7 +262,7 @@ def search_clients(page_num: int = 1):
         client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
         client['_notes_flag'] = DBNOTES.has_any(client['_id'])
         client['_discovery_flag'] = DBDISCOVERY.has_any(client['_id'])
-        client['_email_cc_list'] = _fix_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
+        client['_email_cc_list'] = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
 
     return render_template(
         'crm/clients.html',
@@ -288,7 +290,7 @@ def add_client():
         default_access_list = ",".join([user_email.lower(), default_access_list])
 
     client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
-    client['_email_cc_list'] = _fix_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
+    client['_email_cc_list'] = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
 
     return render_template(
         "crm/client.html",
@@ -329,7 +331,7 @@ def save_client():
     
     client = form.data  # noqa pylint: disable=no-member
     client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
-    client['_email_cc_list'] = _fix_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
+    client['_email_cc_list'] = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
 
     return render_template(
         'crm/client.html',
@@ -360,9 +362,10 @@ def show_client(id):
 
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
-    contacts = _client_contacts(user_email, id)
+    client_email_cc_list = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
     client['_email_subject'] = DBCLIENTS.get_email_subject(id)
-    client['_email_cc_list'] = _fix_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
+    client['_email_cc_list'] = client_email_cc_list
+    contacts = _client_contacts(user_email, id)
 
     return render_template(
         'crm/client.html',
@@ -370,7 +373,6 @@ def show_client(id):
         form=form,
         new_child=child_form,
         our_pay_url=our_pay_url,
-        default_cc_list=user.get('default_cc_list', ''),
         tabs=client_tabs,
         contacts=contacts,
         authorizations=authorizations
@@ -1000,24 +1002,14 @@ def _client_contacts(user_email: str, client_id: str) -> list:
     Returns:
         (list): List of contact objects.
     """
-    # See if we have a client-specific set of emails to CC
     client = DBCLIENTS.get_one(client_id)
-    our_cc_str = client.get('email_cc_list')
-
-    # If not, then use the default email CC list for this user
-    if not our_cc_str:
-        user = DBADMINS.admin_record(user_email)
-        our_cc_str = user.get('default_cc_list')
-
-    # Combine our CC list into the CC list for this contact
-    our_ccs = our_cc_str.split(',')
     contacts = DBCLIENT_CONTACTS.get_list(user_email, clients_id=client_id)
     if contacts is None:
         return []
 
     for contact in contacts:
-        contact_ccs = (contact.get('email_cc', '')).split(',')
-        contact['cc_list'] = ';'.join(our_ccs + contact_ccs)
+        contact_ccs = _client_contact_email_cc_list(client, contact['_contact'], user_email)
+        contact['cc_list'] = contact_ccs
 
     return contacts
 
@@ -1090,9 +1082,10 @@ def _search_client_plan_id(search_client_id):
     return None
 
 
-def _fix_email_cc_list(client_cc_list: str, user_cc_list: str, user_email: str) -> str:
+def _client_email_cc_list(client_cc_list: str, user_cc_list: str, user_email: str) -> str:
     """
-    Create a fixed-up and filtered email cc list. The client can have a cc-list
+    Create a fixed-up and filtered email cc list for emails to the client.
+    The client can have a cc-list
     that is specific to that client. If so, use that. If not, use the default
     cc-list for this user. Remove this user from the cc-list.
 
@@ -1118,4 +1111,36 @@ def _fix_email_cc_list(client_cc_list: str, user_cc_list: str, user_email: str) 
         return ';'.join(ccs)
 
     return ''
+
+def _client_contact_email_cc_list(client: dict, contact: dict, user_email: str) -> str:
+    """
+    Create an email CC list for emails directed to a contact that is linked
+    to a client case.
+
+    Args:
+        client (dict): The document from the clients collection.
+        contact (dict): The document from the contacts collection.
+        user_email (str): This user's email address
     
+    Returns:
+        (str): Delimted list of emails to cc on an email to this contact for this case.
+    """
+    my_email = user_email.replace(' ', '').lower()
+
+    contact_link = DBCLIENT_CONTACTS.get_link(my_email, client['_id'], contact['_id'])
+    if contact_link is None:
+        # This is a data integrity error or an application error
+        return ''
+    
+    # See if we have case-specific emails to use when emailing this contact
+    if '@' in contact_link.get('email_cc', ''):
+        ccs = contact_link['email_cc'].replace(' ', '').replace(',', ';').lower()
+        ccs = ccs.split(';')
+        ccs = [email for email in ccs if email != my_email]
+        return ';'.join(ccs)
+
+    # If not, join the contact's default cc list with our case access list
+    ccs = [email for email in client['admin_users'] if email != my_email]
+    contact_ccs = contact.get('email_cc', '').replace(' ', '').replace(',', ';').lower().split(';')
+    ccs += contact_ccs
+    return ';'.join(ccs)
