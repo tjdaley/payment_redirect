@@ -238,6 +238,11 @@ class ClientForm(FlaskForm):
         "Admin emails",
         [validators.DataRequired()]
     )
+
+    # This is the CC list for emails to the client.
+    # The CC list for emails other than to the client is a combination
+    # of the admin_users (for internal CCs) and the cc list for
+    # the contact (if emailing to a contact).
     email_cc_list = StringField(
         "Email CC list"
     )
