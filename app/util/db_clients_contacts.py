@@ -167,6 +167,35 @@ class DbClientsContacts(Database):
             return True
         return False
 
+    def get_link(self, email: str, clients_id: str, contacts_id: str) -> dict:
+        """
+        Retrieve a clients_contacts record given a clients._id and a contacts._id.
+
+        Args:
+            email (str): Email of user requesting the unlink.
+            clients_id (str): Clients_ID to be searched
+            contacts_id (str): Contacts_ID to be searched
+
+        Returns:
+            (bool): True if successful, otherwise False
+        """
+        if isinstance(clients_id, str):
+            client_object_id = ObjectId(clients_id)
+        else:
+            client_object_id = clients_id
+        
+        if isinstance(contacts_id, str):
+            contact_object_id = ObjectId(contacts_id)
+        else:
+            contact_object_id = contacts_id
+
+        filter_ = {
+            'clients_id': client_object_id,
+            'contacts_id': contact_object_id
+        }
+        link = self.dbconn[COLLECTION_NAME].find_one(filter_)
+        return link
+
     def unlink(self, email: str, clients_id: str, contacts_id: str) -> bool:
         """
         Mark a clients_contacts intersection record as inactive.
