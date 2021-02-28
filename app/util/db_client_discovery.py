@@ -90,7 +90,7 @@ class DbClientDiscovery(Database):
 
     def save(self, email: str, doc: dict) -> dict:
         """
-        Save a notes record
+        Save a discovery request record
         """
         doc['client_id'] = ObjectId(doc['clients_id'])
         doc['last_editor'] = email
