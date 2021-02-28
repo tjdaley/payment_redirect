@@ -755,7 +755,7 @@ def _decode_task_assignments(assignments: dict):
     """
     _load_user_list()
     users = []
-    for user_id, assignment in assignments.items():
+    for user_id, assignment in assignments.items():  # noqa pylint: disable=unused-variable
         users_name = USERS.get_field(user_id, USERS.UserFields.FIRST_NAME)
         users.append(users_name)
     return '(' + ', '.join(users) + ')'
