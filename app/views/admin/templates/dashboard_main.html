@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h1>Dashboard</h1>
+    <div class="row">
+        <div class="col-md-3">
+            <table class="border border-{{db_status_class}}">
+                <tr>
+                    <th>Database</th><td>{{db_stats['db']}}</td>
+                </tr>
+                <tr>
+                    <th>Collections</th><td>{{db_stats['collections']}}</td>
+                </tr>
+                <tr></tr>
+                {% for key, value in db_stats.items() %}
+                <tr><th>{{key}}</th><td>{{value}}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="col-md-3">
+            <h3>Collections</h3>
+            <table>
+                {% for collection, items in collections.items() %}
+                <tr><th>{{collection}}</th><td class="float-right">{{items}}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="col-md-3">
+            <table>
+                {% for collection, items in collections.items() %}
+                <tr>
+                    <th>{{collection}}</th>
+                    <td class="float-right">{{items}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="col-md-3">
+            <table>
+                {% for collection, items in collections.items() %}
+                <tr>
+                    <th>{{collection}}</th>
+                    <td class="float-right">{{items}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -166,6 +166,20 @@ def auth_pioneer(f):
     return wrap
 
 
+# Decorator to see if user is a Super User
+def auth_super_user(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        user_email = session['user']['preferred_username']
+        authorizations = _get_authorizations(user_email)
+        if AUTH.AUTH_SUPER_USER in authorizations:
+            return f(*args, **kwargs)
+        else:
+            flash("Your account has not been authorized as a super user", "danger")
+            return redirect(url_for(LOGIN_FUNCTION))
+    return wrap
+
+
 def _get_authorizations(user_email: str) -> list:
     database = DbAdmins()
     return database.authorizations(user_email)

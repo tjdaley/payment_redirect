@@ -25,6 +25,7 @@ import msftconfig
 from util.db_admins import DbAdmins
 from util.db_clients import DbClients
 from util.database import multidict2dict
+from util.database import Database
 from util.db_users import DbUsers
 from util.msftgraph import MicrosoftGraph
 from util.userlist import Users
@@ -159,9 +160,9 @@ def save_global_file():
 
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    form.groups.data = request.form['groups']
-    form.attorneys.data = request.form['attorneys']
-    form.authorizations.data = request.form['authorizations']
+    form.groups.data = request.form['groups']  # noqa pylint: disable=no-member
+    form.attorneys.data = request.form['attorneys']  # noqa pylint: disable=no-member
+    form.authorizations.data = request.form['authorizations']  # noqa pylint: disable=no-member
     return render_template('user.html', client=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
@@ -321,6 +322,30 @@ def send_evergreens():
     user_email = session['user']['preferred_username']
     send_evergreen(user_email)
     return redirect(url_for('admin_routes.list_clients'))
+
+@admin_routes.route('/dashboard', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_super_user
+def dashboard_main():
+    # Database Stats
+    db = Database()
+    db_stats = db.dbconn.command("dbstats", 1024)
+    db_status = int(db_stats.get('ok', -1))
+    if db_status == 1:
+        db_status_class = "success"
+    else:
+        db_status_class = "danger"
+
+    collections = {
+        collection: db.dbconn[collection].count_documents({}) for collection in db.dbconn.list_collection_names()
+    }
+
+    return render_template(
+        'dashboard_main.html',
+        db_stats = db_stats,
+        db_status_class=db_status_class,
+        collections=collections
+    )
 
 
 @admin_routes.route("/clients/csv/", methods=['GET'])

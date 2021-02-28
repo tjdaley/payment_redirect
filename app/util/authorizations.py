@@ -12,7 +12,8 @@ AUTH_TEMPLATE_ADMIN = 'TEMPLATE_ADMIN'
 AUTH_USER_ADMIN = "USER_ADMIN"
 AUTH_EDIT_REFERRER = 'EDIT_REFERRER'
 AUTH_EDIT_GLOBAL_SETTINGS = 'EDIT_GLOBAL_SETTINGS'
-AUTH_PIONEER = "PIONEER_USER"
+AUTH_PIONEER = 'PIONEER_USER'
+AUTH_SUPER_USER = 'SUPER_USER'
 
 AUTHORIZATIONS = [
     {'key': AUTH_CRM_USER, 'description': "Access CRM features"},
@@ -24,7 +25,8 @@ AUTHORIZATIONS = [
     {'key': AUTH_USER_ADMIN, 'description': "Administer Users"},
     {'key': AUTH_EDIT_REFERRER, 'description': "Edit referrer"},
     {'key': AUTH_EDIT_GLOBAL_SETTINGS, 'description': "Edit global settings"},
-    {'key': AUTH_PIONEER, 'description': "Pioneer (test) user"}
+    {'key': AUTH_PIONEER, 'description': "Pioneer (test) user"},
+    {'key': AUTH_SUPER_USER, 'description': "Super User"}
 ]
 
 AUTHORIZATION_OPTIONS = [(a['key'], a['description']) for a in AUTHORIZATIONS]
