@@ -101,7 +101,7 @@ def save_template():
 @DECORATORS.auth_manage_templates
 def delete_template(email_template_name):
     user_email = session['user']['preferred_username']
-    result = TEMPLATE_MANAGER.delete_template(user_email, email_template_name)  # NOQA
+    result = TEMPLATE_MANAGER.delete_template(user_email, email_template_name)  # noqa pylint: disable=unused-variable
     return redirect(url_for('admin_routes.list_templates'))
 
 
