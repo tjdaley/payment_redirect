@@ -227,6 +227,14 @@ class ClientForm(FlaskForm):
         "Telephone",
         [validators.Optional()]
     )
+    alt_telephone = TelField(
+        "Alt telephone",
+        [validators.Optional()]
+    )
+    alt_telephone_desc = StringField(
+        "Description",
+        [validators.Optional()]
+    )
     check_digit = StringField(
         "Check digit"
     )

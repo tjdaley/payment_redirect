@@ -356,7 +356,7 @@ def cleanup(doc: dict):
         doc['email'] = doc['email'].strip().lower()
 
     # Normalize telephone numbers
-    phone_number_fields = ['telephone']
+    phone_number_fields = ['telephone', 'alt_telephone']
     for field in phone_number_fields:
         if field in doc:
             doc[field] = normalize_telephone_number(doc[field])
