@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+{% block body %}
+<span class="h1 my-3">Discovery Requests Served on Us</span><br />
+<span class="h3 my-3">{{client_name}} ({{client.billing_id}})</span>
+<table class="table">
+    <tr>
+        <th>Served On</th>
+        <th>Type</th>
+        <th>Requests</th>
+        <th>Cleaned Up?</th>
+        <th></th>
+    </tr>
+    {% for request in discovery_list %}
+    <tr>
+        <td><a href="/discovery/requests/{{client._id}}/{{request._id}}/">{{request.time_str}}</a></td>
+        <td>{{request.discovery_type}}</td>
+        <td>{{request.requests|length}}</td>
+        <td>{% if request.cleaned_up == 1 %}Y{% endif %}</td>
+        <td><a href="/discovery/response/{{client._id}}/{{request._id}}/"
+            class="btn btn-sm fas fa-file-download" role="button"></a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -1,7 +1,65 @@
 {% extends 'layout.html' %}
 {% block body %}
-<h1>Client Tools - {{client.name | fullname}}</h1>
-{% from 'includes/_formhelpers.html' import render_field %}
 
+{% from 'includes/_formhelpers.html' import render_field %}
+<div class="container-fluid p-0">
+        <div class="row">
+            <div class="col-2 bg-secondary text-white">
+                <h5 class="text-center">CLIENT TOOLS</h3>
+                <div class="border-top border-bottom border-secondary border-dark text-center">
+                    <span class="text-warning">{{client.name | fullname}}</span>
+                </div>
+                <ul class="nav flex-column">
+                    <ul class="list-unstyled mb-5">
+                        <li class="active mb-1 mt-1">
+                            <a href="#childsupportSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white">Child Support</a>
+                            <ul class="collapse list-unstyled text-white" id="childsupportSubmenu">
+                                <li>
+                                    <a href="#" class="text-white">Calculate</a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-white">Arrearage</a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-white">Enforcement</a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-white">Violations</a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="mb-1 mt-1">
+                            <a href="#" class="text-white">About</a>
+                        </li>
+                        <li class="mb-1 mt-1">
+                            <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white mb-3">Pages</a>
+                            <ul class="collapse list-unstyled" id="pageSubmenu">
+                                <li>
+                                    <a href="#" class="text-white">Page 1</a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-white">Page 2</a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-white">Page 3</a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="mb-1 mt-1">
+                            <a href="#" class="text-white">Portfolio</a>
+                        </li>
+                        <li class="mb-1 mt-1">
+                            <a href="#" class="text-white">Contact</a>
+                        </li>
+                    </ul>
+                </ul>
+            </div>
+            <div class="col">
+                Tool Area
+            </div>
+        </div>
+</div>
 
 {% endblock %}

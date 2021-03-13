@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block body %}
+<span class="h1 my-3">{{discovery_requests.discovery_type}} Requests Served on Us</span>
+<a class="btn btn-primary btn-sm float-right my-3 fas fa-file-download" href="/discovery/response/{{client._id}}/{{discovery_requests._id}}/"></a><br />
+<span class="h3 my-3">{{client_name}} ({{client.billing_id}})</span>
+<table class="table">
+    <tr>
+        <th>#</th>
+        <th>Request / Response</th>
+        <th></th>
+    </tr>
+    {% for request in discovery_requests.requests %}
+    <tr>
+        <td>{{request.number}}</td>
+        <td class="fw-bolder">{{request.request}}</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>{{request.response}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
