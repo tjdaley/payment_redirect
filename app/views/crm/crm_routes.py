@@ -330,7 +330,7 @@ def save_client():
     child_form = ChildForm()
     
     client = form.data  # noqa pylint: disable=no-member
-    client['_email_subject'] = DBCLIENTS.get_email_subject(client['_id'])
+    client['_email_subject'] = DBCLIENTS.get_email_subject(client.get('_id'))
     client['_email_cc_list'] = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
 
     return render_template(
