@@ -1,9 +1,9 @@
 """
-app.py - Flask-based server.
+server.py - Entry point to CRM server
 
 @author Thomas J. Daley, J.D.
 @version: 0.0.1
-Copyright (c) 2020 by Thomas J. Daley, J.D.
+Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 import os
 from flask import Flask, render_template, redirect, url_for
@@ -19,6 +19,7 @@ from views.admin.admin_routes import admin_routes
 from views.discovery.discovery_routes import discovery_routes
 from views.crm.crm_routes import crm_routes
 from views.payment.payment_routes import payment_routes
+from views.tools.tools_routes import tools_routes
 from views.admin.forms.ClientForm import CRM_STATES
 from views.admin.forms.ClientForm import CASE_TYPES
 
@@ -44,6 +45,7 @@ app.register_blueprint(admin_routes)
 app.register_blueprint(crm_routes)
 app.register_blueprint(discovery_routes)
 app.register_blueprint(payment_routes)
+app.register_blueprint(tools_routes)
 
 
 # jinja filters
