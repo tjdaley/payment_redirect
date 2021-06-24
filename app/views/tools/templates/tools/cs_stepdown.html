@@ -22,18 +22,24 @@
     <input type="submit">
 </form>
 {% if stepdown_schedule %}
-<table class="table">
+<table class="table table-striped table-sm">
     <thead>
         <th>Payment Until</th>
         <th>Child Aging Out</th>
-        <th>Payment</th>
+        <th style="text-align:right">Weekly</th>
+        <th style="text-align:right">Bi-Weekly</th>
+        <th style="text-align:right">Semi-Monthly</th>
+        <th style="text-align:right">Monthly</th>
     </thead>
     <tbody>
 {% for stepdown in stepdown_schedule %}
         <tr>
             <td>{{stepdown.last_payment_date | date}}</td>
             <td>{{stepdown.child.name}}</td>
-            <td>{{"${:,.2f}".format(stepdown.payment_amount)}}</td>
+            <td style="text-align:right">{{"${:,.2f}".format(stepdown.payment_amount*12/52)}}</td>
+            <td style="text-align:right">{{"${:,.2f}".format(stepdown.payment_amount*12/26)}}</td>
+            <td style="text-align:right">{{"${:,.2f}".format(stepdown.payment_amount*12/24)}}</td>
+            <td style="text-align:right">{{"${:,.2f}".format(stepdown.payment_amount)}}</td>
         </tr>
 {% endfor %}
     </tbody>
