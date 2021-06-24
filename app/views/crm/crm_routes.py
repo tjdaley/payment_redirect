@@ -56,43 +56,6 @@ DIRECTORY = CourtDirectory()
 
 crm_routes = Blueprint('crm_routes', __name__, template_folder='templates')
 
-@crm_routes.route('/client_tools/<string:client_id>/', methods=['GET'])
-@DECORATORS.is_logged_in
-@DECORATORS.auth_crm_user
-def client_tools(client_id: str):
-    user_email = session['user']['preferred_username']
-    client = DBCLIENTS.get_one(client_id)
-    authorizations = _get_authorizations(user_email)
-    return render_template(
-        'crm/tools.html',
-        client=client,
-        authorizations=authorizations
-    )
-
-"""
-Commented out 02/27/2021 by TJD
-
-@crm_routes.route('/crm/client_contacts/<string:client_id>/<int:page_num>/', methods=['GET'])
-@crm_routes.route('/crm/client_contacts/<string:client_id>/', methods=['GET'])
-@DECORATORS.is_logged_in
-@DECORATORS.auth_crm_user
-def list_client_contacts(client_id, page_num: int = 1):
-    user_email = session['user']['preferred_username']
-    contacts = _client_contacts(user_email, client_id)
-    cl_name = DBCLIENTS.get_client_name(client_id)
-    email_subject = DBCLIENTS.get_email_subject(client_id)
-    authorizations = _get_authorizations(user_email)
-    return render_template(
-        'crm/contacts.html',
-        contacts=contacts,
-        authorizations=authorizations,
-        prev_page_num=page_num - 1,
-        next_page_num=page_num + 1,
-        client_name=cl_name,
-        email_subject=email_subject,
-        client_id=client_id
-    )
-"""
 
 @crm_routes.route('/crm/contact_clients/<string:contact_id>/<int:page_num>/', methods=['GET'])
 @crm_routes.route('/crm/contact_clients/<string:contact_id>/', methods=['GET'])
