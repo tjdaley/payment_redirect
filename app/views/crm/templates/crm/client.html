@@ -14,16 +14,12 @@
         </div>
 
         <!--NAVIGATION TABS-->
-        <ul class="nav nav-tabs" id="client_tabs" role="tablist">
+        <nav class="nav nav-pills" role="tablist">
             {% for tab in tabs %}
-                {% if (tab.get('required_authorization', '') != '' and tab.get('required_authorization') in authorizations) or (tab.get('required_authorization', '') == '') %}
-            <li class="{{tab.li_class}}">
-                <a class="{{tab.a_class}}" id="{{tab.name}}-tab" data-toggle="tab" href="#{{tab.name}}" role="tab" aria-controls="{{tab.name}}"
-                    aria-selected="{{tab.selected}}">{{tab.label}}</a>
-            </li>
-                {% endif %}
+                <a class="{{tab.a_class}}" id="{{tab.name}}-tab" data-toggle="tab" href="#{{tab.name}}" role="tab" aria-label="{{tab.name}}"
+                aria-selected="{{tab.selected}}">{{tab.label}}</a>
             {% endfor %}
-        </ul>
+        </nav>
 
         <!--TAB CONTENT-->
         <div class="tab-content" id="client_tab_content">

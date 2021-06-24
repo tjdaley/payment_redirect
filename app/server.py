@@ -16,6 +16,7 @@ import msftconfig # NOQA
 
 from util.database import Database, do_upgrades
 from views.admin.admin_routes import admin_routes
+from views.discovery.discovery_routes import discovery_routes
 from views.crm.crm_routes import crm_routes
 from views.payment.payment_routes import payment_routes
 from views.admin.forms.ClientForm import CRM_STATES
@@ -28,6 +29,24 @@ do_upgrades()
 DEBUG = int(os.environ.get('DEBUG', '0'))
 
 
+app = Flask(__name__)
+app.config.from_mapping(
+    CLIENT_SECRET=os.environ['AZURE_CLIENT_SECRET'],
+    SESSION_TYPE='mongodb',
+    SESSION_MONGODB=MongoClient(os.environ['DB_URL']),
+    SECRET_KEY=os.environ.get('FLASK_FORM_SECRET_KEY', 'aas;ldfkjiruetnviupi842nvutj4iv'),
+    EXPLAIN_TEMPLATE_LOADING=False
+)
+Session(app)
+
+# Blueprints for routes
+app.register_blueprint(admin_routes)
+app.register_blueprint(crm_routes)
+app.register_blueprint(discovery_routes)
+app.register_blueprint(payment_routes)
+
+
+# jinja filters
 def phone_filter(value):
     return f"{value[2:5]}-{value[5:8]}-{value[8:]}"
 
@@ -60,19 +79,6 @@ def newlines_filter(value: str) -> str:
         return value.replace('\n', '<br />')
     return value
 
-
-app = Flask(__name__)
-app.config.from_mapping(
-    CLIENT_SECRET=os.environ['AZURE_CLIENT_SECRET'],
-    SESSION_TYPE='mongodb',
-    SESSION_MONGODB=MongoClient(os.environ['DB_URL']),
-    SECRET_KEY=os.environ.get('FLASK_FORM_SECRET_KEY', 'aas;ldfkjiruetnviupi842nvutj4iv')
-)
-Session(app)
-
-app.register_blueprint(admin_routes)
-app.register_blueprint(crm_routes)
-app.register_blueprint(payment_routes)
 app.jinja_env.filters['phone_number'] = phone_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['crm_state'] = crm_state_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['fullname'] = fullname_filter  # noqa pylint: disable=no-member

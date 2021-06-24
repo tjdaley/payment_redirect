@@ -32,9 +32,9 @@
                         <div class="input-group-prepend">
                             <div class="input-group-text">
                                 {% if client.mediation_retainer_flag == 'Y' %}
-                                {{form.mediation_retainer_flag(value="Y", checked="Y")}}
+                                {{form.mediation_retainer_flag(value="Y", checked="Y", aria_label="Mediation retainer flag")}}
                                 {% else %}
-                                {{form.mediation_retainer_flag(value="Y")}}
+                                {{form.mediation_retainer_flag(value="Y", aria_label="Mediation retainer flag")}}
                                 {% endif %}
                             </div>
                         </div>
@@ -47,9 +47,9 @@
                         <div class="input-group-prepend">
                             <div class="input-group-text">
                                 {% if client.trial_retainer_flag == 'Y' %}
-                                {{form.trial_retainer_flag(value='Y', checked='Y')}}
+                                {{form.trial_retainer_flag(value='Y', checked='Y', aria_label="Trial retainer flag")}}
                                 {% else %}
-                                {{form.trial_retainer_flag(value='Y')}}
+                                {{form.trial_retainer_flag(value='Y', aria_label="Trial retainer flag")}}
                                 {% endif %}
                             </div>
                         </div>
@@ -67,9 +67,9 @@
                         <div class="input-group-append">
                             <div class="input-group-text" title="Check for Final Bill">
                                 {% if client.final_bill_flag == 'Y' %}
-                                {{form.final_bill_flag(value="Y", checked="Y")}}
+                                {{form.final_bill_flag(value="Y", checked="Y", aria_label="Final bill flag")}}
                                 {% else %}
-                                {{form.final_bill_flag(value="Y")}}
+                                {{form.final_bill_flag(value="Y", aria_label="Final bill flag")}}
                                 {% endif %}
                             </div>
                         </div>

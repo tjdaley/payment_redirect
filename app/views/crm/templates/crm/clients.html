@@ -13,9 +13,9 @@
 
 <form method='POST' action="{{url_for('crm_routes.search_clients', page_num=1)}}">
     <div class="input-group mb-3">
-        <input type="search" class="form-control" id="search" name="query" />
+        <input type="search" class="form-control" id="search" name="query" aria-label="Client search text" />
         <div class="input-group-append">
-            <button class="btn btn-outline-secondary fa fa-search" type="submit"></button>
+            <button class="btn btn-outline-secondary fa fa-search" type="submit" aria-label="Search"></button>
         </div>
     </div>
 </form>
@@ -62,6 +62,7 @@
                         href="/client_tools/{{client._id}}/"
                         class="btn btn-outline-secondary fas fa-tools"
                         data-tooltip="tooltip" data-placement="top" title="Client Tools"
+                        aria-label="Client Tools"
                         role="button">
                     </a>
                 </td>
@@ -72,6 +73,7 @@
                         href="mailto:{{client.email}}?subject={{client._email_subject}}&cc={{client._email_cc_list}}"
                         class="btn btn-outline-secondary fa fa-envelope"
                         data-tooltip="tooltip" data-placement="top" title="Send Email to {{client.email}}"
+                        aria-label="Send Email to {{client.email}}"
                         role="button">
                     </a>
                     {% endif %}
@@ -81,6 +83,7 @@
                     <button
                         class="btn btn-outline-secondary fa fa-phone"
                         data-tooltip="tooltip" data-placement="top" title="Call {{client.telephone | phone_number}}"
+                        aria-label="Call {{client.telephone | phone_number}}"
                         onclick="dial('{{client.telephone}}')">
                     </button>
                     {%endif%}
@@ -93,6 +96,7 @@
                         data-target="#smsMessageModal"
                         data-placement="top"
                         title="Send Text"
+                        aria-label="Send Text Message"
                         data-tooltip="tooltip"
                         data-toggle="modal">
                     </button>
@@ -101,6 +105,7 @@
                     <a
                         class="btn fa fa-sticky-note {% if client._notes_flag %}btn-outline-success{%else%}btn-outline-secondary{%endif%}"
                         data-tooltip="tooltip" data-placement="top" title="Notes"
+                        aria-label="Notes"
                         href="/crm/notes/{{client._id}}/"
                     ></a>
                 </td>
@@ -110,7 +115,8 @@
                     <a
                         class="btn btn-outline-secondary fas fa-binoculars"
                         data-tooltip="tooltip" data-placement="top" title="Discovery"
-                        href="/crm/discovery/{{client._id}}/"
+                        aria-label="Discovery"
+                        href="/discovery/list/{{client._id}}/"
                     ></a>
                     {%endif%}
                 </td>

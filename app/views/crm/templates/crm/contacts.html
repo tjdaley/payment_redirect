@@ -20,9 +20,9 @@
 <form method='POST' action="{{url_for('crm_routes.search_contacts', page_num=1)}}">
     <div class="input-group mb-3">
         <input type="hidden" name="client_id" value="{{client_id or 0}}" />
-        <input type="search" class="form-control" id="search" name="query" />
+        <input type="search" class="form-control" id="search" name="query" aria-label="Contact search text" />
         <div class="input-group-append">
-            <button class="btn btn-outline-secondary fa fa-search" type="submit"></button>
+            <button class="btn btn-outline-secondary fa fa-search" type="submit" aria-label="Search"></button>
         </div>
     </div>
 </form>
@@ -54,7 +54,8 @@
         {% if contact.email %}
         <td>
             <a href="mailto:{{contact.email}}?subject={{email_subject}}&cc={{contact.cc_list}}" class="btn btn-outline-secondary fa fa-envelope" data-toggle="tooltip"
-                data-placement="top" title="Send Email to {{contact.email}}" role="button">
+                data-placement="top" title="Send Email to {{contact.email}}" role="button"
+                aria-label="Send Email to {{contact.email}}">
             </a>
         </td>
         {% else %} 
@@ -63,7 +64,8 @@
         {% if contact.office_phone.strip() != '' %}
         <td>
             <button class="btn btn-outline-secondary fa fa-phone" data-toggle="tooltip" data-placement="top"
-                title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')">
+                title="Call Office: {{contact.office_phone | phone_number}}" onclick="dial('{{contact.office_phone}}')"
+                aria-label="Call Office: {{contact.office_phone | phone_number}}">
             </button>
         </td>
         {% else %}
@@ -72,14 +74,16 @@
         {% if contact.cell_phone.strip() != '' %}
         <td>
             <button class="btn btn-outline-secondary fa fa-mobile" data-toggle="tooltip" data-placement="top"
-                title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')">
+                title="Call cell: {{contact.cell_phone | phone_number}}" onclick="dial('{{contact.cell_phone}}')"
+                aria-label="Call cell: {{contact.cell_phone | phone_number}}">
             </button>
         </td>
         <td>
             <button class="btn btn-outline-secondary fa fa-comments"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.last_name}}"
                 data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
-                title="Send Text" data-tooltip="tooltip" data-toggle="modal">
+                title="Send Text" data-tooltip="tooltip" data-toggle="modal"
+                aria-label="Send Text">
             </button>
         </td>
         {% else %}
@@ -87,24 +91,25 @@
         <td></td>
         {% endif %}
         <td class="d-none d-md-table-cell">
-            <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client_id or 0}}/"></a>
+            <a class="btn btn-outline-secondary fas fa-file-download" href="/crm/util/contact_letter/{{contact._id}}/{{client_id or 0}}/" aria-label="Download letter"></a>
         </td>
         <td class="d-none d-md-table-cell">
             <button class="btn btn-outline-secondary fa fa-link" data-contactid="{{contact._id}}"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}"
                 data-jobtitle="{{contact.job_title}}" data-organization="{{contact.organization}}" data-target="#assignClientModal" data-placement="top"
-                title="Link to client" data-tooltip="tooltip" data-toggle="modal">
+                title="Link to client" data-tooltip="tooltip" data-toggle="modal"
+                aria-label="Link to client">
             </button>
         </td>
         {% if 'DOWNLOAD_VCARD' in authorizations %}
         <td>
             <a class="btn btn-outline-primary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/pro/"
-                title="VCard for Professionals" data-tooltip="tooltip">
+                title="VCard for Professionals" data-tooltip="tooltip" aria-label="VCard for Professionals">
             </a>
         </td>
         <td class="d-none d-md-table-cell">
             <a class="btn btn-outline-secondary far fa-address-card" href="/crm/data/contact/vcard/{{contact._id}}/nonpro/"
-                title="VCard for Clients" data-tooltip="tooltip">
+                title="VCard for Clients" data-tooltip="tooltip" aria-label="VCard for Clients">
             </a>
         </td>
         {% endif %}

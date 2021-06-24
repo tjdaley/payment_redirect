@@ -20,14 +20,14 @@ class DbClientDiscovery(Database):
     def __init__(self):
         super().__init__(DB_NAME)
     """
-    Encapsulates a database accessor for client notes
+    Encapsulates a database accessor for discovery directed to our client
     """
     def get_one(self, id: str) -> dict:
         """
-        Return a notes record given an ID.
+        Return a discovery requests record given an ID.
 
         Args:
-            id (str): The mongodb ID of the note document to retrieve
+            id (str): The mongodb ID of the discovery requests document to retrieve
         Returns:
             (dict): The located document or None
         """

@@ -106,7 +106,8 @@
                         <div class="input-group-append">
                             <div class="input-group-text" title="Download letter">
                                 <a href="/crm/util/contact_letter/{{contact._id}}/{{client_id or 0}}/"
-                                    class="btn btn-sm fas fa-file-download" role="button">
+                                    class="btn btn-sm fas fa-file-download" role="button"
+                                    aria-label="Download letter">
                                 </a>
                                 <button
                                     class="btn btn-sm fa fa-ellipsis-v"
@@ -151,7 +152,7 @@
             <div class="form-row">
                 <div class="form-group col">
                     <div class="input-group">
-                        <textarea class="form-control rounded-3" id="notes" name="notes" rows="5">{{contact.notes}}</textarea>
+                        <textarea class="form-control rounded-3" id="notes" name="notes" rows="5" aria-label="Notes">{{contact.notes}}</textarea>
                     </div>
                 </div>
             </div>
