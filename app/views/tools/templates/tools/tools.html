@@ -15,7 +15,10 @@
                             <a href="#childsupportSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white">Child Support</a>
                             <ul class="collapse list-unstyled text-white" id="childsupportSubmenu">
                                 <li>
-                                    <a href="#" class="text-white">Calculate</a>
+                                    <a href="/client_tools/{{client._id}}/cs_calc" class="text-white">Calculate</a>
+                                </li>
+                                <li>
+                                    <a href="/client_tools/{{client._id}}/cs_stepdown" class="text-white">Stepdown</a>
                                 </li>
                                 <li>
                                     <a href="#" class="text-white">Arrearage</a>
@@ -57,7 +60,8 @@
                 </ul>
             </div>
             <div class="col">
-                Tool Area
+                {% block tool_area %}
+                {% endblock %}
             </div>
         </div>
 </div>

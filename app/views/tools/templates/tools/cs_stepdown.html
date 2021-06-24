@@ -1,0 +1,42 @@
+{% extends "tools/tools.html" %}
+{% block tool_area %}
+<h4>Stepdown Schedule</h1>
+{% from 'includes/_formhelpers.html' import render_field %}
+<form method='POST' action="{{url_for('tools_routes.cs_stepdown', client_id=client._id)}}">
+    <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">Parameters</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{render_field(form.payment_amount, class_="form-control", value=form_data.payment_amount)}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{render_field(form.children_not_before_court, class_="form-control", value=form_data.children_not_before_court)}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="submit">
+</form>
+{% if stepdown_schedule %}
+<table class="table">
+    <thead>
+        <th>Payment Until</th>
+        <th>Child Aging Out</th>
+        <th>Payment</th>
+    </thead>
+    <tbody>
+{% for stepdown in stepdown_schedule %}
+        <tr>
+            <td>{{stepdown.last_payment_date | date}}</td>
+            <td>{{stepdown.child.name}}</td>
+            <td>{{"${:,.2f}".format(stepdown.payment_amount)}}</td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

@@ -5,6 +5,7 @@ server.py - Entry point to CRM server
 @version: 0.0.1
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
+from datetime import datetime
 import os
 from flask import Flask, render_template, redirect, url_for
 from flask_session import Session
@@ -64,6 +65,10 @@ def case_type_filter(value):
     return dict(CASE_TYPES).get(value, None)
 
 
+def date_filter(value):
+    return datetime.strftime(value, '%m/%d/%Y')
+
+
 def fullname_filter(value):
     return " ".join([
         value.get('last_name', '').upper()+",",
@@ -86,6 +91,7 @@ app.jinja_env.filters['crm_state'] = crm_state_filter  # noqa pylint: disable=no
 app.jinja_env.filters['fullname'] = fullname_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['newlines'] = newlines_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['case_type'] = case_type_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['date'] = date_filter  # noqa pylint: disable=no-member
 
 
 @app.route('/', methods=['GET'])
