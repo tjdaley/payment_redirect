@@ -158,10 +158,10 @@ def add_contact():
 def save_contact():
     form = ContactForm()
     form.process(formdata=request.form)  # noqa pylint: disable=no-member
+    fields = form.data  # noqa pylint: disable=no-member
+    fields['_id'] = request.form.get('_id', '0')
 
     if form.validate():
-        fields = form.data  # noqa pylint: disable=no-member
-        fields['_id'] = request.form.get('_id', '0')
         user_email = session['user']['preferred_username']
         result = DBCONTACTS.save(user_email, fields)
         if result['success']:
@@ -173,7 +173,7 @@ def save_contact():
 
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    return render_template('crm/client.html', client=fields, form=form, operation="Correct", tabs=client_tabs, authorizations=authorizations)
+    return render_template('crm/contact.html', contact=fields, form=form, operation="Correct", authorizations=authorizations)
 
 
 @crm_routes.route('/crm/contact/search/<int:page_num>/', methods=['POST'])
