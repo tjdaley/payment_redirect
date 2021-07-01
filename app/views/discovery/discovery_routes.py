@@ -53,7 +53,7 @@ def discovery_requests(client_id: str, discovery_requests_id: str):
     discovery_requests = DBDISCOVERY.get_one(discovery_requests_id)
     if discovery_requests is None:
         flash(f"Discovery requests not found ({discovery_requests_id})")
-        return redirect(url_for('discovery_list', client_id=client_id))
+        return redirect(url_for('discovery_routes.discovery_list', client_id=client_id))
 
     client = DBCLIENTS.get_one(client_id)
     client_name = DBCLIENTS.get_client_name(client_id, True)
@@ -96,6 +96,21 @@ def discovery_response(client_id: str, discovery_requests_id: str):
     flash("Error merging discovery responses - Check logs.", 'danger')
     return redirect(url_for('discovery_routes.discovery_requests', client_id=client_id, discovery_requests_id=discovery_requests_id))
 
+@discovery_routes.route('/discovery/del/request/<string:doc_id>/<string:discovery_requests_id>/', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def discovery_del_request(doc_id: str, discovery_requests_id: str):
+    user_email = session['user']['preferred_username']
+    result = DBDISCOVERY.del_one_request(user_email, doc_id, discovery_requests_id)
+    return jsonify(result)
+
+@discovery_routes.route('/discovery/update/request/', methods=['POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def discovery_update_request():
+    user_email = session['user']['preferred_username']
+    result = DBDISCOVERY.update_one_request(user_email, multidict2dict(request.form))
+    return jsonify(result)
 
 def _get_filename_date():
     """

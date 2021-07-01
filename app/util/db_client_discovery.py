@@ -88,6 +88,60 @@ class DbClientDiscovery(Database):
             return True
         return False
 
+    def del_one_request(self, email: str, doc_id: str, request_number: str) -> dict:
+        """
+        Delete one discovery request from the discovery_requests document.
+
+        Args:
+            email (str): Email of user making the request.
+            doc_id (str): discovery_requests._id value
+            request_number (str): Index of item to be deleted.
+        
+        Returns:
+            (dict): success: True/False, message: explains problems; number: request_number
+        """
+        result = self.dbconn[COLLECTION_NAME].update_one(
+            {'_id': ObjectId(doc_id)},
+            {'$pull': {'requests': {'number': int(request_number)}}}
+        )
+
+        if result.matched_count == 0:
+            return {'success': False, 'message': "Document not found."}
+        if result.modified_count == 0:
+            return {'success': False, 'message': "Request not found."}
+        return {'success': True, 'message': "OK", 'number': request_number}
+
+    def update_one_request(self, email: str, doc: dict) -> dict:
+        """
+        Update one discovery request from the discovery_requests document.
+
+        Args:
+            email (str): Email of user making the request.
+            doc (dict): Fields to be updated.
+    
+        Returns:
+            (dict): success:  True/False, message: explains problems; number: request_number
+        """
+        request_items = ['request', 'privileges', 'objections', 'withholding_statement', 'response']
+        update_doc = {f'request.$.{f}': doc.get(f) for f in request_items if f in doc}
+        query = {'_id': ObjectId(doc.get('doc_id', None)), 'requests.number': int(doc.get('request_number'))}
+        print(' QUERY '.center(80, '*'))
+        print(query)
+        print(' UPDATE '.center(80, '*'))
+        print(update_doc)
+        updates = {'$set': update_doc}
+        try:
+            result = self.dbconn[COLLECTION_NAME].update_one(query, updates)
+        except Exception as e:
+            self.logger.error(e)
+            return {'success': False, 'message': str(e)}
+
+        if result.matched_count == 0:
+            return {'success': False, 'message': "Document not found."}
+        if result.modified_count == 0:
+            return {'success': False, 'message': "Request not found."}
+        return {'success': True, 'message': "OK", 'number': doc.get('request_number', -1), 'modified_count': result.modified_count}
+
     def save(self, email: str, doc: dict) -> dict:
         """
         Save a discovery request record

@@ -495,7 +495,7 @@ def authorized():
         session['user'] = result.get('id_token_claims')
         MSFT.save_cache(cache)
 
-    return redirect(url_for('admin_routes.list_clients'))
+    return redirect(url_for('crm_routes.list_clients'))
 
 
 @admin_routes.route('/logout')

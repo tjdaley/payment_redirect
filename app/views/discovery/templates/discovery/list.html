@@ -17,7 +17,7 @@
         <td>{{request.requests|length}}</td>
         <td>{% if request.cleaned_up == 1 %}Y{% endif %}</td>
         <td><a href="/discovery/response/{{client._id}}/{{request._id}}/"
-            class="btn btn-sm fas fa-file-download" role="button"></a></td>
+            class="btn btn-sm fas fa-file-download" role="button" aria-label="Download requests"></a></td>
     </tr>
     {% endfor %}
 </table>

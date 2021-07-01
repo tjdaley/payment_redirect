@@ -1,23 +1,437 @@
 {% extends 'layout.html' %}
 {% block body %}
 <span class="h1 my-3">{{discovery_requests.discovery_type}} Requests Served on Us</span>
-<a class="btn btn-primary btn-sm float-right my-3 fas fa-file-download" href="/discovery/response/{{client._id}}/{{discovery_requests._id}}/"></a><br />
+<a class="btn btn-primary btn-sm float-right my-3 fas fa-file-download" href="/discovery/response/{{client._id}}/{{discovery_requests._id}}/" aria-label="Download"></a><br />
 <span class="h3 my-3">{{client_name}} ({{client.billing_id}})</span>
-<table class="table">
-    <tr>
-        <th>#</th>
-        <th>Request / Response</th>
-        <th></th>
-    </tr>
+<input type="hidden" id="_id" value="{{discovery_requests._id}}" />
+<ul class="list-group">
     {% for request in discovery_requests.requests %}
-    <tr>
-        <td>{{request.number}}</td>
-        <td class="fw-bolder">{{request.request}}</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>{{request.response}}</td>
-    </tr>
-    {% endfor %}
-</table>
+    <li class="list-group-item" id="row_{{request.number}}">
+        <div class="row">
+            <div class="col-md-1">
+                <div class="row">
+                    <a href="/discovery/request/{{id}}//{{request.number}}">
+                        {{request.number}}
+                    </a>
+                </div>
+            </div>
+            <div class="col-11">
+                <div class="row">
+                    <div class="col-10">
+                        <div class="editable" contenteditable="true" id="request_{{request.number}}">{{request.request}}</div> 
+                    </div>
+                    <div class="col-2">
+                        <button
+                            type="button"
+                            onclick="confirm_del_request({{request.number}}, '{{discovery_requests._id}}')"
+                            id="del_{{request.number}}"
+                            class="btn btn-danger btn-sm float-right delete_button"
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="Delete this request."
+                            aria-label="Delete this request">
+                            <i class="far fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Buttons Panel -->
+                <div class="d-none d-sm-none d-md-block">
+                    <div class="row mb-3 mt-1">
+                        <div class="col-2">
+                            <button class="btn btn-outline-primary btn-sm" type="button" data-toggle="collapse" data-target="#priv_panel_{{request.number}}">Privileges</button>
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-outline-success btn-sm" type="button" data-toggle="collapse" data-target="#obj_panel_{{request.number}}">Objections</button>
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-outline-danger btn-sm" type="button" data-toggle="collapse" data-target="#wh_panel_{{request.number}}">Withholding</button>
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-outline-info btn-sm" type="button" data-toggle="collapse" data-target="#resp_panel_{{request.number}}">Response</button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-success btn-sm float-right" type="button" onclick="save_request({{request.number}}, '{{discovery_requests._id}}');" aria-label="Save"><i class=" far fa-save"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-sm-block d-xs-block d-md-none d-lg-none d-xl-none">
+                    <div class="row mb-3 mt-1">
+                        <div class="col-2">
+                            <button class="btn btn-outline-primary btn-sm" type="button" data-toggle="collapse" data-target="#priv_panel_{{request.number}}">P</button>
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-outline-success btn-sm" type="button" data-toggle="collapse" data-target="#obj_panel_{{request.number}}">O</button>
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-outline-danger btn-sm" type="button" data-toggle="collapse" data-target="#wh_panel_{{request.number}}">W</button>
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-outline-info btn-sm" type="button" data-toggle="collapse" data-target="#resp_panel_{{request.number}}">R</button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-success btn-sm float-right" type="button" onclick="save_request({{request.number}}, '{{discovery_requests._id}}');" aria-label="Save"><i class=" far fa-save"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                <!-- Privileges Panel -->
+                    <div class="col-11">
+                        <div class="collapse multi-collapse" id="priv_panel_{{request.number}}">
+                            <div class="card card-body border-primary text-white bg-primary mb-3">
+                                <div class="card-title"><span class="h6">Privileges</span></div>
+                                <div class="card-text editable bg-white text-primary" contenteditable="true" id="priv_text_{{request.number}}">{{request.privileges}}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Objections Panel -->
+                    <div class="col-11">
+                        <div class="collapse multi-collapse" id="obj_panel_{{request.number}}">
+                            <div class="card card-body border-success text-white bg-success mb-3">
+                                <div class="card-title"><span class="h6">Objections</span></div>
+                                <div class="card-text editable bg-white text-success" contenteditable="true" id="obj_text_{{request.number}}">{{request.objections}}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Withholding Statement Panel -->
+                    <div class="col-11">
+                        <div class="collapse multi-collapse" id="wh_panel_{{request.number}}">
+                            <div class="card card-body border-danger text-white bg-danger mb-3">
+                                <div class="card-title"><span class="h6">Withholding Statement</span></div>
+                                <div class="editable bg-white text-danger" contenteditable="true" id="wh_text_{{request.number}}">{{request.withholding_statement}}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Response Panel -->
+                    <div class="col-11">
+                        <div class="collapse multi-collapse" id="resp_panel_{{request.number}}">
+                            <div class="card card-body border-info text-white bg-info mb-3">
+                                <div class="card-title"><span class="h6">Response</span></div>
+                                <div class="editable bg-white text-info" contenteditable="true" id="resp_text_{{request.number}}">{{request.response}}</div>
+                            </div>
+                        </div>
+                    </div>
+<!--
+                <div class="row">
+                    <div class="col-md-11 bg-secondary text-white">
+                        <div class="editable" contenteditable="true" id="response_{{request.number}}">
+                            {{request.response}}
+                        </div> 
+                    </div>
+                    <div class="col-md-1">
+                        <div class="row">
+                            <button
+                                type="button"
+                                id="obj_{{request.number}}"
+                                class="btn btn-warning btn-sm float-right object_button"
+                                data-toggle="modal"
+                                data-target="#ObjectionModal"
+                                data-placement="bottom"
+                                data-requestnumber="{{request.number}}"
+                                title="Raise standard objections.">
+                                <i class="fas fa-gavel"></i>
+                            </button>
+                        </div>
+                        <div class="row">
+                            <button type="button" id="obj_{{request.number}}" class="btn btn-success btn-sm float-right response_button"
+                                data-toggle="modal" data-target="#ResponseModal" data-placement="bottom"
+                                data-requestnumber="{{request.number}}" title="Select Response">
+                                <i class="fas fa-gavel"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            -->
+            </div>
+        </div>
+    </li>
+{% endfor %}
+</ul>>
+
+<script>
+    function confirm_del_request(request_number, doc_id)
+    {
+        if (confirm("Delete Request #" + request_number + "?"))
+        {
+            $.get(
+                "/discovery/del/request/" + doc_id + "/" + request_number + "/",
+                function(data)
+                {
+                    if (data.success == true)
+                    {
+                        var e = document.getElementById('row_' + data.number);
+                        e.remove();
+                    }
+                    else
+                    {
+                        alert(data.message);
+                    }
+                }
+            );
+        }
+    }
+
+    function save_request(request_number, doc_id)
+    {
+        var req_text = document.getElementById('request_' + request_number).textContent;
+        var priv_text = document.getElementById('priv_text_' + request_number).textContent;
+        var obj_text = document.getElementById('obj_text_' + request_number).textContent;
+        var wh_text = document.getElementById('wh_text_' + request_number).textContent;
+        var resp_text = document.getElementById('resp_text_' + request_number).textContent;
+        var data = {
+            doc_id: doc_id,
+            request_number: request_number,
+            request: req_text,
+            privileges: priv_text,
+            objections: obj_text,
+            withholding_statement: wh_text,
+            response: resp_text
+        };
+        console.log(data);
+        var url = '/discovery/update/request/';
+        $.post(url, data)
+        .done(function(data)
+        {
+            console.log(data);
+        });
+    }
+
+    function add_delete_listeners()
+    {
+        let del_buttons = document.getElementsByClassName('delete_button');
+        for (let button of del_buttons)
+        {
+            button.addEventListener('click', function(event)
+            {
+                let target_name = event.target.id;
+                let target_number = target_name.split('_')[1];
+                let text_id = 'request_' + target_number;
+                let db_id = document.getElementById('_id').value;
+                //controller.deleteDiscoveryRequest(db_id, target_number);
+                let row = document.getElementById('row_'+target_number);
+                row.style.display = "none";
+            });
+        }
+    }
+
+    function add_toggle_listeners()
+    {
+        $("#cleaned_button").change(function()
+        {
+            let value = $(this).prop('checked') ? 1 : 0;
+            console.log("Cleaned up? " + value);
+            let db_id = document.getElementById('_id').value;
+            //controller.setDiscoveryDocumentCleanedUp(db_id, value);
+        });
+    }
+
+    function clear_objections()
+    {
+        $('.objection').prop('checked', 0);
+    }
+
+    function clear_responses()
+    {
+        $('.response').prop('checked', 0);
+    }
+
+    function get_selected_objections()
+    {
+        let objections = [];
+        $.each($('.objection' + ':checked'), function(index, element)
+        {
+            objections.push(element.value);
+        });
+
+        return objections;
+    }
+
+    function get_selected_response()
+    {
+        let responses = [];
+        $.each($('.response' + ':checked'), function(index, element)
+        {
+            responses.push(element.value);
+        });
+
+        return responses;
+    }
+
+    /**
+     * Callback function for controller.getObjectionText()
+     */
+    function append_objections(request_number,objections)
+    {
+        request_elem = $('#response_' + request_number)[0];
+        request_text = request_elem.innerText;
+        var new_text = '';
+
+        $.each(objections, function(index, objection)
+        {
+            new_text += "\tOBJECTION: " + objection.text + "\n";
+        });
+
+        var new_content = new_text + request_text;
+        request_elem.innerText = new_content;
+    }
+
+    function get_objection_text(objections, request_number)
+    {
+        result = ''; //controller.getObjectionText(objections, request_number, append_objections);
+        return result;
+    }
+
+    function get_objection_options()
+    {
+        discovery_type = $('#discovery_type').text();
+        result = []; //controller.getObjectionOptions(discovery_type, create_objection_options);
+        return result;
+    }
+
+    function create_objection_options(objections)
+    {
+        /*
+        For each possible objection, create a div like this:
+
+        <div class="form-check">
+            <input class="form-check-input objection" type="checkbox" value="RELEVANCE" id="obj_relevance">
+            <label class="form-check-label" for="obj_relevance">Relevance</label>
+        </div>
+        */
+        $.each(objections, function(idx, objection)
+        {
+            var div = '<div class="form-check">' +
+                '<input class="form-check-input objection" type="checkbox" value="'+objection.label+'" id="obj_'+objection.label+'">' +
+                '<label class="form-check-label" for="obj_'+objection.label+'">'+objection.text+'</label>' +
+                '</div>';
+            $('.objection-modal-body form').append(div);
+        });
+    }
+
+    function save_objections()
+    {
+        $('#save_objections').on('click', function()
+        {
+            let button = event.target;
+            let element = $('#objection_request_number');
+            let request_number = element.text();
+            objections = get_selected_objections();
+            get_objection_text(objections, request_number);
+            $('#ObjectionModal').modal('hide');
+            clear_objections();
+            show_save_button(request_number);
+        });
+    }
+
+    function populate_objection_modal()
+    {
+        $("#ObjectionModal").on('show.bs.modal', function(event)
+        {
+            var button = $(event.relatedTarget);
+            var request_number = button.data('requestnumber');
+            var modal = $(this);
+            modal.find('#objection_request_number').text(request_number);
+        });
+    }
+
+    /************
+     * Responses
+     ************/
+    function append_responses(request_number, responses)
+    {
+        request_elem = $('#response_' + request_number)[0];
+        request_text = request_elem.innerText;
+        var new_text = '';
+
+        $.each(responses, function(index, objeresponsection)
+        {
+            new_text += "\tRESPONSE: " + response.text + "\n";
+        });
+
+        var new_content = new_text + request_text;
+        request_elem.innerText = new_content;
+    }
+
+    function get_response_text(responses, request_number)
+    {
+        result = ''; //controller.getResponseText(responses, request_number, append_responses);
+        return result;
+    }
+
+    function get_response_options()
+    {
+        discovery_type = $('#discovery_type').text();
+        result = []; //controller.getResponseOptions(discovery_type, create_response_options);
+        return result;
+    }
+
+    function create_response_options(responses)
+    {
+        /*
+        For each possible response, create a div like this:
+
+        <div class="form-check">
+            <input class="form-check-input response" type="checkbox" value="PERMITTED" id="resp_permitted">
+            <label class="form-check-label" for="resp_permitted">Discovery will be permitted</label>
+        </div>
+        */
+        $.each(responses, function(idx, response)
+        {
+            var div = '<div class="form-check">' +
+                '<input class="form-check-input response" type="checkbox" value="'+response.label+'" id="resp_'+response.label+'">' +
+                '<label class="form-check-label" for="resp_'+response.label+'">'+response.text+'</label>' +
+                '</div>';
+            $('.response-modal-body form').append(div);
+        });
+    }
+
+    function save_responses()
+    {
+        $('#save_responses').on('click', function()
+        {
+            let button = event.target;
+            let element = $('#response_request_number');
+            let request_number = element.text();
+            responses = get_selected_responses();
+            get_response_text(responses, request_number);
+            $('#ResponseModal').modal('hide');
+            clear_responses();
+            show_save_button(request_number);
+        });
+    }
+
+    function populate_response_modal()
+    {
+        $("#ResponseModal").on('show.bs.modal', function(event)
+        {
+            var button = $(event.relatedTarget);
+            var request_number = button.data('requestnumber');
+            var modal = $(this);
+            modal.find('#response_request_number').text(request_number);
+        });
+    }
+
+
+    function discovery_requests_init()
+    {
+        document.addEventListener('DOMContentLoaded', function()
+        {
+            add_toggle_listeners();
+            populate_objection_modal();
+            save_objections();
+            get_objection_options();
+            populate_response_modal();
+            save_responses();
+            get_response_options();
+        });
+    }
+
+    discovery_requests_init();
+</script>
 {% endblock %}

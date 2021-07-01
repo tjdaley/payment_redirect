@@ -21,6 +21,7 @@ COURTESY_TITLES = [
     ('Mr.', "Mr."),
     ('Ms.', "Ms."),
     ('Dr.', "Dr."),
+    ('Dep.', "Dep."),
     ('Hon.', "Hon.")
 ]
 
@@ -49,6 +50,7 @@ CASE_TYPES = [
     ('DMST', "Discovery Master"),
     ('MTORT', "Marital Torts"),
     ('INTV', "Intervenor"),
+    ('GUARD', "Guardianship"),
     ('XXXX', "Other")
 ]
 
