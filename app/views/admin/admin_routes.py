@@ -364,6 +364,101 @@ def download_clients_csv():
     )
 
 
+@admin_routes.route("/clients/csv/deadline_checklist", methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.is_admin_user
+@DECORATORS.auth_download_clients
+def download_clients_csv_deadline_checklist():
+    user_email = session['user']['preferred_username']
+    drop_cols =[
+        '_id',
+        'active_flag',
+        'address',
+        'address1',
+        'admin_users',
+        'attorney_initials',
+        'check_digit',
+        'client_dl',
+        'client_name',
+        'client_ssn',
+        'city',
+        'client_dob',
+        'completion_date',
+        'crm_state',
+        'email',
+        'filed_date',
+        'final_bill_flag',
+        'marriage_date',
+        'mediation_date',
+        'mediation_retainer',
+        'mediation_retainer_flag',
+        'name',
+        'notes',
+        'payment_due',
+        'payment_link',
+        'postal_code',
+        'reference',
+        'refresh_trigger',
+        'retained_date',
+        'salutation',
+        'separation_date',
+        'state',
+        'street',
+        'suffix',
+        'target_retainer',
+        'telephone',
+        'title',
+        'trial_date',
+        'trial_retainer',
+        'trial_retainer_flag',
+        'trust_balance',
+        'trust_balance_update',
+        'unbilled_costs',
+        'unbilled_fees',
+        'billing_address',
+        'cell_phone',
+        'children',
+        'client_dl_state',
+        'client_vehicle',
+        'country',
+        'dental_ins',
+        'email_statements_flag',
+        'employment',
+        'health_ins',
+        'home_phone',
+        'in_county_90_days_flag',
+        'in_state_6_months_flag',
+        'maiden_name',
+        'marriage_place',
+        'op',
+        'place_of_birth',
+        'referrer',
+        'restore_maiden_name_flag',
+        'alt_telephone',
+        'alt_telephone_desc',
+        'csrf_token',
+        'email_cc_list',
+        'evergreen_sent_date',
+        'm365_plan_id',
+        'dob',
+        'home_state',
+        'sex',
+        'ssn'
+    ]
+    clients = DBCLIENTS.get_list_as_csv(
+        user_email,
+        drop_cols=drop_cols,
+        crm_state='070:retained_active'
+    )
+    return Response(
+        clients,
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': 'attachment; filename=client_checklist.csv'
+        }
+    )
+
+
 @admin_routes.route("/client/add/", methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.is_admin_user

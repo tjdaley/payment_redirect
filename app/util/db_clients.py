@@ -125,7 +125,7 @@ class DbClients(Database):
             crm_state=crm_state
         )
 
-    def get_list_as_csv(self, email: str, crm_state=None) -> str:
+    def get_list_as_csv(self, email: str, crm_state=None, drop_cols=None) -> str:
         """
         Return the client list as a CSV string.
         """
@@ -143,11 +143,12 @@ class DbClients(Database):
         clients = clients_to_dataframe(documents)
 
         # Drop columns that don't need to be downloaded
-        clients = clients.drop(
-            columns=[
+        if drop_cols is None:
+            drop_cols = [
                 '_id', 'admin_users', 'check_digit', 'client_dl', 'client_ssn',
                 'active_flag', 'name', 'address', 'address1', 'client_name'
-            ])
+            ]
+        clients = clients.drop(columns=drop_cols, errors='ignore')
 
         # Create and return CSV file.
         csv_export = clients.to_csv(sep=",")
