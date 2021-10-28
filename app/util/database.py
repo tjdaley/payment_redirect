@@ -122,11 +122,12 @@ def multidict2dict(d, blank_dict: dict = None) -> dict:
 def csv_to_list(doc: dict, csv_fields: list):
     """
     Convert the fields where a user can type a comma-separated-list into
-    an actual list.
+    an actual list. Strip trailing and leading whitespace from items.
     """
     for field in csv_fields:
         if field in doc and isinstance(doc[field], (str)):
-            doc[field] = doc[field].strip().lower().split(',')
+            # doc[field] = doc[field].strip().lower().split(',')  # removed 2021.10.28 by TJD
+            doc[field] = [k.strip() for k in doc[field].strip().lower().split(',')]
 
 
 def str_to_dollars(doc: dict, dollar_fields: list):
