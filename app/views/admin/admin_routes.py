@@ -354,7 +354,9 @@ def dashboard_main():
 @DECORATORS.auth_download_clients
 def download_clients_csv():
     user_email = session['user']['preferred_username']
+    print(f"Hello - Download fro user {user_email}")
     clients = DBCLIENTS.get_list_as_csv(user_email)
+    print(f"Retrieved {len(clients)} clients for {user_email}")
     return Response(
         clients,
         mimetype='text/csv',
