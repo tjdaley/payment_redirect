@@ -669,7 +669,7 @@ def get_msft_client_plan(client_id):
 def get_click_up_client_plan(billing_id):
     user_email = session['user']['preferred_username']
     # session['click_up_team_id'] = None
-    if not session['click_up_team_id'] or not session['click_up_workspace_id']:
+    if not 'click_up_team_id' not in session or 'click_up_workspace_id' not in session or session['click_up_team_id'] or not session['click_up_workspace_id']:
         result = _click_up_params(user_email)
         if not result['success']:
             return jsonify(result)
