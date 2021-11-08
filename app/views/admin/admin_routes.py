@@ -9,6 +9,7 @@ import uuid
 import os
 from flask import Blueprint, flash, redirect, render_template, request, Response, session, url_for, send_file
 import urllib
+import requests
 
 import views.decorators as DECORATORS
 from .forms.ClientForm import ClientForm
@@ -191,8 +192,11 @@ def add_user():
 @DECORATORS.is_logged_in
 @DECORATORS.auth_manage_users
 def save_user():
+    import json
     form = UserForm(request.form)
-    fields = dict(request.form)
+
+    # Convert immutable multidict to dict then update list fields
+    fields = json.loads(json.dumps(request.form))
     fields['attorneys'] = request.form.getlist('attorneys')
     fields['groups'] = request.form.getlist('groups')
     fields['authorizations'] = request.form.getlist('authorizations')
@@ -509,6 +513,35 @@ def show_client(id):
     cleanup_client(client)
     our_pay_url = os.environ.get('OUR_PAY_URL')
     return render_template("client.html", client=client, form=form, operation="Update", our_pay_url=our_pay_url, authorizations=authorizations)
+
+
+# After the Click Up login
+# When this route is invoked, Click Up will be giving us an Authorization Code.
+# Once we have that, we need to get an access token for the user.
+@admin_routes.route('/click_up_auth', methods=['GET'])
+def click_up_login():
+    # Save Authorization code
+    auth_code = request.values.get('code')
+    session['click_up_auth_code'] = auth_code
+
+    # Get access token for this user
+    url = os.environ.get('CLICK_UP_BASE_URL') \
+            + '/oauth/token?client_id=' \
+            + os.environ.get('CLICK_UP_CLIENT_ID') \
+            + '&client_secret=' \
+            + os.environ.get('CLICK_UP_CLIENT_SECRET') \
+            + f'&code={auth_code}'
+
+    result = requests.post(url)
+    data = result.json()
+    print('-'*40)
+    print(url)
+    print(data)
+    print('-'*40)
+    session['click_up_access_token'] = data.get('access_token')
+
+    # Redirect the browser somewhere. TODO: Redirect to where we were.
+    return redirect('/')
 
 
 # Login Route for RingCentral's Identity Service
