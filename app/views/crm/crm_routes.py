@@ -8,8 +8,10 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 import io
 import json  # noqa
 from mailmerge import MailMerge
+from requests.sessions import Session
 import msftconfig
 import random
+import requests
 import os
 from csutils import combined_payment_schedule, payments_made, compliance_report, violations, enforcement_report
 
@@ -638,10 +640,10 @@ def save_note(text, tags, client_id, note_id):
     return jsonify(DBNOTES.save(user_email, note))
 
 
-@crm_routes.route('/crm/data/plan/get/<string:client_id>/')
+@crm_routes.route('/crm/data/msft_plan/get/<string:client_id>/')
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
-def get_client_plan(client_id):
+def get_msft_client_plan(client_id):
     user_email = session['user']['preferred_username']
     plan_id = _client_plan_id(client_id, user_email)
     if not plan_id:
@@ -659,6 +661,27 @@ def get_client_plan(client_id):
         plan.append({'title': bucket.get('name'), 'tasks': tasks})
 
     return jsonify(plan)
+
+
+@crm_routes.route('/crm/data/click_up_plan/get/<string:billing_id>/')
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def get_click_up_client_plan(billing_id):
+    user_email = session['user']['preferred_username']
+    # session['click_up_team_id'] = None
+    if not session['click_up_team_id'] or not session['click_up_workspace_id']:
+        result = _click_up_params(user_email)
+        if not result['success']:
+            return jsonify(result)
+
+    # Locate the task list for this client.
+    result = _click_up_list_id(billing_id)
+    if not result['success']:
+        return jsonify({'success': False, 'message': result['message'], 'plan': []})
+
+    # Load the tasks from this list.
+    result = _click_up_list_tasks(result['list_id'])
+    return result
 
 
 @crm_routes.route('/crm/data/plan/create/<string:client_id>/<int:plan_type>/')
@@ -685,6 +708,174 @@ def create_plan(client_id: str, plan_type: int):
     # Task                 Task
     result = MSFT.create_bucket_from_template(_client_plan_id(client_id, user_email), template)
     return jsonify(result)
+
+
+def _click_up_list_id(billing_id: str) -> dict:
+    """
+    Get the list ID based on a client's billing ID.
+
+    Args:
+        billing_id (str): Billing ID for this client. Must appear in parentheses in list comment,
+                          e.g. "Collin, Divorce, 416th, 416-55555-2021 (BILLING_ID)"
+
+    Returns:
+        (dict): Dict having the following keys:
+                success (bool): True if successful, otherwise False
+                message (str): Message that explains the unsuccessful attempt.
+                list_id (str): Click Up list id or None if not found.
+    """
+    access_token = session.get('click_up_access_token')
+    url = os.environ.get('CLICK_UP_BASE_URL', None)
+    headers = {'Authorization': access_token}
+    space_id = session['click_up_workspace_id']
+    result = requests.get(url + '/space/' + space_id + '/list?archived=false', headers=headers)
+    data = result.json()
+    # LOGGER.debug(json.dumps(data, indent=4))
+
+    # Find the listid that corresponds to this billing id
+    list_id = None
+    billing_id_pattern = f'({billing_id})'
+    for task_list in data.get('lists', []):
+        if billing_id_pattern in task_list.get('content', '') or billing_id_pattern in task_list.get('Name', ''):
+            list_id = task_list.get('id', None)
+            break
+    
+    if list_id is None:
+        message = f"Could not find list for client with billing ID '{billing_id_pattern}'"
+        LOGGER.debug(message)
+        result = {'success': False, 'message': message, 'list_id': None}
+    else:
+        message = task_list.get('name') + '//' + task_list.get('content')
+        LOGGER.debug(f"Found target list having ID {list_id}")
+        result = {'success': True, 'message': message, 'list_id': list_id}
+
+    return result
+
+
+def _click_up_list_tasks(list_id: str) -> list:
+    """
+    Get a list of tasks from this list.
+
+    Args:
+        list_id (str): List ID from Click Up
+
+    Returns:
+        (dict): Dict having the following keys:
+                success (bool): True if successful, otherwise False
+                message (str): Message that explains the unsuccessful attempt.
+                tasks (list): List of tasks from the given plan
+    """
+    access_token = session.get('click_up_access_token')
+    url = os.environ.get('CLICK_UP_BASE_URL', None)
+    headers = {'Authorization': access_token}
+    url = f'{url}/list/{list_id}/task?archived=false&page=0&reverse=false&order_by=due_date'
+    result = requests.get(url, headers=headers)
+    data = result.json()
+    LOGGER.debug(json.dumps(data, indent=4))
+
+    # Return the task list
+    return {'success': True, 'message': 'Tasks retrieved', 'tasks': data['tasks']}
+
+
+def _click_up_params(user_email: str) -> dict:
+    """
+    Load a Click Up parameters for this user.
+
+    Args:
+        user_email (str): Email of user making the request.
+    
+    Returns:
+        (dict): A dict containing the elements:
+            'success': (Boolean) True if successful, otherwise False
+            'message': (str) Message to display to the user if not successful
+    """
+    # Make sure the server's environment is set up properly.
+    param_names = ['CLICK_UP_BASE_URL', 'CLICK_UP_REDIRECT_PATH', 'CLICK_UP_AUTH_URL', 'CLICK_UP_CLIENT_ID', 'CLICK_UP_CLIENT_SECRET']
+    missing_params = []
+    for param in param_names:
+        if os.environ.get(param, None) is None:
+            missing_params.append(param)
+
+    if missing_params:
+        LOGGER.error(f"Missing Click Up environment variables: {missing_params}")
+        return {'success': False, 'message': 'Click Up environment is not configured. Check log file.'}
+    
+    # See if the user is logged in to Click Up.
+    access_token = session.get('click_up_access_token')
+    LOGGER.debug(f"Click Up Access Token: {access_token}")
+    if access_token is None:
+        LOGGER.debug('User is not logged in to Click Up')
+        return _make_click_up_login()
+
+    url = os.environ.get('CLICK_UP_BASE_URL', None)
+    headers = {'Authorization': access_token}
+
+    # Get Team ID
+    result = requests.get(url + '/team', headers=headers)
+    data = result.json()
+
+    # See if we need to login in again.
+    ecode = data.get('ECODE', '')
+    if ecode in ['OAUTH_019', 'OAUTH_021', 'OAUTH_025', 'OAUTH_077']:
+        LOGGER.debug(f"User needs to login to Click Up. Again. ECODE={ecode}")
+        session['click_up_access_token'] = None
+        return _make_click_up_login()
+
+    target_team_name = _get_click_up_team_name(user_email)
+    team_id = None
+    for team in data.get('teams', []):
+        if team.get('name', '') == target_team_name:
+            team_id = team.get('id', None)
+            break
+    
+    if team_id is None:
+        message = f"Could not find target team '{target_team_name}'"
+        LOGGER.debug(message)
+        return {'success': False, 'message': message}
+    else:
+        LOGGER.debug(f"Found target team '{target_team_name}' having ID {team_id}")
+        session['click_up_team_id'] = team_id
+
+    # Get Workspace ID
+    result = requests.get(url + '/team/' + team_id + '/space?archived=false', headers=headers)
+    data = result.json()
+    target_workspace_name = _get_click_up_workspace_name(user_email)
+    workspace_id = None
+    for workspace in data.get('spaces', []):
+        if workspace.get('name', '') == target_workspace_name:
+            workspace_id = workspace.get('id', None)
+            break
+    
+    if workspace_id is None:
+        message = f"Could not find workspace team '{target_workspace_name}'"
+        LOGGER.debug(message)
+        return {'success': False, 'message': message}
+    else:
+        LOGGER.debug(f"Found target workspace '{target_workspace_name}' having ID {workspace_id}")
+        session['click_up_workspace_id'] = workspace_id
+    # LOGGER.debug(json.dumps(data, indent=4))
+
+    return {'success': True, 'message': 'Team ID and Workspace ID have been located and bookmarked'}
+
+
+def _make_click_up_login():
+    """
+    Create the dict that prompts the caller to send the user to the Click Up login page to get
+    an Oath authorization code.
+    """
+    auth_url = os.environ.get('CLICK_UP_AUTH_URL')
+    client_id = os.environ.get('CLICK_UP_CLIENT_ID')
+    redirect_uri = os.environ.get('CLICK_UP_REDIRECT_PATH')
+    auth_url = auth_url.replace('{client_id}', client_id).replace('{redirect_uri}', redirect_uri)
+    return (
+        {
+            'success': False,
+            'message': "Click Up login required",
+            'teams': [],
+            'login_required': True,
+            'auth_url': auth_url
+        }
+    )
 
 
 def _load_bucket_tasks(bucket_id: str) -> list:
@@ -794,6 +985,22 @@ def _get_filename_date():
 def _get_authorizations(user_email: str) -> list:
     database = DbAdmins()
     return database.authorizations(user_email)
+
+
+def _get_click_up_workspace_name(user_email: str) -> str:
+    """
+    Returns the user's workspace name OR the environment default
+    """
+    database = DbAdmins()
+    return database.click_up_workspace_name(user_email)
+
+
+def _get_click_up_team_name(user_email: str) -> str:
+    """
+    Returns the user's team name OR the environment default
+    """
+    database = DbAdmins()
+    return database.click_up_team_name(user_email)
 
 
 def _vcard_name(contact: dict) -> str:
