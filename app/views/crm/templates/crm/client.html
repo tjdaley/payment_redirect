@@ -73,7 +73,7 @@
                 alert('btn_load_plan control missing');
                 return;
             }
-            e.addEventListener("click", load_case_plan);
+            e.addEventListener("click", load_click_up_case_plan);
 
             e = document.getElementById('btn_init_disclosures');
             if (!e) {
@@ -369,13 +369,29 @@
             dialer.dial(opts);
         }
 
-        function load_case_plan() {
-            var url = "{{ url_for('crm_routes.get_client_plan', client_id=client.billing_id)}}";
+        function load_msft_case_plan() {
+            var url = "{{ url_for('crm_routes.get_msft_client_plan', client_id=client.billing_id)}}";
             jQuery.get(
                 url,
                 function(data) {
                     console.log(data);
                     show_case_plan(data);
+                }
+            );
+        }
+
+        function load_click_up_case_plan() {
+            var url = "{{ url_for('crm_routes.get_click_up_client_plan', billing_id=client.billing_id)}}";
+            jQuery.get(
+                url,
+                function(data) {
+                    //console.log(data);
+                    if (data.login_required) {
+                        alert(data.auth_url);
+                        window.location.href = data.auth_url;
+                        return false;
+                    }
+                    show_click_up_case_plan(data.tasks);
                 }
             );
         }
@@ -392,7 +408,7 @@
                 '\n\t\t<div class="form-group col-md-6">Task</div>',
                 '\n\t\t<div class="form-group col-md-3">Owner</div>',
                 '\n\t\t<div class="form-group col-md-1">Due</div>',
-                '\n\t\t<div class="form-group col-md-1">%</div>',
+                '\n\t\t<div class="form-group col-md-1">Status</div>',
                 '\n\t\t<div class="form-group col-md-1">Done</div>',
                 '\n\t</div>\n');
             return html;
@@ -403,9 +419,9 @@
                 '\n\t<div class="form-row">',
                 '\n\t\t<div class="form-group col-md-6">', task.title, '</div>',
                 '\n\t\t<div class="form-group col-md-3">', task.assigned_to, '</div>',
-                '\n\t\t<div class="form-group col-md-1">', task.due_date.substring(5, 10), '</div>',
-                '\n\t\t<div class="form-group col-md-1">', task.percent_complete, '%</div>',
-                '\n\t\t<div class="form-group col-md-1">', task.complete_date.substring(5, 10), '</div>',
+                '\n\t\t<div class="form-group col-md-1">', task.due_date, '</div>',
+                '\n\t\t<div class="form-group col-md-1">', task.percent_complete, '</div>',
+                '\n\t\t<div class="form-group col-md-1">', task.complete_date, '</div>',
                 '\n\t</div>\n');
             return html;
 
@@ -413,6 +429,75 @@
 
         function end_plan() {
             return '';
+        }
+
+        function create_click_up_case_plan_html(plan) {
+            var html = '';
+            var title = "Click Up Tasks";
+            html += begin_plan(title);
+
+            plan.forEach((task) => {
+                var _normalized_task = new Object();
+                _normalized_task.title = task.name;
+                _normalized_task.assigned_to = make_click_up_assignee(task.assignees[0], task.name);
+                _normalized_task.due_date = timestamp2Datestr(task.due_date, 'red', 'white', 'black', 'yellow');
+                _normalized_task.percent_complete = make_click_up_task_status(task.status);
+                _normalized_task.complete_date = timestamp2Datestr(task.date_closed);
+                html += plan_task(_normalized_task);
+            });
+            html += end_plan()
+            return html;
+        }
+
+        function make_click_up_task_status(status) {
+            var html = '<span style="background-color:{bgcolor}">{status_text}</span>';
+            html = html.replace('{bgcolor}', status.color);
+            html = html.replace('{status_text}', status.status);
+            return html;
+        }
+
+        function make_click_up_assignee(assignee, task_name) {
+            var html = '<a href="mailto:{email}?subject={{client.name.last_name}} - {subject}">{initials}</a>';
+            html = html.replace('{email}', assignee.email);
+            html = html.replace('{subject}', task_name);
+            html = html.replace('{initials}', assignee.initials);
+            return html;
+        }
+
+        function timestamp2DatestrYYYMMMDD(timestamp) {
+            if (timestamp === null) return '';
+            var date = new Date(parseInt(timestamp));
+            var day = "0" + String(date.getDate());
+            var month = "0" + String(date.getMonth() + 1);
+            var year = String(date.getFullYear());
+            return year + '-' + month.substr(-2) + '-' + day.substr(-2);
+        }
+
+        function timestamp2Datestr(timestamp, past_bg_color, past_fg_color, near_bg_color, near_fg_color) {
+            if (timestamp === null) return '';
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var date = new Date(parseInt(timestamp));
+            var day = "0" + String(date.getDate());
+            var month = months[date.getMonth()];
+            var result = month + ' ' + day.substr(-2);
+
+            // Highlight past-due dates, if asked to.
+            if (timestamp < Date.now() && past_bg_color != null) {
+                result = '<span style="background-color:{bg};color:{fg}">' + result + '</span>';
+                result = result.replace('{bg}', past_bg_color).replace('{fg}', past_fg_color);
+            }
+            // Highlight close-by dates, if asked to.
+            else if (daysFromNow(date) < 15 && near_bg_color) {
+                result = '<span style="background-color:{bg};color:{fg}">' + result + '</span>';
+                result = result.replace('{bg}', near_bg_color).replace('{fg}', near_fg_color);
+            }
+            return result;
+        }
+
+        function daysFromNow(date) {
+            var diff_in_millis = date.getTime() - Date.now();
+            var diff_in_days = diff_in_millis / (1000 * 3600 * 24);
+            return diff_in_days;
         }
 
         function create_case_plan_html(plan) {
@@ -429,6 +514,17 @@
             return html;
         }
 
+        function show_click_up_case_plan(plan) {
+            var html = create_click_up_case_plan_html(plan);
+            e = document.getElementById('case_plan');
+            if (!e) {
+                alert('case_plan element missing');
+            }
+            else {
+                e.innerHTML = html;
+            }
+        }
+
         function show_case_plan(plan) {
             var html = create_case_plan_html(plan);
             e = document.getElementById('case_plan');
@@ -438,7 +534,6 @@
             else {
                 e.innerHTML = html;
             }
-            console.log(html);
         }
 
         function create_disclosures_plan() {
