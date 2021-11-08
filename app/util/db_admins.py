@@ -49,3 +49,30 @@ class DbAdmins(Database):
         """
         admin_record = self.admin_record(email)
         return list(admin_record.get('authorizations', []))
+
+    def click_up_team_name(self, email: str) -> str:
+        """
+        Retrieve the Click Up team name for this user.
+
+        Params:
+            email (str): Email of the user to look up.
+
+        Returns:
+            (str): Team name
+        """
+        admin_record = self.admin_record(email)
+        return admin_record.get('click_up_team_name', os.environ.get('CLICK_UP_DEFAULT_TEAM'))
+
+    def click_up_workspace_name(self, email: str) -> str:
+        """
+        Retrieve the Click Up workspace name for this user.
+
+        Params:
+            email (str): Email of the user to look up.
+
+        Returns:
+            (str): Workspace name
+        """
+        admin_record = self.admin_record(email)
+        print(f"********* EMAIL: '{email}'")
+        return admin_record.get('click_up_workspace_name', os.environ.get('CLICK_UP_DEFAULT_WORKSPACE'))
