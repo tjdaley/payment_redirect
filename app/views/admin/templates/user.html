@@ -128,6 +128,26 @@
         </div>
 
         <div class="card border-primary my-3">
+            <div class="card-header alert-primary">Click Up Workspace Settings</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group col">
+                        {{form.click_up_team_name.label}}
+                        <div class="input-group">
+                            {{form.click_up_team_name(class_="form-control", value=user.click_up_team_name)}}
+                        </div>
+                    </div>
+                    <div class="form-group col">
+                        {{form.click_up_workspace_name.label}}
+                        <div class="input-group">
+                            {{form.click_up_workspace_name(class_="form-control", value=user.click_up_workspace_name)}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-primary my-3">
             <div class="card-header alert-primary">Task Lists</div>
             <div class="card-body">
                 <div class="form-row">
