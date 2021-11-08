@@ -79,3 +79,11 @@ class UserForm(Form):
     default_access_list = StringField(
         "Default access list"
     )
+    click_up_workspace_name = StringField(
+        'Click Up Workspace name',
+        default="Clients"
+    )
+    click_up_team_name = StringField(
+        'Click Up Team name',
+        default="Client Workspace"
+    )
