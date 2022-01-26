@@ -1,0 +1,53 @@
+{% extends "tools/tools.html" %}
+{% block tool_area %}
+<h4>Child Support Violations</h1>
+{% from 'includes/_formhelpers.html' import render_field %}
+<form method='POST' action="{{url_for('tools_routes.cs_violations', client_id=client._id)}}">
+    <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">Parameters</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{render_field(form.cs_payment_amount, class_="form-control", value=form_data.cs_payment_amount)}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{render_field(form.medical_payment_amount, class_="form-control", value=form_data.medical_payment_amount)}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{render_field(form.dental_payment_amount, class_="form-control", value=form_data.dental_payment_amount)}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{render_field(form.start_date, class_="form-control", value=form_data.start_date)}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-12">
+                    {{render_field(form.payments, class_="form-control", value=form_data.payments)}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="submit">
+</form>
+{% if indictments %}
+<table class="table table-striped table-sm">
+    <thead>
+        <th>Violations</th>
+    </thead>
+    <tbody>
+{% for indictment in indictments %}
+        <tr>
+            <td>VIOLATION {{loop.index}}: {{indictment}}</td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

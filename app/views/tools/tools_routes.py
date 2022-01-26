@@ -5,12 +5,16 @@ Copyright (c) 2021 by Thomas J. Daley. All Rights Reserved.
 """
 from datetime import datetime
 from decimal import Decimal
+import locale
 from csutils.stepdown import stepdown
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, json, jsonify, send_file, Response
 from mailmerge import MailMerge
 from csutils import combined_payment_schedule, payments_made, compliance_report, violations, enforcement_report
-
+from views.tools.forms.violation_form import ViolationForm
 from views.tools.forms.stepdown_form import StepdownForm
+from views.tools.templates.tools.cs_utils.combined_payment_schedule import combined_payment_schedule
+from views.tools.templates.tools.cs_utils.payments_made import payments_made
+from views.tools.templates.tools.cs_utils.compliance_report import compliance_report, enforcement_report, violations
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
@@ -96,6 +100,55 @@ def cs_stepdown(client_id: str):
         client=client,
         authorizations=authorizations,
         stepdown_schedule = []
+    )
+
+
+@tools_routes.route('/client_tools/<string:client_id>/cs_violations', methods=['GET', 'POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def cs_violations(client_id: str):
+    user_email = session['user']['preferred_username']
+    client = DBCLIENTS.get_one(client_id)
+    authorizations = _get_authorizations(user_email)
+    form = ViolationForm(request.form)
+    form_data = {
+        'cs_payment_amount': form.cs_payment_amount.data or '0.00',
+        'medical_payment_amount': form.medical_payment_amount.data or '0.00',
+        'dental_payment_amount': form.dental_payment_amount.data or '0.00',
+        'start_date': form.start_date.data or '',
+        'payments': form.payments.data or ''
+    }
+
+    if request.method == 'POST' and form.validate():
+        payments_due = combined_payment_schedule(
+            children = [{'name': "Olivia Grace Thomas", 'dob': datetime(2005, 9, 21)}],
+            initial_child_support_payment=Decimal(form_data['cs_payment_amount']),
+            health_insurance_payment=Decimal(form_data['medical_payment_amount']),
+            dental_insurance_payment=Decimal(form_data['dental_payment_amount']),
+            confirmed_arrearage=None,
+            start_date=form_data['start_date'],
+            num_children_not_before_court=0
+        )
+        payments = payments_made(form_data['payments'])
+        report = enforcement_report(payments_due, payments)
+        indictments = violations(report)
+
+        return render_template(
+            'tools/cs_violations.html',
+            form=form,
+            form_data=form_data,
+            client=client,
+            authorizations=authorizations,
+            indictments=indictments
+        )
+
+    return render_template(
+        'tools/cs_violations.html',
+        form=form,
+        form_data=form_data,
+        client=client,
+        authorizations=authorizations,
+        indictments = []
     )
 
 
