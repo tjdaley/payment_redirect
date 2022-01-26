@@ -109,6 +109,7 @@ def cs_stepdown(client_id: str):
 def cs_violations(client_id: str):
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(client_id)
+    children = _children(client)
     authorizations = _get_authorizations(user_email)
     form = ViolationForm(request.form)
     form_data = {
@@ -121,7 +122,7 @@ def cs_violations(client_id: str):
 
     if request.method == 'POST' and form.validate():
         payments_due = combined_payment_schedule(
-            children = [{'name': "Olivia Grace Thomas", 'dob': datetime(2005, 9, 21)}],
+            children = children,
             initial_child_support_payment=Decimal(form_data['cs_payment_amount']),
             health_insurance_payment=Decimal(form_data['medical_payment_amount']),
             dental_insurance_payment=Decimal(form_data['dental_payment_amount']),
