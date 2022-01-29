@@ -14,7 +14,7 @@ from bson.objectid import ObjectId
 
 import pandas as pd
 
-from util.database import Database, multidict2dict, csv_to_list, str_to_dollars, set_missing_flags, normalize_telephone_number
+from util.database import Database, multidict2dict, csv_to_list, str_to_dollars, set_missing_flags, normalize_telephone_number, convert_types
 from util.us_states import US_STATE_NAMES
 from util.logger import get_logger
 
@@ -351,6 +351,9 @@ def cleanup(doc: dict):
     # Clean up dollar amount strings and convert them to numbers
     dollar_fields = ['payment_due', 'target_retainer', 'trial_retainer', 'mediation_retainer', 'refresh_trigger', 'trust_balance', 'orig_trust_balance']
     str_to_dollars(doc, dollar_fields)
+
+    # Convert Decimals to a form persistable by pymongo
+    doc = convert_types(doc)
 
     # Normalize the email address
     if 'email' in doc:
