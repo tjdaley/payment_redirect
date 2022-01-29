@@ -5,7 +5,6 @@ Copyright (c) 2021 by Thomas J. Daley. All Rights Reserved.
 """
 from datetime import datetime
 from decimal import Decimal
-from multidict import MultiDict
 from csutils.stepdown import stepdown
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, json, jsonify, send_file, Response
 from csutils import combined_payment_schedule, payments_made, compliance_report, violations, enforcement_report
