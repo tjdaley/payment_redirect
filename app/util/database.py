@@ -7,10 +7,12 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 import os
 import re
+from numpy import isin
 
 import phonenumbers
 from pymongo import MongoClient
-
+from datetime import date, datetime
+from decimal import Decimal
 from util.logger import get_logger
 
 try:
@@ -155,6 +157,25 @@ def set_missing_flags(doc: dict, flag_fields: list):
                 doc[field] = 'N'
         else:
             doc[field] = 'N'
+
+
+def convert_types(dict_item):
+    # This function iterates a dictionary looking for types of Decimal and converts them to Decimal128
+    # Embedded dictionaries and lists are called recursively.
+    if dict_item is None: return None
+
+    for k, v in list(dict_item.items()):
+        if isinstance(v, dict):
+            convert_types(v)
+        elif isinstance(v, list):
+            for l in v:
+                convert_types(l)
+        elif isinstance(v, Decimal):
+            dict_item[k] = float(str(v))
+        elif isinstance(v, date):
+            dict_item[k] = str(dict_item[k])  # datetime(dict_item[k].year, dict_item[k].month, dict_item[k].day, 0, 0, 0)
+
+    return dict_item
 
 
 def normalize_telephone_number(telephone_number: str) -> str:
