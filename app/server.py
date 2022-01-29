@@ -9,7 +9,9 @@ from datetime import datetime
 import os
 from flask import Flask, render_template, redirect, url_for
 from flask_session import Session
+import locale
 from pymongo import MongoClient
+import re
 from waitress import serve
 
 import settings  # NOQA
@@ -86,12 +88,28 @@ def newlines_filter(value: str) -> str:
         return value.replace('\n', '<br />')
     return value
 
-app.jinja_env.filters['phone_number'] = phone_filter  # noqa pylint: disable=no-member
+
+def currency_filter(value: str) -> str:
+    """
+    Create a number that looks like currency
+    """
+    try:
+        c_value = float(value)
+    except:
+        if isinstance(value, str):
+            c_value = re.sub('[^0-9\.]', '', value)
+        if value is None or c_value == '':
+            c_value = '0'
+        c_value = float(value)
+    return locale.currency(c_value, grouping=True)
+
+app.jinja_env.filters['case_type'] = case_type_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['crm_state'] = crm_state_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['currency'] = currency_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['date'] = date_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['fullname'] = fullname_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['newlines'] = newlines_filter  # noqa pylint: disable=no-member
-app.jinja_env.filters['case_type'] = case_type_filter  # noqa pylint: disable=no-member
-app.jinja_env.filters['date'] = date_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['phone_number'] = phone_filter  # noqa pylint: disable=no-member
 
 
 @app.route('/', methods=['GET'])
