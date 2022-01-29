@@ -5,10 +5,9 @@ Copyright (c) 2021 by Thomas J. Daley. All Rights Reserved.
 """
 from datetime import datetime
 from decimal import Decimal
-import locale
+from multidict import MultiDict
 from csutils.stepdown import stepdown
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, json, jsonify, send_file, Response
-from mailmerge import MailMerge
 from csutils import combined_payment_schedule, payments_made, compliance_report, violations, enforcement_report
 from views.tools.forms.violation_form import ViolationForm
 from views.tools.forms.stepdown_form import StepdownForm
@@ -117,10 +116,20 @@ def cs_violations(client_id: str):
         'medical_payment_amount': form.medical_payment_amount.data or '0.00',
         'dental_payment_amount': form.dental_payment_amount.data or '0.00',
         'start_date': form.start_date.data or '',
-        'payments': form.payments.data or ''
+        'payments': form.payments.data or '',
+        'children_not_before_court': form.children_not_before_court.data or '0',
+        'payment_interval': form.payment_interval.data or 12,
+        'violations_only' : form.violations_only.data
     }
 
     if request.method == 'POST' and form.validate():
+        DBCLIENTS.save(
+            {
+                '_id': client_id,
+                'cs_tools_enforcement': form_data
+            },
+            user_email
+        )
         payments_due = combined_payment_schedule(
             children = children,
             initial_child_support_payment=Decimal(form_data['cs_payment_amount']),
@@ -128,7 +137,8 @@ def cs_violations(client_id: str):
             dental_insurance_payment=Decimal(form_data['dental_payment_amount']),
             confirmed_arrearage=None,
             start_date=form_data['start_date'],
-            num_children_not_before_court=0
+            num_children_not_before_court=_int(form_data['payment_interval'], 12),
+            payment_interval = _int(form_data['payment_interval'])
         )
         payments = payments_made(form_data['payments'])
         report = enforcement_report(payments_due, payments)
@@ -146,11 +156,92 @@ def cs_violations(client_id: str):
     return render_template(
         'tools/cs_violations.html',
         form=form,
-        form_data=form_data,
+        form_data=client.get('cs_tools_enforcement', form_data),
         client=client,
         authorizations=authorizations,
         indictments = []
     )
+
+
+@tools_routes.route('/client_tools/<string:client_id>/cs_arrearage', methods=['GET', 'POST'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def cs_arrearage(client_id: str):
+    user_email = session['user']['preferred_username']
+    client = DBCLIENTS.get_one(client_id)
+    children = _children(client)
+    authorizations = _get_authorizations(user_email)
+    form = ViolationForm(request.form)
+    form_data = {
+        'cs_payment_amount': form.cs_payment_amount.data or '0.00',
+        'medical_payment_amount': form.medical_payment_amount.data or '0.00',
+        'dental_payment_amount': form.dental_payment_amount.data or '0.00',
+        'start_date': form.start_date.data or '',
+        'payments': form.payments.data or '',
+        'children_not_before_court': form.children_not_before_court.data or '0',
+        'payment_interval': form.payment_interval.data or 12,
+        'violations_only' : form.violations_only.data
+    }
+
+    if request.method == 'POST' and form.validate():
+        DBCLIENTS.save(
+            {
+                '_id': client_id,
+                'cs_tools_enforcement': form_data
+            },
+            user_email
+        )
+        payments_due = combined_payment_schedule(
+            children = children,
+            initial_child_support_payment=Decimal(form_data['cs_payment_amount']),
+            health_insurance_payment=Decimal(form_data['medical_payment_amount']),
+            dental_insurance_payment=Decimal(form_data['dental_payment_amount']),
+            confirmed_arrearage=None,
+            start_date=form_data['start_date'],
+            num_children_not_before_court=_int(form_data['payment_interval'], 12),
+            payment_interval = _int(form_data['payment_interval'])
+        )
+        payments = payments_made(form_data['payments'])
+        report = enforcement_report(payments_due, payments)
+
+        # Add up total child support arrearage
+        total_arrearages = {}
+        for item in report:
+            if item.get('remaining_amount', Decimal(0.00)) > 0:
+                if item['description'] not in total_arrearages:
+                    total_arrearages[item['description']] = Decimal(0.00)
+                total_arrearages[item['description']] += item['remaining_amount']
+        
+        sum_of_totals = Decimal(0.00)
+        for item in total_arrearages:
+            sum_of_totals += total_arrearages[item]
+        total_arrearages['TOTAL'] = sum_of_totals
+
+        return render_template(
+            'tools/cs_arrearage.html',
+            form=form,
+            form_data=form_data,
+            client=client,
+            authorizations=authorizations,
+            report=report,
+            arrearages=total_arrearages
+        )
+
+    return render_template(
+        'tools/cs_arrearage.html',
+        form=form,
+        form_data=client.get('cs_tools_enforcement', form_data),
+        client=client,
+        authorizations=authorizations,
+        report = []
+    )
+
+
+def _int(string: str, default: int = 0) -> int:
+    try:
+        return int(string)
+    except:
+        return default
 
 
 def _children(client: dict) -> list:

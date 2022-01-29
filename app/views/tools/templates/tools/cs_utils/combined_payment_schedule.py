@@ -17,7 +17,8 @@ def combined_payment_schedule(
     dental_insurance_payment: Decimal,
     confirmed_arrearage: Decimal,
     start_date: datetime,
-    num_children_not_before_court: int = 0
+    num_children_not_before_court: int = 0,
+    payment_interval: int = 12
 ) -> list:
     """
     Create a combined payment schedule for regular child support, health insurance, and
@@ -38,6 +39,7 @@ def combined_payment_schedule(
                                the date after the first payment was due following the date on which the
                                arrearage was confirmed.
         num_children_not_before_court (int): Number of children obligor must support who are not part of this action.
+        payment_interval (int): Number of child support payments per year (12, 24, 26, or 52)
 
     Returns:
         (list): List of payments due where each payment is dict with at least these keys:
@@ -50,7 +52,7 @@ def combined_payment_schedule(
     stepdown_schedule = stepdown(children, initial_child_support_payment, num_children_not_before_court)
     regular_schedule = payment_schedule(
         initial_amount=initial_child_support_payment,
-        n_per_year=12,
+        n_per_year=payment_interval,
         start_date=start_date,
         step_down_schedule=stepdown_schedule,
         description='Child support due'
@@ -60,7 +62,7 @@ def combined_payment_schedule(
         stepdown_schedule = stepdown(children, initial_child_support_payment, num_children_not_before_court)
         health_insurance_schedule = payment_schedule(
             initial_amount=health_insurance_payment,
-            n_per_year=12,
+            n_per_year=payment_interval,
             start_date=start_date,
             step_down_schedule=stepdown_schedule,
             description='Medical support due',
@@ -73,7 +75,7 @@ def combined_payment_schedule(
         stepdown_schedule = stepdown(children, initial_child_support_payment, num_children_not_before_court)
         dental_insurance_schedule = payment_schedule(
             initial_amount=dental_insurance_payment,
-            n_per_year=12,
+            n_per_year=payment_interval,
             start_date=start_date,
             step_down_schedule=stepdown_schedule,
             description='Dental support due',

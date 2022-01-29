@@ -3,9 +3,11 @@ payment_schedule.py - Create a payment schedule based on a payment schedule.
 
 Copyright (c) 2021 by Thomas J. Daley, J.D.
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
+from xmlrpc.client import DateTime
 from dateutil.relativedelta import relativedelta
+from numpy import isin
 
 
 def payment_schedule(
@@ -13,7 +15,6 @@ def payment_schedule(
     n_per_year: int,
     start_date: datetime,
     step_down_schedule: list,
-    month_days: list = None,
     description: str = 'Child support payment due',
     fixed_payment: bool = False
 ) -> list:
@@ -31,11 +32,6 @@ def payment_schedule(
                             52 = Weekly
         start_date (datetime): Date on which first payment was due
         step_down_schedule (list): List of step-down dates
-        month_days (list[int]): Days of the month child support is payable. If omitted, the following
-                                 is used:
-                                    n_per_year = 12 . . . . . [1]
-                                    n_per_year = 24 . . . . . [1, 15]
-                                    n_per_year = else . . . . not used
         description (str): A descriptive string returned in payment list.
         fixed_payment (bool): If True, every payment on the list will be equal to *initial_amount*. This
                               is used for insurance reimbursement schedules where the amount reimbursed
@@ -53,7 +49,11 @@ def payment_schedule(
     schedule = []
 
     # Convert start_date from date to datetime
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
     next_due_date = datetime.combine(start_date, datetime.min.time())
+
+    _n_per_year = int(n_per_year)
     note = ''
     today = datetime.now()
     should_continue = True  # Set to False when the payment schedule goes past today.
@@ -77,13 +77,39 @@ def payment_schedule(
             }
             schedule.append(payment)
             note = ''
-            next_due_date = next_due_date + relativedelta(months=+1)
+            next_due_date = next_due_date + _relativedelta(_n_per_year, next_due_date)
             if next_due_date > today:
                 should_continue = False
                 break
         note = f"{oldest_remaining_child_name} aged out."
     return schedule
 
+
+def _relativedelta(n_per_year: int = 12, prev_due_date = None):
+    """
+    Figure out when the next payment is due based on how frequently payments are made.
+
+    Args:
+        n_per_year (int): One of 12, 24, 26, or 52. Default is 12.
+
+    Returns:
+        Amount to add to a payment date *datetime* to get the next payment date.
+    """
+    if n_per_year == 12:
+        return relativedelta(months=+1)
+    elif n_per_year == 26:
+        return relativedelta(weeks=+2)
+    elif n_per_year == 24:
+        if prev_due_date.day < 15:  # In case a semimonthly schedule has a stupid start date
+            return relativedelta(days=+14)
+        year, month, day = prev_due_date.year, prev_due_date.month, prev_due_date.day
+        first_of_next_month = (prev_due_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+        days_until_first_of_next_month = first_of_next_month - datetime(year, month, day, 0, 0, 0)
+        return relativedelta(days=+days_until_first_of_next_month.days)
+
+    elif n_per_year == 52:
+        return relativedelta(weeks=+1)
+    return relativedelta(months=+1)
 
 """
 For Testing

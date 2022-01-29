@@ -1,8 +1,8 @@
 {% extends "tools/tools.html" %}
 {% block tool_area %}
-<h4>Child Support Violations</h1>
+<h4>Child Support Arrearage</h1>
 {% from 'includes/_formhelpers.html' import render_field %}
-<form method='POST' action="{{url_for('tools_routes.cs_violations', client_id=client._id)}}">
+<form method='POST' action="{{url_for('tools_routes.cs_arrearage', client_id=client._id)}}">
     <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
     <div class="card border-primary my-3">
         <div class="card-header alert-primary">Parameters</div>
@@ -34,6 +34,9 @@
                 <div class="form-group col-md-6">
                     {{render_field(form.children_not_before_court, class_="form-control", value=form_data.children_not_before_court)}}
                 </div>
+                <div class="form-group col-md-3">
+                    {{render_field(form.violations_only, class_="form-control", value=form_data.violations_only)}}
+                </div>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-12">
@@ -44,16 +47,51 @@
     </div>
     <input type="submit">
 </form>
-{% if indictments %}
+{% if report %}
 <table class="table table-striped table-sm">
     <thead>
-        <th>Violations</th>
+        {% for arrearage in arrearages %}
+        <th>{{arrearage}}</th>
+        {% endfor %}
     </thead>
     <tbody>
-{% for indictment in indictments %}
         <tr>
-            <td>VIOLATION {{loop.index}}: {{indictment}}</td>
+            {% for arrearage in arrearages %}
+            <td>{{arrearages[arrearage] | currency}}</td>
+            {% endfor %}
         </tr>
+    </tbody>
+</table>
+<table class="table table-striped table-sm">
+    <thead>
+        <th>Date</th>
+        <th>Activity</th>
+        <th>Amount Due</th>
+        <th>Amount Paid</th>
+        <th>Unpaid</th>
+    </thead>
+    <tbody>
+{% for pay_record_item in report %}
+    {% if pay_record_item['type'] !='Z' %}
+        {% if pay_record_item['remaining_amount'] > 0.00 or not form_data['violations_only'] %}
+        <tr>
+            <td>{{pay_record_item['date'] | date}}</td>
+            <td>{{pay_record_item['description']}}</td>
+            <td style="text-align:right">{{pay_record_item['amount'] | currency}}</td>
+            <td></td>
+            <td style="text-align:right">{{pay_record_item['remaining_amount'] | currency}}</td>
+        </tr>
+        {% for payment in pay_record_item.get('payments', []) %}
+        <tr>
+            <td>{{payment['date'] | date}}</td>
+            <td>Payment made</td>
+            <td></td>
+            <td style="text-align:right">{{payment['amount'] | currency}}</td>
+            <td></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+    {% endif %}
 {% endfor %}
     </tbody>
 </table>
