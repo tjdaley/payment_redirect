@@ -6,6 +6,7 @@ See accopmanying LICENSE file for license information.
 """
 import datetime
 from decimal import Decimal
+import re
 
 AG_DATE_FORMAT = '%m/%d/%Y'
 TSV_DATE_COL = 0
@@ -72,7 +73,8 @@ def payments_made(tsv: str, filename: str = None) -> list:
             raise ValueError(f"Invalid date value of '{fields[TSV_DATE_COL]}' in row # {row_number}")
 
         try:
-            payment_amount = Decimal(fields[TSV_AMOUNT_COL].strip()[1:])  # strip whitespace and leading dollar sign
+            c_value = re.sub('[^0-9\.]', '', fields[TSV_AMOUNT_COL])  # strip whitespace and leading dollar sign
+            payment_amount = Decimal(c_value)  
         except Exception:
             raise ValueError(f"Invalid payment amount of '{fields[TSV_AMOUNT_COL]}' in row # {row_number}")
 
