@@ -4,7 +4,6 @@ Flask==1.1.2
 boto3==1.14.54
 waitress==1.4.4
 Flask_WTF==0.14.3
-csutils>=0.1.6
 botocore==1.17.54
 pandas==1.1.1
 phonenumbers==8.12.9
