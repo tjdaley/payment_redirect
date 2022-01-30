@@ -4,7 +4,7 @@ UserForm.py - CRUD form for a client.
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
 from wtforms import Form, StringField, SelectMultipleField, validators, BooleanField, FileField
-from wtforms.fields import EmailField
+from wtforms.fields.html5 import EmailField
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
