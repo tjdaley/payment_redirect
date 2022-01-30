@@ -81,6 +81,8 @@ class DbClients(Database):
             ('email', ASCENDING)
         ]
 
+        print("@@@@@@@@@@@@@@@@@@@@@@@", filter_)
+
         documents = list(self.dbconn[COLLECTION_NAME].find(filter_, projection).sort(order_by))
         return documents
 
