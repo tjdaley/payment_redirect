@@ -4,7 +4,7 @@ violation_form.py - Prompt for fields to determine child support violations
 Copyright (c) 2022 by Thomas J. Daley, J.D.
 """
 from wtforms import Form, DecimalField, IntegerField, SelectField, TextAreaField, validators, BooleanField
-from wtforms.fields.html5 import DateField
+from wtforms.fields import DateField
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
 from util.date_converter import DateConverter

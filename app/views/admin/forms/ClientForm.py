@@ -5,7 +5,7 @@ Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
 from flask_wtf import FlaskForm
 from wtforms import Form, FormField, validators, BooleanField, SelectField, FieldList, StringField, TextAreaField
-from wtforms.fields.html5 import DateField, EmailField, TelField
+from wtforms.fields import DateField, EmailField, TelField
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
