@@ -83,7 +83,7 @@ class Dialer(object):
             extension (str): Ringcentral extension for our user
             password (str): Ringcentral password for our user
             play_prompt (bool): Whether to prompt our user to press 1 before connecting the call (default=True)
-            session_access_token (str): Saved to sessoin when using OAuth vs. password authorization
+            session_access_token (str): Saved to session when using OAuth vs. password authorization
 
         Returns:
             None
@@ -132,7 +132,7 @@ class Dialer(object):
         session_access_token: str = None
     ):
         """
-        Dial a number on behalf of our user.
+        Send an SMS text message on behalf of our user.
 
         Args:
             from_number (str): Number that appears in call recipient's caller-id
