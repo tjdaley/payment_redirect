@@ -125,6 +125,7 @@ def cs_violations(client_id: str):
         DBCLIENTS.save(
             {
                 '_id': client_id,
+                'active_flag': 'Y',
                 'cs_tools_enforcement': form_data
             },
             user_email
@@ -186,6 +187,7 @@ def cs_arrearage(client_id: str):
         DBCLIENTS.save(
             {
                 '_id': client_id,
+                'active_flag': 'Y',
                 'cs_tools_enforcement': form_data
             },
             user_email
