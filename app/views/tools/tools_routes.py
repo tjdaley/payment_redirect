@@ -117,8 +117,8 @@ def cs_violations(client_id: str):
         'start_date': form.start_date.data or '',
         'payments': form.payments.data or '',
         'children_not_before_court': form.children_not_before_court.data or '0',
-        'payment_interval': form.payment_interval.data or 12,
-        'violations_only' : form.violations_only.data
+        'payment_interval': int(form.payment_interval.data or 12),
+        'violations_only' : form.violations_only.data or True
     }
 
     if request.method == 'POST' and form.validate():
@@ -179,8 +179,8 @@ def cs_arrearage(client_id: str):
         'start_date': form.start_date.data or '',
         'payments': form.payments.data or '',
         'children_not_before_court': form.children_not_before_court.data or '0',
-        'payment_interval': form.payment_interval.data or 12,
-        'violations_only' : form.violations_only.data
+        'payment_interval': int(form.payment_interval.data or 12),
+        'violations_only' : form.violations_only.data or True
     }
 
     if request.method == 'POST' and form.validate():
