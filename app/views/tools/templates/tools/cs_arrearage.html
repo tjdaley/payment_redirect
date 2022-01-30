@@ -1,6 +1,6 @@
 {% extends "tools/tools.html" %}
 {% block tool_area %}
-<h4>Child Support Arrearage</h1>
+<h4>Child Support Arrearage</h4>
 {% from 'includes/_formhelpers.html' import render_field %}
 <form method='POST' action="{{url_for('tools_routes.cs_arrearage', client_id=client._id)}}">
     <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
@@ -44,10 +44,12 @@
                 </div>
             </div>
         </div>
+        <input type="submit" class="btn btn-primary btn-sm" onclick="create_payment_record('pay_message')" />
     </div>
-    <input type="submit">
 </form>
 {% if report %}
+<input type="button" class="btn btn-sm btn-success" role="button" onclick="selectElementContents('pay_record', 'pay_message')" value="Copy Payment Record" />
+<span id="pay_message" class="text-success"></span>
 <table class="table table-striped table-sm">
     <thead>
         {% for arrearage in arrearages %}
@@ -62,7 +64,7 @@
         </tr>
     </tbody>
 </table>
-<table class="table table-striped table-sm">
+<table class="table table-striped table-sm" id="pay_record">
     <thead>
         <th>Date</th>
         <th>Activity</th>
@@ -96,4 +98,28 @@
     </tbody>
 </table>
 {% endif %}
+
+<script>
+    function selectElementContents(element_id, msg_id) {
+      var body = document.body;
+      var element = document.getElementById(element_id);
+
+      if (document.createRange && window.getSelection) {
+        var range = document.createRange();
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        range.selectNodeContents(element);
+        sel.addRange(range);
+      }
+      document.execCommand("Copy");
+      sel.removeAllRanges();
+      var msg_el = document.getElementById(msg_id);
+      msg_el.textContent = "Payment record copied.";
+    }
+
+    function create_payment_record(msg_id) {
+        var msg_el = document.getElementById(msg_id);
+        msg_el.textContent = "";
+    }
+  </script>
 {% endblock %}

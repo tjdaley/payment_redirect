@@ -41,11 +41,13 @@
                 </div>
             </div>
         </div>
+        <input type="submit" class="btn btn-primary btn-sm" onclick="create_violations('violations_message')" />
     </div>
-    <input type="submit">
 </form>
 {% if indictments %}
-<table class="table table-striped table-sm">
+<input type="button" class="btn btn-sm btn-success" role="button" onclick="selectElementContents('violations_table', 'violations_message')" value="Copy Payment Record" />
+<span id="violations_message" class="text-success"></span>
+<table class="table table-striped table-sm" id="violations_table">
     <thead>
         <th>Violations</th>
     </thead>
@@ -58,4 +60,28 @@
     </tbody>
 </table>
 {% endif %}
+
+<script>
+    function selectElementContents(element_id, msg_id) {
+      var body = document.body;
+      var element = document.getElementById(element_id);
+
+      if (document.createRange && window.getSelection) {
+        var range = document.createRange();
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        range.selectNodeContents(element);
+        sel.addRange(range);
+      }
+      document.execCommand("Copy");
+      sel.removeAllRanges();
+      var msg_el = document.getElementById(msg_id);
+      msg_el.textContent = "Violations copied.";
+    }
+
+    function create_violations(msg_id) {
+        var msg_el = document.getElementById(msg_id);
+        msg_el.textContent = "";
+    }
+  </script>
 {% endblock %}
