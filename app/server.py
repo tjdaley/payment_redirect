@@ -10,6 +10,7 @@ import os
 from flask import Flask, render_template, redirect, url_for
 from flask_session import Session
 import locale
+import platform
 from pymongo import MongoClient
 import re
 from waitress import serve
@@ -103,13 +104,34 @@ def currency_filter(value: str) -> str:
         c_value = float(value)
     return locale.currency(c_value, grouping=True)
 
+#{{"" | pyimplementation}} {"" | {pyversion}}
+def platform_system_filter(value: str) -> str:
+    return platform.system()
+
+def platform_release_filter(value: str) -> str:
+    return platform.release()
+
+def platform_hostname_filter(value: str) -> str:
+    return os.getenv('HOSTNAME', os.getenv('COMPUTERNAME', platform.node())).split('.')[0]
+
+def platform_pyimplementation_filter(value: str) -> str:
+    return platform.python_implementation()
+
+def platform_pyversion_filter(value: str) -> str:
+    return platform.python_version()
+
 app.jinja_env.filters['case_type'] = case_type_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['crm_state'] = crm_state_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['currency'] = currency_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['date'] = date_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['fullname'] = fullname_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['hostname'] = platform_hostname_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['newlines'] = newlines_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['os'] = platform_system_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['os_version'] = platform_release_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['phone_number'] = phone_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['pyimplementation'] = platform_pyimplementation_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['pyversion'] = platform_pyversion_filter  # noqa pylint: disable=no-member
 
 
 @app.route('/', methods=['GET'])
