@@ -159,21 +159,37 @@ def set_missing_flags(doc: dict, flag_fields: list):
             doc[field] = 'N'
 
 
+def convert_type(z):
+    if isinstance(z, Decimal):
+        return float(str(z))
+    elif isinstance(z, date):
+        return str(z)
+    return z
+
+
 def convert_types(dict_item):
-    # This function iterates a dictionary looking for types of Decimal and converts them to Decimal128
+    # This function iterates a dictionary looking for types of Decimal and converts them to float
     # Embedded dictionaries and lists are called recursively.
     if dict_item is None: return None
 
-    for k, v in list(dict_item.items()):
-        if isinstance(v, dict):
-            convert_types(v)
-        elif isinstance(v, list):
-            for l in v:
-                convert_types(l)
-        elif isinstance(v, Decimal):
-            dict_item[k] = float(str(v))
-        elif isinstance(v, date):
-            dict_item[k] = str(dict_item[k])  # datetime(dict_item[k].year, dict_item[k].month, dict_item[k].day, 0, 0, 0)
+    if isinstance(dict_item, dict):
+        for k, v in list(dict_item.items()):
+            if isinstance(v, dict):
+                convert_types(v)
+            elif isinstance(v, list):
+                for l in v:
+                    convert_types(l)
+            else:
+                dict_item[k] = convert_type(v)
+    if isinstance(dict_item, list):
+        for k, v in enumerate(dict_item):
+            if isinstance(v, dict):
+                convert_types(v)
+            elif isinstance(v, list):
+                for l in v:
+                    convert_types(l)
+            else:
+                dict_item[k] = convert_type(v)
 
     return dict_item
 
