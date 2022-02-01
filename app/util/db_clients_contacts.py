@@ -135,7 +135,7 @@ class DbClientsContacts(Database):
         contacts = self.dbconn[COLLECTION_NAME].find(filter_).sort(order_by).skip(skips).limit(page_size)
 
         if not contacts:
-            print("@@@@@ NO CLIENT_CONTACTS")
+            print("@@@@ NO CLIENT_CONTACTS")
             return None
         print(contacts)
 
