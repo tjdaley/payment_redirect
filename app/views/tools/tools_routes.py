@@ -5,14 +5,13 @@ Copyright (c) 2021 by Thomas J. Daley. All Rights Reserved.
 """
 from datetime import datetime
 from decimal import Decimal
-# from csutils.stepdown import stepdown
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, json, jsonify, send_file, Response
-#from csutils import combined_payment_schedule, payments_made, compliance_report, violations, enforcement_report
 from views.tools.forms.violation_form import ViolationForm
 from views.tools.forms.stepdown_form import StepdownForm
 from views.tools.templates.tools.cs_utils.combined_payment_schedule import combined_payment_schedule
 from views.tools.templates.tools.cs_utils.payments_made import payments_made
 from views.tools.templates.tools.cs_utils.compliance_report import compliance_report, enforcement_report, violations
+from views.tools.templates.tools.cs_utils.stepdown import stepdown
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
