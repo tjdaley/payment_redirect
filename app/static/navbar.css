@@ -3,6 +3,8 @@
     --logo-bg-color: #ffffff;
     --text-color: #075698;
     --hover-text-color: var(--text-color);
+    --active-text-color: black;
+    --active-bg-color: white;
   }
 
 .nav-link{
@@ -10,14 +12,15 @@
       font-weight: bold;
   }
 
-.nav-link.active {
-      color: var(--text-color, black) !important;
-      background-color: var(--main-bg-color, lightgray) !important;
-}
-
-  .nav-link:hover {
+.nav-active {
+    color: var(--active-text-color);
+    background-color: var(--active-bg-color);
+    border-radius: 12px;
+  }
+  
+.nav-link:hover {
       color: var(--hover-text-color);
       font-weight: bold;
       background-color: var(--logo-bg-color, white);
-      border-radius: 8px;
+      border-radius: 12px;
   }

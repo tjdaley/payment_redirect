@@ -6,30 +6,32 @@
         <span class="navbar-toggler-icon"><i class="fas fa-bars"></i></span>
     </button>
 
+    {% set active_page = active_page | default('clients') -%}
+
     <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="nav mr-auto">
             {% if 'CRM_USER' in authorizations %}
-            <li class="nav-item">
+            <li class="nav-item {% print('nav-active') if active_page=='clients' else '' %}">
                 <a class="nav-link" href="/crm">Clients</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item {% print('nav-active') if active_page=='contacts' else '' %}">
                 <a class="nav-link" href="/crm/contacts">Contacts</a>
             </li>
             {% endif %}
             {% if 'TEMPLATE_ADMIN' in authorizations %}
-            <li class="nav-item">
+            <li class="nav-item {% print('nav-active') if active_page=='templates' else '' %}">
                 <a class="nav-link" href="/admin/templates">Templates</a>
             </li>
             {% endif %}
             {% if 'USER_ADMIN' in authorizations %}
-            <li class="nav-item">
+            <li class="nav-item {% print('nav-active') if active_page=='users' else '' %}">
                 <a class="nav-link" href="/admin/users">Users</a>
             </li>
             {% endif %}
         </ul>
         <ul class="nav navbar-right">
             {% if 'EDIT_GLOBAL_SETTINGS' in authorizations %}
-            <li class="nav-item">
+            <li class="nav-item {% print('nav-active') if active_page=='global_settings' else '' %}">
                 <a class="nav-link" href="/admin/global_settings" aria-label="Global Settings"><i class="fas fa-users-cog"></i></a>
             </li>
             {% endif %}
