@@ -29,7 +29,7 @@ python3 -m venv env
 pip3 install -r requirements.txt
 ```
 
-After the installtion scripts run, you'll need to create ```.env``` in the ```app``` folder:
+After the installation scripts run, you'll need to create ```.env``` in the ```app``` folder:
 ```
 $ cd app
 $ vi .env
@@ -171,4 +171,4 @@ doing that, lawye1@lawfirm.com will still have access to the case file, but will
 
 ## Author
 
-Thomas J. Daley, J.D. is an active family law litigation attorney practicing primarily in Collin County, Texas, a family law mediator, and software developer. My Texas based family law practice is limited to divorce, child custody, child support, enforcment, and modification suits. [Web Site](https://koonsfuller.com/attorneys/tom-daley/)
+Thomas J. Daley, J.D. is an active, board-certified family law litigation attorney practicing primarily in Collin County, Texas, a family law mediator, and software developer. My Texas based family law practice is limited to divorce, child custody, child support, enforcment, and modification suits. [Web Site](https://koonsfuller.com/attorneys/tom-daley/)
