@@ -2,7 +2,7 @@ requests==2.24.0
 pymongo==3.11.0
 Flask==1.1.2
 boto3==1.14.54
-waitress==1.4.4
+waitress==2.1.1
 Flask_WTF==0.14.3
 Flask-Session==0.3.2
 botocore==1.17.54
