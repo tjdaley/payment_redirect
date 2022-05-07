@@ -8,6 +8,10 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 import csv
 import json
+try:
+    from util.logger import get_logger
+except ModuleNotFoundError:
+    import logging
 import requests
 from datetime import date, time
 
@@ -19,6 +23,11 @@ CACHE_FILE = 'util/data/court_directory_cache.tsv'
 
 
 class Entry(object):
+    if 'get_logger' in locals():
+        logger = get_logger('court_directory')
+    else:
+        logger = logging
+
     def __init__(self, fields: list) -> dict:
         """
         Initialize all properties to None because not every *fields* list will
@@ -143,9 +152,12 @@ class CourtDirectory(object):
         Retrieve court directory and save it to a set of cached files.
         """
         result = requests.get(URL)
-        with open(CACHE_FILE, 'w') as fp:
-            for chunk in result.iter_content(chunk_size=1024):
-                fp.write(chunk.decode())
+        try:
+            with open(CACHE_FILE, 'w') as fp:
+                for chunk in result.iter_content(chunk_size=1024):
+                    fp.write(chunk.decode())
+        except FileNotFoundError as e:
+            Entry.logger.error(f"Error opening {CACHE_FILE}: %s (Does file path exist?)", e)
 
     @staticmethod
     def parse():
@@ -208,6 +220,6 @@ if __name__ == '__main__':
     print("COURT TYPES".center(80, "="))
     print(mydir.get_court_types('Collin'))
     print("COURTS".center(80, "="))
-    print(mydir.get_courts('Collin', 'District'))
+    print(mydir.get_courts('Denton', 'District'))
     print("PERSONNEL".center(80, "="))
     print(json.dumps(mydir.get_court_personnel('Collin', 'District', '416th District Court'), indent=4))
