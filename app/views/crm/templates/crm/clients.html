@@ -40,9 +40,9 @@
                 {% if 'PIONEER_USER' in authorizations %}
                 <th>Discovery</th>
                 {%endif%}
-                <th class="d-none d-md-table-cell">Mediation Date</th>
+                <!-- th class="d-none d-md-table-cell">Mediation Date</th>
                 <th class="d-none d-md-table-cell">Trial Date</th>
-                <th class="text-right d-none d-md-block">Trust Balance</th>
+                <th class="text-right d-none d-md-block">Trust Balance</th !-->
             </tr>
             {% for client in clients %}
             <tr class="text-{{client._class}}">
@@ -122,9 +122,9 @@
                     {%endif%}
                 </td>
                 {%endif%}
-                <td class="d-none d-md-table-cell">{{client.mediation_date or ''}}</td>
+                <!-- td class="d-none d-md-table-cell">{{client.mediation_date or ''}}</td>
                 <td class="d-none d-md-table-cell">{{client.trial_date or ''}}</td>
-                <td class="text-right d-none d-md-table-cell">{{"${:,.2f}".format(client.trust_balance or 0)}}</td>
+                <td class="text-right d-none d-md-table-cell">{{"${:,.2f}".format(client.trust_balance or 0)}}</td -->
             </tr>
             {% endfor %}
         </table>

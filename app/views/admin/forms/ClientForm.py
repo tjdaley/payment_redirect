@@ -3,6 +3,7 @@ ClientForm.py - CRUD form for a client.
 
 Copyright (c) 2020 by Thomas J. Daley, J.D.
 """
+from msilib.schema import CheckBox
 from flask_wtf import FlaskForm
 from wtforms import Form, FormField, validators, BooleanField, SelectField, FieldList, StringField, TextAreaField
 from wtforms.fields.html5 import DateField, EmailField, TelField
@@ -25,6 +26,13 @@ COURTESY_TITLES = [
     ('Hon.', "Hon.")
 ]
 
+CASE_SIDES = [
+    ('P', "Petitioner"),
+    ('R', "Respondent"),
+    ('I', "Intervenor"),
+    ('J', "Joined")
+]
+
 CASE_TYPES = [
     ('DIV', "Divorce"),
     ('DIVC', "Divorce w Child"),
@@ -37,7 +45,7 @@ CASE_TYPES = [
     ('ADOP', "Adoption"),
     ('TERM', "Termination"),
     ('ADL', "Ad Litem Appt"),
-    ('AMIC',"Amicus Appt"),
+    ('AMIC', "Amicus Appt"),
     ('RECV', "Receivership"),
     ('APP', "Appeal"),
     ('MAND', "Mandamus"),
@@ -154,6 +162,25 @@ class ContactAddress(Form):
         return instance_dict(cls)
 
 
+class HearingDate(Form):
+    hearing_date = DateField("Date", validators=[validators.Optional(), DateConverter()])
+    description = StringField("Description", validators=[validators.Optional()])
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
+
+
+class MediationDate(Form):
+    mediation_date = DateField("Date", validators=[validators.Optional(), DateConverter()])
+    mediator_name = StringField("Mediator's name")
+    location = StringField("Mediation location")
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
+
+
 class ContactForm(Form):
     name = FormField(ContactName)
     address = FormField(ContactAddress)
@@ -203,8 +230,19 @@ class ClientForm(FlaskForm):
 
     billing_id = StringField(
         "Billing ID",
-        [validators.DataRequired(), validators.Length(min=4, max=5, message="Enter the client's billing ID without the matter suffix.")]
+        [
+            validators.DataRequired(),
+            validators.Length(
+                min=4,
+                max=5,
+                message="Enter the client's billing ID without the matter suffix."
+            )
+        ]
     )
+
+    matter_id = StringField("Matter ID", validators=[validators.DataRequired()])
+    matter_title = StringField("Short title", validators=[validators.DataRequired()])
+    matter_description = TextAreaField("Description")
 
     name = FormField(ContactName)
     referrer = FormField(Referral)
@@ -291,10 +329,7 @@ class ClientForm(FlaskForm):
     mediation_retainer = StringField(
         "Mediation retainer", [validators.Optional(), DollarCleaner(min=0)]
     )
-    mediation_date = DateField(
-        "Mediation date",
-        validators=[validators.Optional(), DateConverter()]
-    )
+    mediation_date = FormField(MediationDate)
     trust_balance = StringField(
         "Trust balance", [validators.Optional(), DollarCleaner()]
     )
@@ -357,6 +392,28 @@ class ClientForm(FlaskForm):
         "Completed on",
         validators=[validators.Optional(), DateConverter()]
     )
+
+    #
+    # Quality metrics
+    #
+    engagement_letter_flag = BooleanField(
+        "Signed engagement letter in file?",
+        false_values=('N', '')
+    )
+    our_side = SelectField(
+        "We represent",
+        choices=CASE_SIDES,
+        validators=[validators.DataRequired()]
+    )
+    all_parties_in_flag = BooleanField(
+        "All answers filed?",
+        false_values=('N', '')
+    )
+    our_disclosures_served_flag = BooleanField(
+        "Our disclosures served?",
+        false_values=('N', '')
+    )
+    next_hearing = FormField(HearingDate)
 
     @classmethod
     def get(cls) -> dict:
