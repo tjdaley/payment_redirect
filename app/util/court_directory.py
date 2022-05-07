@@ -23,7 +23,7 @@ CACHE_FILE = 'util/data/court_directory_cache.tsv'
 
 
 class Entry(object):
-    if 'get_logger' in locals():
+    if 'get_logger' in globals():
         logger = get_logger('court_directory')
     else:
         logger = logging
