@@ -107,7 +107,7 @@ def instance_dict(class_, depth: int = 0) -> dict:
         if isinstance(attr, (BooleanField, SelectField, StringField, DateField, EmailField, TelField)):
             result[attr_name] = None
         elif isinstance(attr, (FormField)):
-            result[attr_name] = instance_dict(attr.form_class, depth+1)
+            result[attr_name] = instance_dict(attr.form_class, depth + 1)
     return result
 
 
@@ -239,8 +239,8 @@ class ClientForm(FlaskForm):
         ]
     )
 
-    matter_id = StringField("Matter ID", validators=[validators.DataRequired()])
-    matter_title = StringField("Short title", validators=[validators.DataRequired()])
+    matter_id = StringField("Matter ID", [validators.DataRequired()])
+    matter_title = StringField("Short title", [validators.DataRequired()])
     matter_description = TextAreaField("Description")
 
     name = FormField(ContactName)
