@@ -239,8 +239,20 @@ class ClientForm(FlaskForm):
         ]
     )
 
-    matter_id = StringField("Matter ID", [validators.DataRequired()])
-    matter_title = StringField("Short title", [validators.DataRequired()])
+    matter_id = StringField(
+        "Matter ID",
+        [
+            validators.DataRequired(),
+            validators.Length(min=1, max=3)
+        ]
+    )
+    matter_title = StringField(
+        "Short title",
+        [
+            validators.DataRequired(),
+            validators.Length(min=5, max=30)
+        ]
+    )
     matter_description = TextAreaField("Description")
 
     name = FormField(ContactName)
