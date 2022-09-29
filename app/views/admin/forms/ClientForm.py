@@ -171,7 +171,7 @@ class HearingDate(Form):
 
 
 class MediationDate(Form):
-    mediation_date = DateField("Date", validators=[validators.Optional(), DateConverter()])
+    mediation_date = DateField("Mediation date", validators=[validators.Optional(), DateConverter()])
     mediator_name = StringField("Mediator's name")
     location = StringField("Mediation location")
 
