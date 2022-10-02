@@ -96,7 +96,7 @@ def currency_filter(value: str) -> str:
     """
     try:
         c_value = float(value)
-    except:
+    except Exception:
         if isinstance(value, str):
             c_value = re.sub('[^0-9\.]', '', value)
         if value is None or c_value == '':
@@ -104,18 +104,23 @@ def currency_filter(value: str) -> str:
         c_value = float(value)
     return locale.currency(c_value, grouping=True)
 
-#{{"" | pyimplementation}} {"" | {pyversion}}
+
+# {{"" | pyimplementation}} {"" | {pyversion}}
 def platform_system_filter(value: str) -> str:
     return platform.system()
+
 
 def platform_release_filter(value: str) -> str:
     return platform.release()
 
+
 def platform_hostname_filter(value: str) -> str:
     return os.getenv('HOSTNAME', os.getenv('COMPUTERNAME', platform.node())).split('.')[0]
 
+
 def platform_pyimplementation_filter(value: str) -> str:
     return platform.python_implementation()
+
 
 def platform_pyversion_filter(value: str) -> str:
     return platform.python_version()
