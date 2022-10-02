@@ -14,7 +14,7 @@
     </button>
 </div>
     <h1>{{operation}} Client</h1>
-    {% from 'includes/_formhelpers.html' import render_field %}
+    {% from 'includes/_formhelpers.html' import render_field, render_checkbox %}
     <form method='POST' action="/client/save/">
         <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
         <input type='hidden' name='orig_trust_balance' value='{{client.trust_balance}}'>

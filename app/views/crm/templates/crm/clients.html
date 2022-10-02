@@ -10,7 +10,8 @@
         background-color: inherit;
     }
 </style>
-<span class="h1 my-3">{% if show_crm_state %}Filtered{%else%}Active{%endif%} Clients</span><a class="btn btn-primary btn-sm float-right my-3" href="/crm/client/add">ADD</a>
+<span class="h1 my-3">{% if show_crm_state %}Filtered{%else%}Active{%endif%} Clients</span>
+<a class="btn btn-primary btn-sm float-end my-3" href="/crm/client/add"><i class="fa fa-plus"></i></a>
 
 <form method='POST' action="{{url_for('crm_routes.search_clients', page_num=1)}}">
     <div class="input-group mb-3">

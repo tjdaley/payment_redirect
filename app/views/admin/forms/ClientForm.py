@@ -85,6 +85,13 @@ GENDERS = [
     ('U', "Unspecified")
 ]
 
+EVENT_TYPES = [
+    ('T', "Task"),
+    ('D', "Deadline"),
+    ('H', "Hearing"),
+    ('M', "Milestone"),
+]
+
 
 def field_list(class_) -> list:
     x = class_()
@@ -109,6 +116,21 @@ def instance_dict(class_, depth: int = 0) -> dict:
         elif isinstance(attr, (FormField)):
             result[attr_name] = instance_dict(attr.form_class, depth + 1)
     return result
+
+
+class CaseEventForm(Form):
+    description = StringField("Description")
+    due_date = DateField("Due date", validators=[validators.Optional(), DateConverter()])
+    event_type = SelectField("Event type", choices=EVENT_TYPES)
+    assigned_to = StringField("Assigned to")
+    completed = BooleanField("Completed", false_values=('N', 'n', 'False', 'false', '0', ''), default='N')
+    date_completed = DateField("Date completed", validators=[validators.Optional(), DateConverter()])
+    hide = BooleanField("Hide", false_values=('N', 'n', 'False', 'false', '0', ''), default='N')
+    notes = TextAreaField("Notes")
+
+    @classmethod
+    def get(cls) -> dict:
+        return instance_dict(cls)
 
 
 class ChildName(Form):
@@ -162,8 +184,9 @@ class ContactAddress(Form):
 
 
 class HearingDate(Form):
-    hearing_date = DateField("Date", validators=[validators.Optional(), DateConverter()])
-    description = StringField("Description", validators=[validators.Optional()])
+    hearing_date = DateField("Next hearing", validators=[validators.Optional(), DateConverter()])
+    subject = StringField("Subject", validators=[validators.Optional()])
+    covered_by = StringField("Covered by", validators=[validators.Optional()])
 
     @classmethod
     def get(cls) -> dict:
@@ -260,6 +283,7 @@ class ClientForm(FlaskForm):
     health_ins = FormField(Insurance, "Health Insurance")
     dental_ins = FormField(Insurance, "Dental Insurance")
     children = FieldList(FormField(ChildForm))
+    case_events = FieldList(FormField(CaseEventForm))
 
     client_ssn = StringField(
         "Client SSN",
@@ -408,7 +432,7 @@ class ClientForm(FlaskForm):
     # Quality metrics
     #
     engagement_letter_flag = BooleanField(
-        "Signed engagement letter in file?",
+        "Engagement letter?",
         false_values=('N', '')
     )
     our_side = SelectField(

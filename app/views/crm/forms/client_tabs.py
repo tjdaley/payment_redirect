@@ -20,7 +20,7 @@ client_tabs = [{
     'a_class': 'nav-link active',
     'name': 'name',
     'label': "Name",
-    'selected': 'true'
+    'selected': 'active'
 }, {
     'li_class': default_li_class,
     'a_class': default_a_class,

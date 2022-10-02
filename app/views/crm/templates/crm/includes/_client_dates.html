@@ -1,31 +1,31 @@
 <!--DATES TAB-->
 <div class="tab-pane fade" id="dates" role="tabpanel" aria-labelledby="dates-tab">
     <div class="card border-primary my-3">
-        <div class="card-header alert-primary">Dates</div>
+        <div class="card-header text-bg-primary">Dates</div>
         <div class="card-body">
-            <div class="form-row">
-                <div class="form-group col-md">
+            <div class="row g-3">
+                <div class="form-group col-md-4">
                     {{render_field(form.client_dob, class_="form-control", value=(client.client_dob or ''))}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-4">
                     {{render_field(form.marriage_date, class_="form-control", value=(client.marriage_date or ''))}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-4">
                     {{render_field(form.separation_date, class_="form-control", value=(client.separation_date or ''))}}
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md">
+            <!--/div>
+            <div class="form-row"-->
+                <div class="form-group col-md-4">
                     {{render_field(form.retained_date, class_="form-control", value=(client.retained_date or ''))}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-4">
                     {{render_field(form.filed_date, class_="form-control", value=(client.filed_date or ''))}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-4">
                     {{render_field(form.completion_date, class_="form-control", value=(client.completion_date or ''))}}
                 </div>
-            </div>
-            <div class="form-row">
+            <!--/div>
+            <div class="form-row"-->
                 <div class="form-group col-md">
                     {{form.mediation_date.label}}
                     <div class="border border-primary rounded p-1">
@@ -35,7 +35,7 @@
                         &nbsp;
                         {% endif %}
                     </div>
-                    <div class="small">(modified on BILLING tab)</div>
+                    <div class="small">(modified on PLAN tab)</div>
                 </div>
                 <div class="form-group col-md">
                     {{form.trial_date.label}}
@@ -46,7 +46,7 @@
                         &nbsp;
                         {% endif %}
                     </div>
-                    <div class="small">(modified on BILLING tab)</div>
+                    <div class="small">(modified on PLAN tab)</div>
                 </div>
             </div>
         </div>

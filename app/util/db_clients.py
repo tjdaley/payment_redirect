@@ -375,6 +375,13 @@ def cleanup(doc: dict):
     flag_fields = ['trial_retainer_flag', 'mediation_retainer_flag', 'active_flag']
     set_missing_flags(doc, flag_fields)
 
+    event_flag_fields = ['completed', 'hide']
+    for case_event in doc.get('case_events', []):
+        set_missing_flags(case_event, event_flag_fields)
+    print("***CLEANED DOC***")
+    print(doc)
+    print("*" * 80)
+
 
 def intake_to_client(intake: dict) -> dict:
     """

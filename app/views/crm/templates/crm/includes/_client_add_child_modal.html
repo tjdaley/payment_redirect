@@ -7,40 +7,40 @@
                 <div class="modal-title" id="addChildLabel">
                     <h5 class="main-title">Add Child</h5>
                 </div>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="addChildForm">
-                    <div class="border border-primary rounded mb-3">
-                        <div class="form-row mx-4">
-                            <div class="form-group col-md">
+                    <div class="border border-primary rounded mb-3 p-2">
+                        <div class="row g-3">
+                            <div class="form-group col-md-3">
                                 {{render_field(new_child.name.first_name, class_="form-control")}}
                             </div>
-                            <div class="form-group col-md">
+                            <div class="form-group col-md-3">
                                 {{render_field(new_child.name.middle_name, class_="form-control")}}
                             </div>
-                            <div class="form-group col-md">
+                            <div class="form-group col-md-3">
                                 {{render_field(new_child.name.last_name, class_="form-control")}}
                             </div>
-                            <div class="form-group col-md-2">
+                            <div class="form-group col-md-3">
                                 {{render_field(new_child.name.suffix, class_="form-control")}}
                             </div>
-                        </div>
-                        <div class="form-row mx-4">
-                            <div class="form-group col-md">
+                        <!--/div>
+
+                        <div class="form-row mx-4"-->
+                            <div class="form-group col-md-6">
                                 {{render_field(new_child.sex, class_="form-control")}}
                             </div>
-                            <div class="form-group col-md">
+                            <div class="form-group col-md-6">
                                 {{render_field(new_child.dob, class_="form-control", value="")}}
                             </div>
-                        </div>
-                        <div class="form-row mx-4">
-                            <div class="form-group col-md">
+                        <!--/div>
+
+                        <div class="form-row mx-4"-->
+                            <div class="form-group col-md-4">
                                 {{render_field(new_child.home_state, class_="form-control", value="TX")}}
                             </div>
-                            <div class="form-group col-md-2">
+                            <div class="form-group col-md-4">
                                 {{render_field(new_child.ssn, class_="form-control")}}
                             </div>
                         </div>
@@ -48,7 +48,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="save_child(); return false;">Save</button>
             </div>
         </div>

@@ -1,9 +1,9 @@
 <!--ACCESS TAB-->
 <div class="tab-pane fade" id="access" role="tabpanel" aria-labelledby="access-tab">
     <div class="card border-danger my-3">
-        <div class="card-header alert-danger">Administrative Access</div>
+        <div class="card-header text-bg-danger">Administrative Access</div>
         <div class="card-body">
-            <div class="form-row">
+            <div class="row g-3 mb-3">
                 <div class="form-group col-11">
                     {{render_field(form.attorney_initials, class_="form-control", value=client.attorney_initials)}}
                 </div>
@@ -15,14 +15,14 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 {% if client._id == '0' %}
                 {{render_field(form.admin_users, class_="form-control", value=default_admins)}}
                 {% else %}
                 {{render_field(form.admin_users, class_="form-control", value=client.admin_users)}}
                 {% endif %}
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 {% if client._id == '0' %}
                 {{render_field(form.email_cc_list, class_="form-control", value=default_cc_list)}}
                 {% else %}

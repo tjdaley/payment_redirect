@@ -10,9 +10,9 @@
 </style>
 <div class="tab-pane fade" id="contacts" role="tabpanel" aria-labelledby="contacts-tab">
     <div class="card border-primary my-3">
-        <div class="card-header alert-primary">
+        <div class="card-header text-bg-primary">
             Case Contacts
-            <a class="btn btn-primary btn-sm float-right" href="{{url_for('crm_routes.add_contact')}}/{{client_id}}">ADD</a>
+            <a class="btn btn-light btn-sm float-end" href="{{url_for('crm_routes.add_contact')}}/{{client_id}}"><i class="fa fa-plus"></i></a>
         </div>
         <div class="card-body">
             <table class="table table-sm table-hover">

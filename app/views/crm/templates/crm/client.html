@@ -2,7 +2,7 @@
 {% block body %}
     <h1>{{operation}} Client {% if client._id != '0'%}: {{client.name.title}} {{client.name.first_name}} {{client.name.middle_name}} {{client.name.last_name}}
     {{client.name.suffix}}{% endif %}</h1>
-    {% from 'includes/_formhelpers.html' import render_field %}
+    {% from 'includes/_formhelpers.html' import render_field, render_checkbox %}
     <form method='POST' action="{{url_for('crm_routes.save_client')}}">
         <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
         <input type='hidden' name='orig_trust_balance' value='{{client.trust_balance}}'>
@@ -14,11 +14,23 @@
         </div>
 
         <!--NAVIGATION TABS-->
-        <nav class="nav nav-pills" role="tablist">
-            {% for tab in tabs %}
-                <a class="{{tab.a_class}}" id="{{tab.name}}-tab" data-toggle="tab" href="#{{tab.name}}" role="tab" aria-label="{{tab.name}}"
-                aria-selected="{{tab.selected}}">{{tab.label}}</a>
-            {% endfor %}
+        <nav role="navigation">
+            <ul class="nav nav-pills" role="tablist">
+                {% for tab in tabs %}
+                    <li class="{{tab.li_class}}" role="presentation">
+                        <button class="nav-link {{tab.selected}}"
+                            id="{{tab.name}}-tab"
+                            href="#{{tab.name}}"
+                            aria-label="{{tab.name}}"
+                            data-bs-toggle="tab"
+                            data-bs-target="#{{tab.name}}"
+                            role="tab"
+                            aria-controls="{{tab.name}}"
+                            type="button"
+                        >{{tab.label}}</button>
+                    </li>
+                {% endfor %}
+            </ul>
         </nav>
 
         <!--TAB CONTENT-->
@@ -44,6 +56,7 @@
     </form>
 
     {% include '/crm/includes/_client_add_child_modal.html' %}
+    {% include '/crm/includes/_client_add_case_event_modal.html' %}
     {% include '/crm/includes/_client_send_sms_modal.html' %}
 
     <script>
@@ -66,22 +79,6 @@
                 return;
             }
             e.addEventListener("change", court_type_change);
-
-            {% if 'PIONEER_USER' in authorizations %}
-            e = document.getElementById('btn_load_plan');
-            if (!e) {
-                alert('btn_load_plan control missing');
-                return;
-            }
-            e.addEventListener("click", load_click_up_case_plan);
-
-            e = document.getElementById('btn_init_disclosures');
-            if (!e) {
-                alert('btn_init_disclosures control missing');
-                return;
-            }
-            e.addEventListener("click", create_disclosures_plan);
-            {% endif %}
 
             $('#addChildModal').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget); // Button that triggered modal
@@ -167,6 +164,13 @@
                 url,
                 function(data){update_select_options('#court_name', data);}
             );
+        }
+
+        /**
+         * Create a new Event subform on the plan tab.
+         */
+        function add_event() {
+            var event_count = document.getElementById('event_count').value;
         }
 
         /**

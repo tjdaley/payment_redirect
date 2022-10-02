@@ -38,7 +38,7 @@ from util.userlist import Users
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 # from util.logger import get_logger
-from views.admin.forms.ClientForm import ChildForm, ClientForm, ContactForm
+from views.admin.forms.ClientForm import CaseEventForm, ChildForm, ClientForm, ContactForm
 DBADMINS = DbAdmins()
 DBCONTACTS = DbContacts()
 DBCLIENTS = DbClients()
@@ -262,6 +262,7 @@ def add_client():
         client=client,
         form=form,
         new_child=child_form,
+        new_event=CaseEventForm(),
         operation="Add New",
         default_admins=default_access_list,
         tabs=client_tabs,
@@ -303,6 +304,7 @@ def save_client():
         client=client,
         form=form,
         new_child=child_form,
+        new_event=CaseEventForm(),
         our_pay_url=our_pay_url,
         operation="Correct",
         tabs=client_tabs,
@@ -316,6 +318,7 @@ def save_client():
 def show_client(id):
     form = ClientForm(request.form)
     child_form = ChildForm()
+    event_form = CaseEventForm()
     user_email = session['user']['preferred_username']
     user = DBADMINS.admin_record(user_email)
     client = DBCLIENTS.get_one(id)
@@ -337,6 +340,7 @@ def show_client(id):
         client=client,
         form=form,
         new_child=child_form,
+        new_event=event_form,
         our_pay_url=our_pay_url,
         tabs=client_tabs,
         contacts=contacts,

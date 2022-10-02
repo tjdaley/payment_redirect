@@ -1,9 +1,9 @@
 <!--ID TAB-->
 <div class="tab-pane fade" id="id" role="tabpanel" aria-labelledby="id-tab">
     <div class="card border-primary my-3">
-        <div class="card-header alert-primary">User Login</div>
+        <div class="card-header text-bg-primary">User Login</div>
         <div class="card-body">
-            <div class="form-row">
+            <div class="row g-3">
                 <div class="form-group col-md">
                     {{render_field(form.client_ssn, class_="form-control", value=client.client_ssn, onchange="hidePaymentLink()")}}
                 </div>
