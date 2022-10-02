@@ -1,15 +1,152 @@
-<!--CASE TAB-->
+<!--PLAN TAB-->
 <div class="tab-pane fade" id="plan" role="tabpanel" aria-labelledby="plan-tab">
     <div class="card border-primary my-3">
-        <div class="card-header alert-primary">
+        <div class="card-header text-bg-primary">
             Case Plan
-            <span class="float-right">
+            <span class="float-end">
                 <input type="date" id="answer_date" aria-label="Answer date" />
-                <button class="btn btn-primary btn-sm" id="btn_init_disclosures" type="button">Create Discl Plan</button>
-                <button class="btn btn-primary btn-sm" id="btn_load_plan" type="button">LOAD</button>
             </span>
         </div>
+
         <div class="card-body" id="case_plan">
+            <div class="row g-6">
+                <div class="form-group col-md-4">
+                    <div class="form-check">
+                        {% if (client.engagement_letter_flag or 'Y') == 'Y' %}
+                            {{form.engagement_letter_flag(value='Y', checked='Y', aria_label="Engagement letter flag")}}
+                        {% else %}
+                            {{form.engagement_letter_flag(aria_label="Engagement letter flag")}}
+                        {% endif %}
+                        {{form.engagement_letter_flag.label}}
+                    </div>
+                </div>
+                <div class="form-group col-md-4">
+                    <div class="form-check">
+                        {% if (client.all_parties_in_flag or 'Y') == 'Y' %}
+                            {{form.all_parties_in_flag(value='Y', checked='Y', aria_label="All parties in flag")}}
+                        {% else %}
+                            {{form.all_parties_in_flag(aria_label="All parties in flag")}}
+                        {% endif %}
+                        {{form.all_parties_in_flag.label}}
+                    </div>
+                </div>  
+                <div class="form-group col-md-4">
+                    <div class="form-check">
+                        {% if (client.our_disclosures_served_flag or 'Y') == 'Y' %}
+                            {{form.our_disclosures_served_flag(value='Y', checked='Y', aria_label="Our disclosures served flag")}}
+                        {% else %}
+                            {{form.our_disclosures_served_flag(aria_label="Our disclosures served flag")}}
+                        {% endif %}
+                        {{form.our_disclosures_served_flag.label}}
+                    </div>
+                </div>
+            <!--/div-->
+
+                <div class="form-group col-md-2 mt-2">
+                    {{render_field(form.next_hearing.hearing_date, class="form-control", aria_label="Next hearing date",
+                        value=(client.get('next_hearing', {}).get('date', '')))}}
+                </div>
+                <div class="form-group col-md-8 mt-2">
+                    {{render_field(form.next_hearing.subject, class="form-control", aria_label="Next hearing subject",
+                        value=(client.get('next_hearing', {}).get('subject', '')))}}
+                </div>
+                <div class="form-group col-md-2 mt-2">
+                    {{render_field(form.next_hearing.covered_by, class="form-control", aria_label="Next hearing covered by",
+                        value=(client.get('next_hearing', {}).get('covered_by', '')))}}
+                </div>
+
+            <!--div class="form-row"-->
+                <div class="form-group col-md-3 mt-2">
+                        {{render_field(form.mediation_date.mediation_date, class_="form-control",
+                        value=(client.get('mediation_date', {}).get('mediation_date', '')))}}
+                </div>
+                <div class="form-group col-md-3 mt-2">
+                    {{render_field(form.mediation_date.mediator_name, class_="form-control",
+                    value=(client.get('mediation_date', {}).get('mediator_name', '')))}}
+                </div>
+                <div class="form-group col-md-3 mt-2">
+                    {{render_field(form.mediation_date.location, class_="form-control",
+                    value=(client.get('mediation_date', {}).get('location', '')))}}
+                </div>
+                <div class="form-group col-md-3 mt-2">
+                    {{render_field(form.trial_date, class_="form-control", value=(client.trial_date or ''))}}
+                </div>
+            </div>
+        </div>
+        <div class="card-body" id="task-list">
+            {# ONLY RENDER IF THERE ARE TASK DATA TO SHOW #}
+            {% if 'case_events' in client %}
+            {% for eventform in form.case_events %}
+            {% set event = client.case_events[loop.index0] %}
+            <div class="border border-primary rounded mb-3 {% if event.hide == 'Y' %}d-none{% endif %}">
+                <div class="row g-3 p-2">
+                    <div class="form-group col-md-3">
+                        {{render_field(eventform.form.due_date, class_="form-control", value=event.due_date)}}
+                    </div>
+                    <div class="form-group col-md-7">
+                        {{render_field(eventform.form.description, class_="form-control", value=event.description)}}
+                    </div>
+                    <div class="form-group col-md-1">
+                        <div>
+                            <label for="case_events-{{loop.index0}}-completed">Done?</label>
+                        </div>
+                        <div>
+                            <input
+                                class="form-check-input mt-0"
+                                id="case_events-{{loop.index0}}-completed"
+                                name="case_events-{{loop.index0}}-completed"
+                                type="checkbox"
+                                {% if event.completed == 'Y' %}CHECKED {% endif %}
+                                aria_label="Completed"
+                            >
+                        </div>
+                    </div>
+                    <div class="form-group col-md-1">
+                        <div>&nbsp;</div>
+                        <button 
+                            class="btn float-end btn-outline-secondary fa fa-arrow-down"
+                            id="btn_show_notes"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#notes_{{loop.index0}}"
+                            type="button">
+                        </button>
+                    </div>
+                </div>
+                <div class="collapse" id="notes_{{loop.index0}}">
+                    <div class="row g-3 p-2">
+                        <div class="form-group col-md-3">
+                            {{render_field(eventform.form.assigned_to, class_="form-control", value=event.assigned_to)}}
+                        </div>
+                        <div class="form-group col-md-4">
+                            {{render_field(eventform.form.event_type, class_="form-control", value=event.event_type)}}
+                        </div>
+                        <div class="form-group col-md-3">
+                            {{render_field(eventform.form.date_completed, class_="form-control", value=event.date_completed)}}
+                        </div>
+                        <div class="form-group col-md-1">
+                            <div>
+                                <label for="case_events-{{loop.index0}}-hide">Hide?</label>
+                            </div>
+                            <div>
+                            <input
+                                class="form-check-input mt-0"
+                                id="case_events-{{loop.index0}}-hide"
+                                name="case_events-{{loop.index0}}-hide"
+                                type="checkbox"
+                                {% if event.hide == 'Y' %}CHECKED {% endif %}
+                                aria_label="Hide"
+                            >
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            {{render_field(eventform.notes, class_="form-control", value=event.notes)}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <input type="hidden" id="event_count" name="event_count" value="{{client.case_events|length}}" />
         </div>
     </div>
 </div>
