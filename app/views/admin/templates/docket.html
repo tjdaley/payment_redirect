@@ -1,14 +1,5 @@
 {% extends 'layout.html' %}
 {% block body %}
-<style>
-    .table-hover>tbody>tr>td.highlightable:hover{
-        background-color: #eedf0d!important;
-    }
-
-    .table-hover>tbody>tr:hover>td{
-        background-color: inherit;
-    }
-</style>
 <span class="h1 my-3">Docket</span>
 
 <div class="row">
@@ -23,7 +14,7 @@
             </tr>
             {% for client in clients %}
             <tr class="text-{{client._class}}">
-                <td class="highlightable">
+                <td>
                     {{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}<br />
                     <a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a><br />
                     Trust: {{"${:,.2f}".format(client.trust_balance or 0)}}<br />

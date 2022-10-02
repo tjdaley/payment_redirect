@@ -1,30 +1,19 @@
 {% extends 'layout.html' %}
 {% set active_page = "contacts" %}
 {% block body %}
-<style>
-    .table-hover>tbody>tr>td.highlightable:hover {
-        background-color: #eedf0d !important;
-    }
-
-    .table-hover>tbody>tr:hover>td {
-        background-color: inherit;
-    }
-</style>
 <div class="row">
     <div class="col">
         <span class="my-3"><span class="h1">Contacts</span>{% if client_name %} - <small>{{client_name}}</small>{% endif %}</span>
     </div>
     <div class="col">
-        <a class="btn btn-primary btn-sm float-right my-3" href="{{url_for('crm_routes.add_contact')}}">ADD</a>
+        <a class="btn btn-primary btn-sm float-end my-3" href="{{url_for('crm_routes.add_contact')}}"><i class="fa fa-plus"></i></a>
     </div>
 </div>
 <form method='POST' action="{{url_for('crm_routes.search_contacts', page_num=1)}}">
     <div class="input-group mb-3">
         <input type="hidden" name="client_id" value="{{client_id or 0}}" />
         <input type="search" class="form-control" id="search" name="query" aria-label="Contact search text" />
-        <div class="input-group-append">
-            <button class="btn btn-outline-secondary fa fa-search" type="submit" aria-label="Search"></button>
-        </div>
+        <button class="btn btn-outline-secondary fa fa-search" type="submit" aria-label="Search"></button>
     </div>
 </form>
 
@@ -44,12 +33,12 @@
     </tr>
     {% for contact in contacts %}
     <tr>
-        <td class="highlightable">
+        <td>
             <a href="/crm/contact/{{contact._id}}">
                 {{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}
             </a>
         </td>
-        <td class="d-none d-md-block">
+        <td>
             {{contact.job_title}}
         </td>
         {% if contact.email %}
@@ -82,8 +71,8 @@
         <td>
             <button class="btn btn-outline-secondary fa fa-comments"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.last_name}}"
-                data-telephone="{{contact.cell_phone}}" data-target="#smsMessageModal" data-placement="top"
-                title="Send Text" data-tooltip="tooltip" data-toggle="modal"
+                data-telephone="{{contact.cell_phone}}" data-bs-target="#smsMessageModal" data-bs-placement="top"
+                title="Send Text" data-bs-tooltip="tooltip" data-bs-toggle="modal"
                 aria-label="Send Text">
             </button>
         </td>
@@ -97,8 +86,8 @@
         <td class="d-none d-md-table-cell">
             <button class="btn btn-outline-secondary fa fa-link" data-contactid="{{contact._id}}"
                 data-name="{{contact.name.title}} {{contact.name.first_name}} {{contact.name.middle_name}} {{contact.name.last_name}} {{contact.name.suffix}}"
-                data-jobtitle="{{contact.job_title}}" data-organization="{{contact.organization}}" data-target="#assignClientModal" data-placement="top"
-                title="Link to client" data-tooltip="tooltip" data-toggle="modal"
+                data-jobtitle="{{contact.job_title}}" data-organization="{{contact.organization}}" data-bs-target="#assignClientModal" data-bs-placement="top"
+                title="Link to client" data-bs-tooltip="tooltip" data-bs-toggle="modal"
                 aria-label="Link to client">
             </button>
         </td>
@@ -143,9 +132,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="smsModalLabel">Send Text Message</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form>
@@ -161,7 +148,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="send_message()">Send</button>
             </div>
         </div>
@@ -175,9 +162,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="assignClientModalLabel">Assign to Client</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
@@ -222,7 +207,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="assign_contact()">Assign</button>
             </div>
         </div>

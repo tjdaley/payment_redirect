@@ -5,35 +5,35 @@
 <form method='POST' action="{{url_for('crm_routes.save_contact')}}">
     <input type='hidden' name='_id' id='_id' value='{{contact._id}}'>
     <div class="card border-primary my-3">
-        <div class="card-header alert-primary">Name</div>
+        <div class="card-header text-bg-primary">Name</div>
         <div class="card-body">
-            <div class="form-row">
+            <div class="row g-3">
                 <div class="form-group col-md-1">
                     {{render_field(form.name.title, class_="form-control", value=contact.name.title)}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-3">
                     {{render_field(form.name.first_name, class_="form-control", value=contact.name.first_name)}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-3">
                     {{render_field(form.name.middle_name, class_="form-control", value=contact.name.middle_name)}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-3">
                     {{render_field(form.name.last_name, class_="form-control", value=contact.name.last_name)}}
                 </div>
                 <div class="form-group col-md-2">
                     {{render_field(form.name.suffix, class_="form-control", value=contact.name.suffix)}}
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md">
+            <!--/div>
+            <div class="row g-3"-->
+                <div class="form-group col-md-12">
                     {{render_field(form.name.salutation, class_="form-control", value=contact.name.salutation)}}
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md">
+            <!--/div>
+            <div class="row g-3"-->
+                <div class="form-group col-md-6">
                     {{render_field(form.organization, class_="form-control", value=contact.organization)}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-6">
                     {{render_field(form.job_title, class_="form-control", value=contact.job_title)}}
                 </div>
             </div>
@@ -41,44 +41,38 @@
     </div>
 
     <div class="card border-primary my-3">
-        <div class="card-header alert-primary">Contact</div>
+        <div class="card-header text-bg-primary">Contact</div>
         <div class="card-body">
-            <div class="form-row">
-                <div class="form-group col-md">
+            <div class="row g-3">
+                <div class="form-group col-md-3">
                     {{form.office_phone.label()}}
                     <div class="input-group mb-3">
                         {% if contact.office_phone %}
-                        <div class="input-group-prepend">
                             <button class="btn btn-outline-secondary fa fa-phone" title="Call {{contact.office_phone | phone_number}}"
                                 type="button" onclick="dial('{{contact.office_phone}}')"></button>
-                        </div>
                         {% endif %}
                         {{form.office_phone(class_="form-control", value=contact.office_phone)}}
                     </div>
                 </div>
 
-                <div class="form-group col-md">
+                <div class="form-group col-md-3">
                     {{form.cell_phone.label()}}
                     <div class="input-group mb-3">
                         {% if contact.cell_phone %}
-                        <div class="input-group-prepend">
                             <button class="btn btn-outline-secondary fa fa-phone" title="Call {{contact.cell_phone | phone_number}}"
                                 type="button" onclick="dial('{{contact.cell_phone}}')"></button>
-                        </div>
                         {% endif %}
                         {{form.cell_phone(class_="form-control", value=contact.cell_phone)}}
                     </div>
                 </div>
 
-                <div class="form-group col-md">
+                <div class="form-group col-md-4">
                     {{form.email.label()}}
                     <div class="input-group">
                         {% if contact.email %}
-                        <div class="input-group-prepend">
                             <a href="mailto:{{contact.email}}" class="btn btn-outline-secondary fa fa-envelope pt-2" data-toggle="tooltip"
                                 data-placement="top" title="Send Email to {{contact.email}}" role="button">
                             </a>
-                        </div>
                         {% endif %}
                         {{form.email(class_="form-control", value=contact.email)}}
                     </div>
@@ -86,9 +80,9 @@
                 <div class="form-group col-md-2">
                     {{render_field(form.fax, class_="form-control", value=contact.fax)}}
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md">
+            <!--/div>
+            <div class="row g-3"-->
+                <div class="form-group col-md-12">
                     {{render_field(form.email_cc, class_="form-control", value=contact.email_cc)}}
                 </div>
             </div>
@@ -96,10 +90,10 @@
     </div>
 
     <div class="card border-primary my-3">
-        <div class="card-header alert-primary">Address</div>
+        <div class="card-header text-bg-primary">Address</div>
         <div class="card-body">
-            <div class="form-row">
-                <div class="form-group col-md">
+            <div class="row g-3">
+                <div class="form-group col-md-12">
                     {{form.address.street.label}}
                     <div class="input-group">
                         {{form.address.street(class_="form-control", value=contact.address.street)}}
@@ -130,15 +124,15 @@
                     </div>
 
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md">
+            <!--/div>
+            <div class="row g-3"-->
+                <div class="form-group col-md-4">
                     {{render_field(form.address.city, class_="form-control", value=contact.address.city)}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-4">
                     {{render_field(form.address.state, class_="form-control", value=contact.address.state)}}
                 </div>
-                <div class="form-group col-md">
+                <div class="form-group col-md-4">
                     {{render_field(form.address.postal_code, class_="form-control", value=contact.address.postal_code)}}
                 </div>
             </div>
@@ -146,10 +140,10 @@
     </div>
 
     <div class="card border-primary my-3">
-        <div class="card-header alert-primary">Notes</div>
+        <div class="card-header text-bg-primary">Notes</div>
         <div class="card-body">
 
-            <div class="form-row">
+            <div class="row g-3">
                 <div class="form-group col">
                     <div class="input-group">
                         <textarea class="form-control rounded-3" id="notes" name="notes" rows="5" aria-label="Notes">{{contact.notes}}</textarea>
