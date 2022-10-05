@@ -68,11 +68,11 @@ def add_template():
 @DECORATORS.is_logged_in
 @DECORATORS.is_admin_user
 @DECORATORS.auth_manage_templates
-def edit_template(email_template_name):
+def edit_template(template_name):
     form = TemplateForm(request.form)
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    template = TEMPLATE_MANAGER.get_template(user_email, email_template_name)
+    template = TEMPLATE_MANAGER.get_template(user_email, template_name)
     return render_template('template.html', template=template, form=form, authorizations=authorizations)
 
 
