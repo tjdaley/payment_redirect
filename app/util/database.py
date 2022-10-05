@@ -7,11 +7,10 @@ Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 import os
 import re
-from numpy import isin
 
 import phonenumbers
 from pymongo import MongoClient
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from util.logger import get_logger
 
@@ -170,26 +169,27 @@ def convert_type(z):
 def convert_types(dict_item):
     # This function iterates a dictionary looking for types of Decimal and converts them to float
     # Embedded dictionaries and lists are called recursively.
-    if dict_item is None: return None
+    if dict_item is None:
+        return None
 
     if isinstance(dict_item, dict):
-        for k, v in list(dict_item.items()):
-            if isinstance(v, dict):
-                convert_types(v)
-            elif isinstance(v, list):
-                for l in v:
-                    convert_types(l)
+        for key, value in list(dict_item.items()):
+            if isinstance(value, dict):
+                convert_types(value)
+            elif isinstance(value, list):
+                for item in value:
+                    convert_types(item)
             else:
-                dict_item[k] = convert_type(v)
+                dict_item[key] = convert_type(value)
     if isinstance(dict_item, list):
-        for k, v in enumerate(dict_item):
-            if isinstance(v, dict):
-                convert_types(v)
-            elif isinstance(v, list):
-                for l in v:
-                    convert_types(l)
+        for key, value in enumerate(dict_item):
+            if isinstance(value, dict):
+                convert_types(value)
+            elif isinstance(value, list):
+                for item in value:
+                    convert_types(item)
             else:
-                dict_item[k] = convert_type(v)
+                dict_item[key] = convert_type(value)
 
     return dict_item
 
