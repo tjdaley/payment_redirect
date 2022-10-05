@@ -1,34 +1,35 @@
 {% extends 'layout.html' %}
+{% set active_page = "users" %}
 {% block body %}
     <h1>{{operation}} Admin User</h1>
     {% from 'includes/_formhelpers.html' import render_field, render_checkbox %}
     <form method='POST' action="/admin/user/save/" enctype="multipart/form-data">
         <input type='hidden' name='_id' id='_id' value='{{user._id}}'>
         <div class="card border-primary my-3">
-            <div class="card-header alert-primary">Name</div>
+            <div class="card-header text-bg-primary">Name</div>
             <div class="card-body">
-                <div class="form-row">
-                    <div class="form-group col-md">
+                <div class="row g-3 mb-3">
+                    <div class="form-group col-md-4">
                         {{render_field(form.email, class_="form-control", value=user.email)}}
                     </div>
-                    <div class="form-group col-md">
+                    <div class="form-group col-md-4">
                         {{render_field(form.first_name, class_="form-control", value=user.first_name)}}
                     </div>
-                    <div class="form-group col-md">
+                    <div class="form-group col-md-4">
                         {{render_field(form.last_name, class_="form-control", value=user.last_name)}}
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group col">
+                <div class="row g-3 mb-3">
+                    <div class="form-group col col-md-12">
                         {{render_field(form.default_access_list, class_="form-control", value=user.default_access_list)}}
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group col">
+                <div class="row g-3 mb-3">
+                    <div class="form-group col col-md-12">
                         {{render_field(form.default_cc_list, class_="form-control", value=user.default_cc_list)}}
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="row g-3 mb-3">
                     <div class="form-group col">
                         {{form.letterhead_template.label}}
                         <div class="input-group">
@@ -41,7 +42,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="row mb-3">
                     <div class="form-group col">
                         {{form.contact_letterhead_template.label}}
                         <div class="input-group">
@@ -55,7 +56,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="row mb-3">
                     <div class="form-group col">
                         {{form.fee_agreement.label}}
                         <div class="input-group">
@@ -73,9 +74,9 @@
         </div>
 
         <div class="card border-primary my-3">
-            <div class="card-header alert-primary">Access</div>
+            <div class="card-header text-bg-primary">Access</div>
             <div class="card-body">
-                <div class="form-row">
+                <div class="row g-3 mb-3">
                     <div class="form-group col-md">
                         {{render_field(form.groups, class_="form-control")}}
                     </div>
@@ -90,9 +91,9 @@
         </div>
 
         <div class="card border-danger my-3">
-            <div class="card-header alert-danger">Flags</div>
+            <div class="card-header text-bg-danger">Flags</div>
             <div class="card-body">
-                <div class="form-row">
+                <div class="row g-3 mb-3">
                     <div class="form-group col-md">
                         {{render_field(form.ring_central_username, class_="form-control", value=user.ring_central_username)}}
                         <small class="text-muted">This is your direct dial phone number, not the main office number.</small>
@@ -106,7 +107,7 @@
                         <small class="text-muted">Password for logging into RingCentral Office or AT&T Office At Hand</small>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="row g-3 mb-3">
                     <div class="form-group col-md">
                         {% if user.active_flag == 'Y' %}
                         {{render_checkbox(form.active_flag, value='Y', checked='Y')}}
@@ -128,9 +129,9 @@
         </div>
 
         <div class="card border-primary my-3">
-            <div class="card-header alert-primary">Click Up Workspace Settings</div>
+            <div class="card-header text-bg-primary">Click Up Workspace Settings</div>
             <div class="card-body">
-                <div class="form-row">
+                <div class="row g-3 mb-3">
                     <div class="form-group col">
                         {{form.click_up_team_name.label}}
                         <div class="input-group">
@@ -148,9 +149,9 @@
         </div>
 
         <div class="card border-primary my-3">
-            <div class="card-header alert-primary">Task Lists</div>
+            <div class="card-header text-bg-primary">Task Lists</div>
             <div class="card-body">
-                <div class="form-row">
+                <div class="row g-3 mb-3">
                     <table class="table">
                         <thead>
                             <tr>
