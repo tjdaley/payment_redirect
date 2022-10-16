@@ -151,13 +151,15 @@ class CourtDirectory(object):
         """
         Retrieve court directory and save it to a set of cached files.
         """
-        result = requests.get(URL)
         try:
-            with open(CACHE_FILE, 'w') as fp:
-                for chunk in result.iter_content(chunk_size=1024):
-                    fp.write(chunk.decode())
+            result = requests.get(URL)
+            if result.status_code == 200:
+                with open(CACHE_FILE, 'w') as fp:
+                    fp.write(result.text)
         except FileNotFoundError as e:
             Entry.logger.error(f"Error opening {CACHE_FILE}: %s (Does file path exist?)", e)
+        except Exception as e:
+            Entry.logger.error(e)
 
     @staticmethod
     def parse():
