@@ -168,9 +168,62 @@
 
         /**
          * Create a new Event subform on the plan tab.
+         * 
+         * TJD: I created the template by showing the source of a subform, pasting it into a text editor,
+         * and then changing the loop-index number to XX and inserting template variables. Finally, I removed
+         * the outter <div> tag because it's added below.
          */
-        function add_event() {
+        function create_new_event_form(next_index) {
+            var template = '<div class="row g-3 p-2"> <div class="form-group col-md-3"> <label for="case_events-XX-due_date">Due date</label> <input class="form-control" id="case_events-XX-due_date" name="case_events-XX-due_date" type="date" value="**DUE_DATE**"> </div> <div class="form-group col-md-7"> <label for="case_events-XX-description">Description</label> <input class="form-control" id="case_events-XX-description" name="case_events-XX-description" type="text" value="**DESCRIPTION**"> </div> <div class="form-group col-md-1"> <div> <label for="case_events-XX-completed">Done?</label> </div> <div> <input class="form-check-input mt-0" id="case_events-XX-completed" name="case_events-XX-completed" type="checkbox" aria_label="Completed" > </div> </div> <div class="form-group col-md-1"> <div>&nbsp;</div> <button class="btn float-end btn-outline-secondary fa fa-arrow-down" id="btn_show_notes" data-bs-toggle="collapse" data-bs-target="#notes_XX" type="button"> </button> </div> </div> <div class="collapse" id="notes_XX"> <div class="row g-3 p-2"> <div class="form-group col-md-3"> <label for="case_events-XX-assigned_to">Assigned to</label> <input class="form-control" id="case_events-XX-assigned_to" name="case_events-XX-assigned_to" type="text" value="**ASSIGNED_TO**"> </div> <div class="form-group col-md-4"> <label for="case_events-XX-event_type">Event type</label> <select class="form-control" id="case_events-XX-event_type" name="case_events-XX-event_type" value="T"><option **SELECTED_T** value="T">Task</option><option **SELECTED_D** value="D">Deadline</option><option **SELECTED_H** value="H">Hearing</option><option **SELECTED_M** value="M">Milestone</option></select> </div> <div class="form-group col-md-3"> <label for="case_events-XX-date_completed">Date completed</label> <input class="form-control" id="case_events-XX-date_completed" name="case_events-XX-date_completed" type="date" value="**DATE_COMPLETED**"> </div> <div class="form-group col-md-1"> <div> <label for="case_events-XX-hide">Hide?</label> </div> <div> <input class="form-check-input mt-0" id="case_events-XX-hide" name="case_events-XX-hide" type="checkbox" aria_label="Hide" > </div> </div> <div class="form-group col-md-12"> <label for="case_events-XX-notes">Notes</label> <textarea class="form-control" id="case_events-XX-notes" name="case_events-XX-notes" value="**NOTES**">**NOTES**</textarea> </div> </div> </div>';
+
+            var form = document.getElementById('addEventModal');
+            var due_date = form.querySelector('#due_date').value;
+            var description = form.querySelector('#description').value;
+            var assigned_to = form.querySelector('#assigned_to').value;
+            var event_type = form.querySelector('#event_type').value;
+            //var date_completed = form.querySelector('#date_completed').value;
+            var notes = form.querySelector('#notes').value;
+            //var hide = form.querySelector('#hide').checked;
+            //var completed = form.querySelector('#completed').checked;
+            console.log('due_date: ' + due_date);
+            console.log('description: ' + description);
+            console.log('assigned_to: ' + assigned_to);
+            console.log('event_type: ' + event_type);
+            console.log('notes: ' + notes);
+
+            var new_form = template.replace(/XX/g, next_index);
+            new_form = new_form.replace('**DUE_DATE**', due_date);
+            new_form = new_form.replace('**DESCRIPTION**', description);
+            new_form = new_form.replace('**ASSIGNED_TO**', assigned_to);
+            //new_form = new_form.replace('**DATE_COMPLETED**', date_completed);
+            new_form = new_form.replaceAll('**NOTES**', notes);
+            new_form = new_form.replace('**SELECTED_T**', event_type == 'T' ? 'selected' : '');
+            new_form = new_form.replace('**SELECTED_D**', event_type == 'D' ? 'selected' : '');
+            new_form = new_form.replace('**SELECTED_H**', event_type == 'H' ? 'selected' : '');
+            new_form = new_form.replace('**SELECTED_M**', event_type == 'M' ? 'selected' : '');
+            var new_child = document.createElement('div');
+            new_child.innerHTML = new_form;
+            new_child.classList.add('border', 'border-warning', 'rounded', 'mb-3');
+            return new_child;
+        }
+
+        /**
+         * Save an event from the addEvent pop-up to the task list on the plan tab.
+         */
+        function save_event() {
             var event_count = document.getElementById('event_count').value;
+            var new_event = create_new_event_form(event_count);
+            var event_list = document.getElementById('task-list');
+            event_list.appendChild(new_event);
+            $('#addEventModal').modal('hide');
+            document.getElementById('addEventForm').reset();
+            e = document.getElementById("planTitle");
+            e.classList.remove('text-bg-primary');
+            e.classList.add('text-bg-warning');
+            e = document.getElementById("planWarning");
+            e.innerHTML = " - YOU MUST CLICK [SAVE] TO SAVE CHANGES";
+            event_count = parseInt(event_count) + 1;
+            document.getElementById('event_count').value = event_count;
         }
 
         /**
@@ -191,8 +244,8 @@
             $('#child_count').val(next_index+1);
             document.getElementById("addChildForm").reset();
             e = document.getElementById("childTitle");
-            e.classList.remove('alert-primary');
-            e.classList.add('alert-warning');
+            e.classList.remove('text-bg-primary');
+            e.classList.add('text-bg-warning');
             e = document.getElementById('childWarning');
             e.innerHTML = "- YOU MUST CLICK [SAVE] TO SAVE THE CHILD" + (next_index > 1 ? "REN" : "");
         }
