@@ -8,7 +8,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 import io
 import json  # noqa
 from mailmerge import MailMerge
-from requests.sessions import Session
+# from requests.sessions import Session
 import msftconfig
 import random
 import requests
@@ -294,7 +294,7 @@ def save_client():
     authorizations = _get_authorizations(user_email)
     our_pay_url = os.environ.get('OUR_PAY_URL', None)
     child_form = ChildForm()
-    
+
     client = form.data  # noqa pylint: disable=no-member
     client['_email_subject'] = DBCLIENTS.get_email_subject(client.get('_id'))
     client['_email_cc_list'] = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
@@ -743,7 +743,7 @@ def _click_up_list_id(billing_id: str) -> dict:
         if billing_id_pattern in task_list.get('content', '') or billing_id_pattern in task_list.get('Name', ''):
             list_id = task_list.get('id', None)
             break
-    
+
     if list_id is None:
         message = f"Could not find list for client with billing ID '{billing_id_pattern}'"
         LOGGER.debug(message)
@@ -787,7 +787,7 @@ def _click_up_params(user_email: str) -> dict:
 
     Args:
         user_email (str): Email of user making the request.
-    
+
     Returns:
         (dict): A dict containing the elements:
             'success': (Boolean) True if successful, otherwise False
@@ -803,7 +803,7 @@ def _click_up_params(user_email: str) -> dict:
     if missing_params:
         LOGGER.error(f"Missing Click Up environment variables: {missing_params}")
         return {'success': False, 'message': 'Click Up environment is not configured. Check log file.'}
-    
+
     # See if the user is logged in to Click Up.
     access_token = session.get('click_up_access_token')
     LOGGER.debug(f"Click Up Access Token: {access_token}")
@@ -831,7 +831,7 @@ def _click_up_params(user_email: str) -> dict:
         if team.get('name', '') == target_team_name:
             team_id = team.get('id', None)
             break
-    
+
     if team_id is None:
         message = f"Could not find target team '{target_team_name}'"
         LOGGER.debug(message)
@@ -849,7 +849,7 @@ def _click_up_params(user_email: str) -> dict:
         if workspace.get('name', '') == target_workspace_name:
             workspace_id = workspace.get('id', None)
             break
-    
+
     if workspace_id is None:
         message = f"Could not find workspace team '{target_workspace_name}'"
         LOGGER.debug(message)
@@ -954,6 +954,16 @@ def _cleanup_client(client: dict):
     """
     client['attorney_initials'] = ",".join(client['attorney_initials'])
     client['admin_users'] = ",".join(client['admin_users'])
+
+    if 'case_events' not in client:
+        # client['case_events'] = []
+        return
+
+    # Filter out case_events where the hide flag is set to N.
+    client['case_events'] = [event for event in client['case_events'] if event['hide'] != 'N']
+
+    # Sort case_events by due_date
+    client['case_events'] = sorted(client['case_events'], key=lambda k: k['due_date'])
 
 
 def _get_greeting():
@@ -1250,7 +1260,7 @@ def _search_client_plan_id(search_client_id):
         open_paren = title.find('(')
         close_paren = title.find(')', open_paren + 1)
         if close_paren > open_paren and open != -1:
-            client_id = title[open_paren+1:close_paren]
+            client_id = title[open_paren + 1:close_paren]
             if client_id == search_client_id:
                 return plan.get('id')
     return None
@@ -1267,7 +1277,7 @@ def _client_email_cc_list(client_cc_list: str, user_cc_list: str, user_email: st
         client_cc_list (str): Delimited list of email-ccs for this client
         user_cc_list (str): Delimited list of email-ccs for this user
         user_email (str): This user's email address
-    
+
     Returns:
         (str): Delimited list of emails to cc on an email for this case.
     """
@@ -1277,7 +1287,7 @@ def _client_email_cc_list(client_cc_list: str, user_cc_list: str, user_email: st
         ccs = ccs.split(';')
         ccs = [email for email in ccs if email != my_email]
         return ';'.join(ccs)
-    
+
     if user_cc_list:
         ccs = user_cc_list.replace(' ', '').replace(',', ';').lower()
         ccs = ccs.split(';')
@@ -1285,6 +1295,7 @@ def _client_email_cc_list(client_cc_list: str, user_cc_list: str, user_email: st
         return ';'.join(ccs)
 
     return ''
+
 
 def _client_contact_email_cc_list(client: dict, contact: dict, user_email: str) -> str:
     """
@@ -1295,7 +1306,7 @@ def _client_contact_email_cc_list(client: dict, contact: dict, user_email: str) 
         client (dict): The document from the clients collection.
         contact (dict): The document from the contacts collection.
         user_email (str): This user's email address
-    
+
     Returns:
         (str): Delimted list of emails to cc on an email to this contact for this case.
     """
@@ -1305,7 +1316,7 @@ def _client_contact_email_cc_list(client: dict, contact: dict, user_email: str) 
     if contact_link is None:
         # This is a data integrity error or an application error
         return ''
-    
+
     # See if we have case-specific emails to use when emailing this contact
     if '@' in contact_link.get('email_cc', ''):
         ccs = contact_link['email_cc'].replace(' ', '').replace(',', ';').lower()
