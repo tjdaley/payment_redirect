@@ -69,7 +69,10 @@ def case_type_filter(value):
 
 
 def date_filter(value):
-    return datetime.strftime(value, '%m/%d/%Y')
+    if isinstance(value, datetime):
+        return datetime.strftime(value, '%m/%d/%Y')
+    date_parts = value.split('-')
+    return f"{date_parts[1]}/{date_parts[2]}/{date_parts[0]}"
 
 
 def fullname_filter(value):
@@ -125,10 +128,15 @@ def platform_pyimplementation_filter(value: str) -> str:
 def platform_pyversion_filter(value: str) -> str:
     return platform.python_version()
 
+
+def email_name_filter(value: str) -> str:
+    return value.split('@')[0]
+
 app.jinja_env.filters['case_type'] = case_type_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['crm_state'] = crm_state_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['currency'] = currency_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['date'] = date_filter  # noqa pylint: disable=no-member
+app.jinja_env.filters['email_name'] = email_name_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['fullname'] = fullname_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['hostname'] = platform_hostname_filter  # noqa pylint: disable=no-member
 app.jinja_env.filters['newlines'] = newlines_filter  # noqa pylint: disable=no-member
