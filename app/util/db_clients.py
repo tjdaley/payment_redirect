@@ -41,7 +41,7 @@ class DbClients(Database):
                         'T' for clients who owe a trial retainer
                         'E' for clients who just have an evergreen payment due
                         None for all clients
-            projection (dict): MongoDb projection (defaults to all doc cols)
+            projection (dict): MongoDb projection (defaults to most fields)
             crm_state (str): CRM State to select. Default is '070:retained_acive',
                              None or '*' for all CRM States.
         Returns:
@@ -80,6 +80,8 @@ class DbClients(Database):
             ('name.first_name', ASCENDING),
             ('email', ASCENDING)
         ]
+
+        projection = projection or {"case_events":0, "health_ins":0, "dental_ins":0, "mediation_date":0}
 
         documents = list(self.dbconn[COLLECTION_NAME].find(filter_, projection).sort(order_by))
         return documents
