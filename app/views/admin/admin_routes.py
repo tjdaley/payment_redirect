@@ -327,6 +327,7 @@ def send_evergreens():
     send_evergreen(user_email)
     return redirect(url_for('admin_routes.list_clients'))
 
+
 @admin_routes.route('/dashboard', methods=['GET'])
 @DECORATORS.is_logged_in
 @DECORATORS.auth_super_user
@@ -346,7 +347,7 @@ def dashboard_main():
 
     return render_template(
         'dashboard_main.html',
-        db_stats = db_stats,
+        db_stats=db_stats,
         db_status_class=db_status_class,
         collections=collections
     )
@@ -374,7 +375,7 @@ def download_clients_csv():
 @DECORATORS.auth_download_clients
 def download_clients_csv_deadline_checklist():
     user_email = session['user']['preferred_username']
-    drop_cols =[
+    drop_cols = [
         '_id',
         'active_flag',
         'address',
@@ -534,10 +535,10 @@ def click_up_login():
 
     result = requests.post(url)
     data = result.json()
-    print('-'*40)
+    print('-' * 40)
     print(url)
     print(data)
-    print('-'*40)
+    print('-' * 40)
     session['click_up_access_token'] = data.get('access_token')
 
     # Redirect the browser somewhere. TODO: Redirect to where we were.
@@ -641,8 +642,9 @@ def logout():
 def docket_report():
     user_email = session['user']['preferred_username']
     authorizations = _get_authorizations(user_email)
-    clients = DBCLIENTS.get_list(user_email)
-    _load_user_list()
+    clients = DBCLIENTS.get_list(user_email, projection={'dental_ins': 0, 'health_ins': 0})
+
+    # _load_user_list()
     _load_tasks(clients)
     return render_template("docket.html",
                            clients=clients,
@@ -790,7 +792,7 @@ def _load_plans() -> dict:
         open_paren = title.find('(')
         close_paren = title.find(')', open_paren + 1)
         if close_paren > open_paren and open != -1:
-            client_id = title[open_paren+1:close_paren]
+            client_id = title[open_paren + 1:close_paren]
             plans[client_id] = {
                 'title': title,
                 'id': plan.get('id'),
@@ -799,6 +801,22 @@ def _load_plans() -> dict:
 
 
 def _load_tasks(clients: dict):
+    """
+    This version is for where we store case_events inside the client document.
+
+    Remove hidden tasks and sort them all by DUE DATE.
+    """
+
+    # For each client, sort case_events by due_date and filter out case_events with hide=Y
+    for client in clients:
+        if 'case_events' in client:
+            client['case_events'] = sorted(
+                [event for event in client['case_events'] if event['hide'] != 'Y'],
+                key=lambda k: k['due_date']
+            )
+
+
+def _xload_tasks(clients: dict):
     """
     Load all client to-do lists in place.
 
@@ -875,6 +893,7 @@ def __select_css_classes(categories: dict):
         if f'category{task_label}' in categories:
             return f'task_category task_category_{task_label}'
     return 'task_category'
+
 
 def _decode_task_assignments(assignments: dict):
     """
