@@ -960,7 +960,7 @@ def _cleanup_client(client: dict):
         return
 
     # Filter out case_events where the hide flag is set to N.
-    client['case_events'] = [event for event in client['case_events'] if event['hide'] != 'N']
+    client['case_events'] = [event for event in client['case_events'] if event['hide'] != 'Y']
 
     # Sort case_events by due_date
     client['case_events'] = sorted(client['case_events'], key=lambda k: k['due_date'])
