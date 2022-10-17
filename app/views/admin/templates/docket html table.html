@@ -1,0 +1,61 @@
+{% extends 'layout.html' %}
+{% block body %}
+<span class="h1 my-3">Docket</span>
+
+<div class="row">
+    <div class="col">
+        <table class="table table-sm table-hover">
+            <tr>
+                <th>Client</th>
+                <th>Case</th>
+                <th>Dates</th>
+            </tr>
+            {% for client in clients %}
+            <tr class="text-{{client._class}}">
+                <td>
+                    {{client.name.last_name.upper()}}, {{client.name.first_name}} {{client.name.middle_name}} {{client.name.suffix}}
+                    <a href="/crm/client/{{client._id}}/">{{client.billing_id}}</a><br />
+                    Trust: {{"${:,.2f}".format(client.trust_balance or 0)}} 
+                    Orig retainer: {{"${:,.2f}".format(client.target_retainer or 0)}}
+                </td>
+                <td>
+                    {% if client.case_type == 'XXXX' %}
+                    {{client.case_style}}<br />
+                    {% elif client.case_type %}
+                    {{ client.case_type | case_type }}<br />
+                    {% else %}
+                    {{ client.case_style }}<br />
+                    {% endif %}
+                    {{client.cause_number}}<br />
+                    {{client.court_name}}<br />
+                    {{client.case_county}}
+                </td>
+                <td>
+                    Ret: {{client.retained_date}}<br />
+                    Filed: {{client.filed_date or ''}}<br />
+                    {% if 'next_hearing' in client %}
+                    Next hearing: {{client.next_hearing.hearing_date or ''}} {{client.next_hearing.subject}} {{client.next_hearing.covered_by}}<br />
+                    {% endif %}
+                    {% if 'mediation' in client %}
+                    Med: {{client.mediation.mediation_date or ''}} {{client.mediation.mediator_name}} {{client.mediation.location}}<br />
+                    {% endif %}
+                    Trial: {{client.trial_date or 'NOT SET'}}<br/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                {% for task in client.case_events %}
+                    <li class="{{task.css_classes}}">
+                        {% if task.completed == "Y" %}<del>{% endif %}
+                        {{task.description}} ({{task.assigned_to}}) {{task.due_date}}
+                        {% if task.percent_complete == 100 %}</del>{% endif %}
+                    </li>
+                {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+{% endblock %}
