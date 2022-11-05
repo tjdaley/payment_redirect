@@ -940,7 +940,7 @@ def _client_row_class(client: dict) -> str:
             return 'dark'
 
     try:
-        if client['trust_balance'] > client['refresh_trigger']:
+        if client['trust_balance'] >= client['refresh_trigger']:
             return 'success'
         if client['trust_balance'] <= 0:
             return 'danger'
