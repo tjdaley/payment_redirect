@@ -942,10 +942,12 @@ def _client_row_class(client: dict) -> str:
     try:
         if client['trust_balance'] > client['refresh_trigger']:
             return 'success'
+        if client['trust_balance'] <= 0:
+            return 'danger'
     except TypeError:
         return 'dark'
 
-    return 'danger'
+    return 'dark'
 
 
 def _cleanup_client(client: dict):
