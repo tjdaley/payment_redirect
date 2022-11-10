@@ -306,7 +306,7 @@ def make_client_name(client: dict, include_title: bool = True) -> str:
         first_index = 0
     else:
         first_index = 1
-    return " ".join(list(client['name'].values())[first_index:-1])
+    return " ".join(list(client['name'].values())[first_index:-1]).strip()
 
 
 def correct_check_digit(ssn: str, dl: str) -> str:

@@ -241,7 +241,7 @@ def make_contact_name(contact: dict, include_title: bool = True) -> str:
         first_index = 0
     else:
         first_index = 1
-    return " ".join(list(contact['name'].values())[first_index:-1])
+    return " ".join(list(contact['name'].values())[first_index:-1]).strip()
 
 
 
