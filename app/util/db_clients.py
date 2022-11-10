@@ -251,7 +251,7 @@ class DbClients(Database):
             client_name = make_client_name(doc)
 
             # Insert new client record
-            if doc.get('_id', '0') == '0':
+            if doc.get('_id', '0') in ['0', '']:
                 if '_id' in doc:
                     del doc['_id']
 
@@ -260,7 +260,7 @@ class DbClients(Database):
                     doc['admin_users'].append(user_email.lower())
 
                 # Create a reference field
-                doc['reference'] = f"Client ID {doc['billing_id']}"
+                doc['reference'] = f"Client ID {doc['billing_id']}.{doc['matter_id']}"
                 result = self.dbconn[COLLECTION_NAME].insert_one(doc)
                 if result.inserted_id:
                     message = f"Client record added for {client_name}"
@@ -272,7 +272,7 @@ class DbClients(Database):
             filter_ = {'_id': ObjectId(doc['_id'])}
             del doc['_id']
             if 'billing_id' in doc:
-                doc['reference'] = f"Client ID {doc['billing_id']}"
+                doc['reference'] = f"Client ID {doc['billing_id']}.{doc['matter_id']}"
             result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
             if result.modified_count == 1:
                 message = f"{client_name}'s record updated"
@@ -380,9 +380,6 @@ def cleanup(doc: dict):
     event_flag_fields = ['completed', 'hide']
     for case_event in doc.get('case_events', []):
         set_missing_flags(case_event, event_flag_fields)
-    print("***CLEANED DOC***")
-    print(doc)
-    print("*" * 80)
 
 
 def intake_to_client(intake: dict) -> dict:
