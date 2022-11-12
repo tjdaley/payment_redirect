@@ -219,7 +219,7 @@ def search_clients(page_num: int = 1):
     query = request.form.get('query', None)
     authorizations = _get_authorizations(user_email)
     if query:
-        clients = DBCLIENTS.search(user_email, query=query, page_num=page_num, crm_state='*')
+        clients = DBCLIENTS.search(user_email, query=query, page_num=page_num, crm_state='*', include_inactive=True)
     else:
         clients = DBCLIENTS.get_list(user_email)
     for client in clients:
