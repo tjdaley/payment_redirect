@@ -1,7 +1,7 @@
 <!--ACCESS TAB-->
 <div class="tab-pane fade" id="access" role="tabpanel" aria-labelledby="access-tab">
     <div class="card border-danger my-3">
-        <div class="card-header text-bg-danger">Administrative Access</div>
+        <div class="card-header text-bg-danger">Client Access</div>
         <div class="card-body">
             <div class="row g-3 mb-3">
                 <div class="form-group col-8">
@@ -14,7 +14,7 @@
                             type="checkbox"
                             id="active_flag"
                             name="active_flag"
-                            {% if client.active_flag == 'Y' %}checked{% endif %}
+                            {% if client.active_flag == 'Y' or client.active_flag == True %}checked{% endif %}
                         >
                         <label class="form-check-label" for="active_flag">?Active?</label>
                     </div>
