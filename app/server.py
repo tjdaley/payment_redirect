@@ -27,6 +27,8 @@ from views.tools.tools_routes import tools_routes
 from views.admin.forms.ClientForm import CRM_STATES
 from views.admin.forms.ClientForm import CASE_TYPES
 
+import dotenv
+dotenv.load_dotenv()
 
 DATABASE = Database()
 do_upgrades()
