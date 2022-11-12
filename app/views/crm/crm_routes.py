@@ -276,10 +276,11 @@ def add_client():
 def save_client():
     form = ClientForm()
     form.process(formdata=request.form)  # noqa pylint: disable=no-member
+    client_id = request.form.get('_id', '0') or '0'
 
     if form.validate():
         fields = form.data  # noqa pylint: disable=no-member
-        fields['_id'] = request.form.get('_id', '0')
+        fields['_id'] = client_id
         user_email = session['user']['preferred_username']
         result = DBCLIENTS.save(fields, user_email)
         if result['success']:
@@ -296,6 +297,7 @@ def save_client():
     child_form = ChildForm()
 
     client = form.data  # noqa pylint: disable=no-member
+    client['_id'] = client_id
     client['_email_subject'] = DBCLIENTS.get_email_subject(client.get('_id'))
     client['_email_cc_list'] = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
 
