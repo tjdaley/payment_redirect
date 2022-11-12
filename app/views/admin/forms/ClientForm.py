@@ -318,7 +318,7 @@ class ClientForm(FlaskForm):
         [validators.DataRequired(), validators.Length(min=2, max=4)]
     )
     admin_users = StringField(
-        "Admin emails",
+        "Access emails",
         [validators.DataRequired()]
     )
 
@@ -342,7 +342,7 @@ class ClientForm(FlaskForm):
     )
     active_flag = BooleanField(
         "Active?",
-        false_values=('N', '')
+        false_values=('N', '', False)
     )
     crm_state = SelectField(
         "CRM State",
