@@ -783,7 +783,7 @@ def _click_up_list_tasks(list_id: str) -> list:
     return {'success': True, 'message': 'Tasks retrieved', 'tasks': data['tasks']}
 
 
-def _click_up_params(user_email: str) -> dict:
+def _click_up_params(user_email: str) -> dict:  # noqa
     """
     Load a Click Up parameters for this user.
 
@@ -1333,3 +1333,5 @@ def _client_contact_email_cc_list(client: dict, contact: dict, user_email: str) 
     contact_ccs = contact.get('email_cc', '').replace(' ', '').replace(',', ';').lower().split(';')
     ccs += contact_ccs
     return ';'.join(ccs)
+
+# pylama:ignore=E501
