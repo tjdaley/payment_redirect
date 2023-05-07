@@ -96,7 +96,8 @@ class DbUsers(Database):
             if 'email' in doc:
                 doc['email'] = doc['email'].strip().lower()
             if 'ring_central_username' in doc:
-                doc['ring_central_username'] = normalize_telephone_number(doc['ring_central_username'])
+                doc['ring_central_username'] = \
+                    normalize_telephone_number(doc['ring_central_username'])
         except Exception as e:
             get_logger('.database.users').warn("Error during clean up: %s", str(e))
             get_logger('.database.users').exception(e)
