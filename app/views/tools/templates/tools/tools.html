@@ -12,7 +12,7 @@
                 <ul class="nav flex-column">
                     <ul class="list-unstyled mb-5">
                         <li class="active mb-1 mt-1">
-                            <a href="#childsupportSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white">Child Support</a>
+                            <a href="#childsupportSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white">Child Support</a>
                             <ul class="collapse list-unstyled text-white" id="childsupportSubmenu">
                                 <li>
                                     <a href="/client_tools/{{client._id}}/cs_calc" class="text-white">Calculate</a>
@@ -36,18 +36,14 @@
                             <a href="#" class="text-white">About</a>
                         </li>
                         <li class="mb-1 mt-1">
-                            <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white mb-3">Pages</a>
-                            <ul class="collapse list-unstyled" id="pageSubmenu">
+                            <a href="#docSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white mb-3">Documents</a>
+                            <ul class="collapse list-unstyled" id="docSubmenu">
                                 <li>
-                                    <a href="#" class="text-white">Page 1</a>
+                                    <a href="/client_tools/{{client._id}}/load_file" class="text-white">Extract Tables</a>
                                 </li>
                                 <li>
-                                    <a href="#" class="text-white">Page 2</a>
+                                    <a href="/client_tools/{{client._id}}/doc_tables" class="text-white">View Tables</a>
                                 </li>
-                                <li>
-                                    <a href="#" class="text-white">Page 3</a>
-                                </li>
-                            </ul>
                         </li>
 
                         <li class="mb-1 mt-1">

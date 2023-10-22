@@ -32,6 +32,12 @@ DATABASE = Database()
 do_upgrades()
 
 DEBUG = int(os.environ.get('DEBUG', '0'))
+# Build a TMP_DIR path of /tmp relative to this file's location
+TMP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp')
+if not os.path.exists(TMP_DIR):
+    os.makedirs(TMP_DIR)
+# Save TMP_DIR to the environment so that it can be used by other modules
+os.environ['TMP_DIR'] = TMP_DIR
 
 
 app = Flask(__name__)
