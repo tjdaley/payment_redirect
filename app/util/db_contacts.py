@@ -182,7 +182,7 @@ class DbContacts(Database):
         """
         Save a contact record
         """
-        # Determine client name for status message
+        # Determine contact name for status message
         try:
             contact_name = f"{doc['name']['first_name']} {doc['name']['middle_name']} {doc['name']['last_name']} {doc['name']['suffix']}"
             contact_name = ' '.join(contact_name.split())
@@ -200,7 +200,7 @@ class DbContacts(Database):
             doc['email'] = doc['email'].strip().lower()
 
         # Insert new contact record
-        if doc.get('_id', '0') == '0':
+        if doc.get('_id', '0') in ['0', '']:
             if '_id' in doc:
                 del doc['_id']
             doc['linked_client_ids'] = []
@@ -241,7 +241,7 @@ def make_contact_name(contact: dict, include_title: bool = True) -> str:
         first_index = 0
     else:
         first_index = 1
-    return " ".join(list(contact['name'].values())[first_index:-1])
+    return " ".join(list(contact['name'].values())[first_index:-1]).strip()
 
 
 

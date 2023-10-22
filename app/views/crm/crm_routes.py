@@ -219,7 +219,7 @@ def search_clients(page_num: int = 1):
     query = request.form.get('query', None)
     authorizations = _get_authorizations(user_email)
     if query:
-        clients = DBCLIENTS.search(user_email, query=query, page_num=page_num, crm_state='*')
+        clients = DBCLIENTS.search(user_email, query=query, page_num=page_num, crm_state='*', include_inactive=True)
     else:
         clients = DBCLIENTS.get_list(user_email)
     for client in clients:
@@ -276,10 +276,11 @@ def add_client():
 def save_client():
     form = ClientForm()
     form.process(formdata=request.form)  # noqa pylint: disable=no-member
+    client_id = request.form.get('_id', '0') or '0'
 
     if form.validate():
         fields = form.data  # noqa pylint: disable=no-member
-        fields['_id'] = request.form.get('_id', '0')
+        fields['_id'] = client_id
         user_email = session['user']['preferred_username']
         result = DBCLIENTS.save(fields, user_email)
         if result['success']:
@@ -296,6 +297,7 @@ def save_client():
     child_form = ChildForm()
 
     client = form.data  # noqa pylint: disable=no-member
+    client['_id'] = client_id
     client['_email_subject'] = DBCLIENTS.get_email_subject(client.get('_id'))
     client['_email_cc_list'] = _client_email_cc_list(client.get('email_cc_list'), user.get('default_cc_list'), user_email)
 
@@ -781,7 +783,7 @@ def _click_up_list_tasks(list_id: str) -> list:
     return {'success': True, 'message': 'Tasks retrieved', 'tasks': data['tasks']}
 
 
-def _click_up_params(user_email: str) -> dict:
+def _click_up_params(user_email: str) -> dict:  # noqa
     """
     Load a Click Up parameters for this user.
 
@@ -1331,3 +1333,5 @@ def _client_contact_email_cc_list(client: dict, contact: dict, user_email: str) 
     contact_ccs = contact.get('email_cc', '').replace(' ', '').replace(',', ';').lower().split(';')
     ccs += contact_ccs
     return ';'.join(ccs)
+
+# pylama:ignore=E501

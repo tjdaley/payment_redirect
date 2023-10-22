@@ -30,7 +30,7 @@ class DbClients(Database):
     """
     Encapsulates a database accessor for clients
     """
-    def get_list(self, email: str, flag: str = None, projection: dict = None, crm_state: str = '070:retained_active', where: dict = {}) -> list:
+    def get_list(self, email: str, flag: str = None, projection: dict = None, crm_state: str = '070:retained_active', where: dict = {}, include_inactive: bool=False) -> list:
         """
         Return a list of client records where the email provided
         is one of the admin_users of the client record.
@@ -44,15 +44,19 @@ class DbClients(Database):
             projection (dict): MongoDb projection (defaults to most fields)
             crm_state (str): CRM State to select. Default is '070:retained_acive',
                              None or '*' for all CRM States.
+            where (dict): MongoDb where clause
+            include_inactive (bool): Include inactive clients in the results?
         Returns:
             (list): Of client docs.
         """
         filter_ = {
             '$and': [
                 {'admin_users': {'$elemMatch': {'$eq': email.lower()}}},
-                {'active_flag': {'$eq': 'Y'}}
             ]
         }
+
+        if not include_inactive:
+            filter_['$and'].append({'active_flag': {'$eq': 'Y'}})
 
         # See if we have a flag to add to the filter
         if flag:
@@ -86,7 +90,7 @@ class DbClients(Database):
         documents = list(self.dbconn[COLLECTION_NAME].find(filter_, projection).sort(order_by))
         return documents
 
-    def search(self, email: str, query: str, page_num: int = 1, page_size: int = 25, crm_state: str = None) -> list:
+    def search(self, email: str, query: str, page_num: int = 1, page_size: int = 25, crm_state: str = None, include_inactive: bool = False) -> list:
         """
         Search for clients matching the words in *query*.
 
@@ -95,6 +99,9 @@ class DbClients(Database):
             query (str): Query string from user.
             page_num (int): Which page number is going to be displayed? (default=1)
             page_size (int): Number of documents per page (default=25)
+            crm_state (str): CRM State to select. Default is '070:retained_acive',
+                                None or '*' for all CRM States.
+            include_inactive (bool): Include inactive clients in the results?
         Returns:
             (list): List of docs or None
         """
@@ -124,7 +131,8 @@ class DbClients(Database):
         return self.get_list(
             email=email,
             where=where,
-            crm_state=crm_state
+            crm_state=crm_state,
+            include_inactive=include_inactive
         )
 
     def get_list_as_csv(self, email: str, crm_state=None, drop_cols=None) -> str:
@@ -251,7 +259,7 @@ class DbClients(Database):
             client_name = make_client_name(doc)
 
             # Insert new client record
-            if doc.get('_id', '0') == '0':
+            if doc.get('_id', '0') in ['0', '']:
                 if '_id' in doc:
                     del doc['_id']
 
@@ -260,7 +268,7 @@ class DbClients(Database):
                     doc['admin_users'].append(user_email.lower())
 
                 # Create a reference field
-                doc['reference'] = f"Client ID {doc['billing_id']}"
+                doc['reference'] = f"Client ID {doc['billing_id']}.{doc['matter_id']}"
                 result = self.dbconn[COLLECTION_NAME].insert_one(doc)
                 if result.inserted_id:
                     message = f"Client record added for {client_name}"
@@ -272,7 +280,7 @@ class DbClients(Database):
             filter_ = {'_id': ObjectId(doc['_id'])}
             del doc['_id']
             if 'billing_id' in doc:
-                doc['reference'] = f"Client ID {doc['billing_id']}"
+                doc['reference'] = f"Client ID {doc['billing_id']}.{doc['matter_id']}"
             result = self.dbconn[COLLECTION_NAME].update_one(filter_, {'$set': doc})
             if result.modified_count == 1:
                 message = f"{client_name}'s record updated"
@@ -306,7 +314,7 @@ def make_client_name(client: dict, include_title: bool = True) -> str:
         first_index = 0
     else:
         first_index = 1
-    return " ".join(list(client['name'].values())[first_index:-1])
+    return " ".join(list(client['name'].values())[first_index:-1]).strip()
 
 
 def correct_check_digit(ssn: str, dl: str) -> str:
@@ -380,9 +388,6 @@ def cleanup(doc: dict):
     event_flag_fields = ['completed', 'hide']
     for case_event in doc.get('case_events', []):
         set_missing_flags(case_event, event_flag_fields)
-    print("***CLEANED DOC***")
-    print(doc)
-    print("*" * 80)
 
 
 def intake_to_client(intake: dict) -> dict:
