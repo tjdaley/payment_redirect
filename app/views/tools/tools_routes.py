@@ -27,10 +27,8 @@ from util.msftgraph import MicrosoftGraph
 # pylint: enable=import-error
 
 # from util.logger import get_logger
-load_dotenv()
 DBADMINS = DbAdmins()
 DBCLIENTS = DbClients()
-DBQUEUE = DbQueue()
 MSFT = MicrosoftGraph()
 PLAN_TEMPLATES = PlanTemplates()
 USERS = None
@@ -150,6 +148,9 @@ def get_classification(client_id: str, job_id: str):
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def client_tools(client_id: str):
+    """
+    Render the client tools page.
+    """
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(client_id)
     authorizations = _get_authorizations(user_email)
@@ -212,6 +213,9 @@ def images_to_pdf(client_id: str):
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def cs_calc(client_id: str):
+    """
+    Render the child support calculator page.
+    """
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(client_id)
     authorizations = _get_authorizations(user_email)
@@ -226,6 +230,9 @@ def cs_calc(client_id: str):
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def cs_stepdown(client_id: str):
+    """
+    Render the child support stepdown page.
+    """
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(client_id)
     authorizations = _get_authorizations(user_email)
@@ -248,7 +255,6 @@ def cs_stepdown(client_id: str):
             client=client,
             authorizations=authorizations,
             stepdown_schedule=stepdown_schedule
-            stepdown_schedule=stepdown_schedule
         )
 
     return render_template(
@@ -258,7 +264,6 @@ def cs_stepdown(client_id: str):
         client=client,
         authorizations=authorizations,
         stepdown_schedule=[]
-        stepdown_schedule=[]
     )
 
 
@@ -266,6 +271,9 @@ def cs_stepdown(client_id: str):
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def cs_violations(client_id: str):
+    """
+    Render the child support violations page.
+    """
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(client_id)
     children = _children(client)
@@ -279,7 +287,6 @@ def cs_violations(client_id: str):
         'payments': form.payments.data or '',
         'children_not_before_court': form.children_not_before_court.data or '0',
         'payment_interval': int(form.payment_interval.data or 12),
-        'violations_only': form.violations_only.data or True
         'violations_only': form.violations_only.data or True
     }
 
@@ -301,7 +308,6 @@ def cs_violations(client_id: str):
             confirmed_arrearage=None,
             start_date=form_data['start_date'],
             num_children_not_before_court=_int(form_data['payment_interval'], 12),
-            payment_interval=_int(form_data['payment_interval'])
             payment_interval=_int(form_data['payment_interval'])
         )
         payments = payments_made(form_data['payments'])
@@ -324,7 +330,6 @@ def cs_violations(client_id: str):
         client=client,
         authorizations=authorizations,
         indictments=[]
-        indictments=[]
     )
 
 
@@ -332,6 +337,9 @@ def cs_violations(client_id: str):
 @DECORATORS.is_logged_in
 @DECORATORS.auth_crm_user
 def cs_arrearage(client_id: str):
+    """
+    Render the child support arrearage page.
+    """
     user_email = session['user']['preferred_username']
     client = DBCLIENTS.get_one(client_id)
     children = _children(client)
@@ -345,7 +353,6 @@ def cs_arrearage(client_id: str):
         'payments': form.payments.data or '',
         'children_not_before_court': form.children_not_before_court.data or '0',
         'payment_interval': int(form.payment_interval.data or 12),
-        'violations_only': form.violations_only.data or False
         'violations_only': form.violations_only.data or False
     }
 
@@ -367,7 +374,6 @@ def cs_arrearage(client_id: str):
             confirmed_arrearage=None,
             start_date=form_data['start_date'],
             num_children_not_before_court=_int(form_data['payment_interval'], 12),
-            payment_interval=_int(form_data['payment_interval'])
             payment_interval=_int(form_data['payment_interval'])
         )
         payments = payments_made(form_data['payments'])
@@ -403,7 +409,6 @@ def cs_arrearage(client_id: str):
         form_data=client.get('cs_tools_enforcement', form_data),
         client=client,
         authorizations=authorizations,
-        report=[]
         report=[]
     )
 
@@ -446,3 +451,42 @@ def _name(name_parts: dict) -> str:
     if suffix:
         name += f", {suffix}"
     return name
+
+
+def _save_files(files: list) -> str:
+    """
+    Save files to a temp folder.
+
+    Args:
+        files (list): List of files to be saved
+
+    Returns:
+        str: Path to the temp folder
+    """
+    tmp_dir = os.getenv('TMP_DIR')
+    if tmp_dir is None:
+        LOGGER.error("TMP_DIR environment variable not set")
+        return None
+
+    try:
+        tmp_folder = os.path.join(tmp_dir, str(datetime.now().timestamp()))
+        os.mkdir(tmp_folder)
+        for file in files:
+            file.save(os.path.join(tmp_folder, file.filename))
+        return tmp_folder
+    except Exception as err:  # pylint: disable=broad-except
+        LOGGER.error("Unexpected error saving files: %s", err)
+        return None
+
+
+def _queue_conversion(temp_folder: str, client_id: str, user_email: str, conversion_params: dict):
+    """
+    Queue a task to convert the files in a temp folder to PDF.
+
+    Args:
+        temp_folder (str): Path to the temp folder
+        client_id (str): Client ID
+        user_email (str): Email address of user
+        conversion_params (dict): Parameters for the conversion
+    """
+    pass
