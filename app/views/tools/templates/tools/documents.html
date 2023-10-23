@@ -1,0 +1,23 @@
+{% extends "tools/tools.html" %}
+{% block tool_area %}
+<h4>Processed Documents</h1>
+{% from 'includes/_formhelpers.html' import render_field %}
+<table class="table table-striped table-sm" id="documents_table">
+    <thead>
+        <th>ID</th>
+        <th>Filname</th>
+        <th>Status</th>
+        <th>Has Tables?</th>
+    </thead>
+    <tbody>
+{% for doc in documents %}
+        <tr>
+            <td><a href='/tables/{{doc.id}}'>View</a></td>
+            <td>{{doc.filename}}</td>
+            <td>{{doc.status}}</td>
+            <td>{{doc.has_tables}}</td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+{% endblock %}
