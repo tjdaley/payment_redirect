@@ -32,29 +32,8 @@ def get_logger(identifier: str = None):
     else:
         log_level = logging.INFO
 
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     # Create base logger
     logger = logging.getLogger(log_id)
-    logger.setLevel(log_level)
-
-    # Inquire where to send log messages
-    log_to_file = int(os.environ.get('LOG_TO_FILE', '0')) == 1
-    log_to_console = int(os.environ.get('LOG_TO_CONSOLE', '0')) == 1
-
-    # File logger
-    if log_to_file:
-        log_file_name = os.environ.get('LOG_FILE', 'application.log')
-        fh = logging.FileHandler(log_file_name)
-        fh.setLevel(log_level)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-    # Console logger
-    if log_to_console:
-        ch = logging.StreamHandler()
-        ch.setLevel(log_level)
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
-
     return logger
