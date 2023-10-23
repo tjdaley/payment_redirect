@@ -1,0 +1,147 @@
+{% extends "tools/tools.html" %}
+{% block tool_area %}
+<h4>Upload a File for Analysis</h1>
+{% from 'includes/_formhelpers.html' import render_field %}
+<form method='POST' action="{{url_for('tools_routes.save_file', client_id=client._id)}}">
+    <input type='hidden' name='_id' id='_id' value='{{client._id}}'>
+    <div class="card border-primary my-3">
+        <div class="card-header alert-primary">File</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <input type="file" id="fileInput" accept=".pdf" onchange="handleFileUpload(this.files[0])">
+                </div>
+            </div>
+        </div>
+        <!-- input type="submit" class="btn btn-primary btn-sm" onclick="create_violations('violations_message')" / -->
+    </div>
+</form>
+<div id="status"></div>
+<script>
+// Define API endpoint URLs
+const tmp_job_id = 'xxJOBIDxx';
+const saveDocEndpoint = "{{url_for('tools_routes.save_file', client_id=client._id)}}";
+const classifyEndpoint = "{{url_for('tools_routes.classify_file', client_id=client._id)}}";
+const classificationEndpoint = "{{url_for('tools_routes.get_classification', client_id=client._id, job_id=tmp_job_id)}}";
+
+function updateStatus(message) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = message;
+}
+
+async function handleFileUpload(file) {
+    if (file) {
+        // Step 1: Save the PDF document
+        updateStatus('Uploading file...');
+        const docId = await saveDocument(file);
+        if (!docId) {
+            updateStatus('Failed to upload file.');
+            return;
+        }
+
+        // Step 2: Queue the classification job
+        updateStatus('Classifying document...');
+        const jobId = await queueClassification(docId);
+        if (!jobId) {
+            updateStatus('Failed to queue classification job.');
+            return;
+        }
+
+        // Step 3: Retrieve classification status and information
+        const classificationInfo = await getClassificationInfo(jobId);
+        updateStatus('Classification completed.');
+
+        // Display classification information in a table
+        displayClassificationInfo(classificationInfo);
+
+        // Clear status message
+        updateStatus('Classification completed.');
+    }
+}
+
+async function saveDocument(file) {
+    try {
+        // Create a FormData object to send the PDF file
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // Make the POST request to the /save_doc endpoint
+        const response = await fetch(saveDocEndpoint, {
+            method: 'POST',
+            body: formData,
+        });
+
+        // Check if the request was successful (status code 200)
+        if (response.status === 200) {
+            // Parse the response JSON to get the doc_id
+            const data = await response.json();
+            if (data.success === false) {
+                console.error('Failed to save the document:', data.error);
+                return null;
+            }
+            const docId = data.doc_id;
+            updateStatus(data.message + ' Document ID: ' + docId);
+            return docId;
+        } else {
+            // Handle errors or unexpected responses here
+            console.error('Failed to save the document:', response.status);
+            return null;
+        }
+    } catch (error) {
+        // Handle network errors or exceptions here
+        console.error('An error occurred:', error);
+        return null;
+    }
+}
+
+
+async function queueClassification(docId) {
+    try {
+        // Create a FormData object to send the doc_id
+        const formData = new FormData();
+        formData.append('doc_id', docId);
+        formData.append('synchronous', 'true')
+
+        // Make the POST request to the /classify endpoint
+        const response = await fetch(classifyEndpoint, {
+            method: 'POST',
+            body: formData,
+        });
+
+        // Check if the request was successful (status code 200)
+        if (response.status === 200) {
+            // Parse the response JSON to get the doc_id
+            const data = await response.json();
+            if (data.success === false) {
+                console.error('Failed to classify document:', data.error);
+                return null;
+            }
+            const jobId = data.job_id;
+            return jobId;
+        } else {
+            // Handle errors or unexpected responses here
+            console.error('Failed to queue classification of the document:', response.status);
+            return null;
+        }
+    } catch (error) {
+        // Handle network errors or exceptions here
+        console.error('An error occurred:', error);
+        return null;
+    }
+}
+
+async function getClassificationInfo(jobId) {
+    // Implement this function to make a GET request to classification
+    // Use the job_id obtained in the classification step
+    // Return the classification information received in the response
+    url = classificationEndpoint.replace(tmp_job_id, jobId);
+    return {'success': true, 'job_id': jobId, 'url': url}
+}
+
+function displayClassificationInfo(classificationInfo) {
+    // Implement this function to populate the table with classification information
+    // You can use the DOM to create rows and cells in the table
+    // Set the style of the table to display it
+}
+</script>
+{% endblock %}

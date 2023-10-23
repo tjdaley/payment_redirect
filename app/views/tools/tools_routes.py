@@ -3,10 +3,13 @@ tools_routes.py - Direct a client to the payment page
 
 Copyright (c) 2021 by Thomas J. Daley. All Rights Reserved.
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 import os
+import re
+from uuid import uuid4
 from flask import Blueprint, render_template, request, session, jsonify
+import boto3
 from views.tools.forms.violation_form import ViolationForm
 from views.tools.forms.stepdown_form import StepdownForm
 from views.tools.templates.tools.cs_utils.combined_payment_schedule import combined_payment_schedule
@@ -25,8 +28,10 @@ from util.logger import get_logger
 from util.msftgraph import MicrosoftGraph
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
-
+from falconlib.falconlib import FalconLib
 # from util.logger import get_logger
+
+
 DBADMINS = DbAdmins()
 DBCLIENTS = DbClients()
 MSFT = MicrosoftGraph()
@@ -34,9 +39,305 @@ PLAN_TEMPLATES = PlanTemplates()
 USERS = None
 LOGGER = get_logger('crm_routes')
 
-
 tools_routes = Blueprint('tools_routes', __name__, template_folder='templates')
 
+class FalconManager():
+    """
+    Manage the interface between our app and Falcon.
+    """
+    Tracker_Name = '$CLIENT_TOOLS$'
+    def __init__(self):
+        """
+        Instantiate a connection to the Falcon API.
+        """
+        base_url = os.getenv('FALCON_URL', 'https://api.jdbot.us')
+        api_version = os.getenv('FALCON_API_VERSION', '1_0')
+        self.falcon = FalconLib(base_url, api_version)
+        username = os.getenv('FALCON_USERNAME')
+        password = os.getenv('FALCON_PASSWORD')
+        result = self.falcon.authorize(username, password)
+        if not result.success:
+            LOGGER.error("Falcon login failed: %s", result.error)
+        self.bucket = os.environ.get('DISCOVERY_CLASSIFIER_BUCKET', 'discoveryclassifier')
+        self.folder = os.environ.get('ASYNC_PROCESSING_FOLDER', 'queued_documents')
+        self.boto3_credentials = {
+            'region_name': os.environ.get('AWS_REGION_TXT', 'us-east-1'),
+            'aws_access_key_id': os.environ.get('AWS_ACCESS_KEY_ID_TXT', ''),
+            'aws_secret_access_key': os.environ.get('AWS_SECRET_ACCESS_KEY_TXT', '')
+        }
+
+    def extract_text(self, filename: str, file_path: str, user_email: str, client_id: str) -> str:
+        """
+        Chain together methods in this class to start the text extraction process.
+
+        Args:
+            filename (str): Name of file to be analyzed (as user knows it)
+            file_path (str): Path to file to be analyzed (our tmp name)
+            user_email (str): Email address of user
+            client_id (str): Client ID
+
+        Returns:
+            str: ID of the document
+        """
+        doc_id = self.add_doc(client_id, user_email, file_path, filename)
+        LOGGER.debug("Added document %s", doc_id)
+        key_path = self.move_to_cloud(file_path)
+        LOGGER.debug("Moved %s to %s", file_path, key_path)
+        job_id = self.queue_text_extraction(key_path, file_path)
+        LOGGER.debug("Queued %s for text extraction", key_path)
+        self.update_job_id(doc_id, job_id)
+        LOGGER.debug("Updated job ID for %s to %s", doc_id, job_id)
+        return doc_id
+
+    def create_tracker(self, client_id: str, user_email: str) -> str:
+        """
+        Create a tracker for a client.
+
+        Args:
+            client_id (str): Client ID
+            user_email (str): Email address of user
+
+        Returns:
+            str: ID of the created tracker
+        """
+        # Create a tracker for this client.
+        tracker_doc = {
+            'client_reference': client_id,
+            'id': user_email,
+            'name': FalconManager.Tracker_Name,
+        }
+        r = self.falcon.create_tracker(tracker_doc)
+        if not r.success:
+            LOGGER.error("Error creating tracker: %s", r.message)
+            return user_email
+
+        tracker_id = r.payload.get('id')
+        if not tracker_id:
+            LOGGER.error("No tracker ID returned.")
+            return None
+
+        # Allow our user to access the tracker
+        r = self.falcon.get_tracker(tracker_id)
+        tracker_doc = r.payload
+        if not tracker_doc:
+            LOGGER.error("No tracker document returned.")
+            return None
+        tracker_doc['auth_usernames'].append(user_email)
+        r = self.falcon.update_tracker(tracker_doc)
+        return tracker_id
+
+    def add_doc(self, client_id: str, user_email: str, file_path: str, filename: str)-> str:
+        """
+        Add a document to Falcon.
+
+        Args:
+            client_id (str): Client ID
+            user_email (str): Email address of user
+            file_path (str): Path to file to be added (our tmp name)
+            filename (str): Name of file to be added (as user knows it)
+
+        Returns:
+            str: ID of the added document
+        """
+        tracker_id = self.create_tracker(client_id, user_email)
+
+        # Add the document to Falcon Tracker
+        doc_id = uuid4().hex
+        doc = {
+            'id': doc_id,
+            'path': file_path,
+            'filename': os.path.basename(file_path),
+            'title': filename,
+            'type': 'application/pdf',
+            'create_date': datetime.now().isoformat().replace('T', ' '),  # Falcon doesn't like T in the date
+            'client_reference': client_id,
+        }
+        r = self.falcon.add_document(doc)
+        if not r.success:
+            LOGGER.error("Error adding document: %s", r.message)
+            return None
+        LOGGER.debug("Added document %s", r.payload)
+        r = self.falcon.link_document(tracker_id, doc_id)
+        LOGGER.debug("Linked document %s to tracker %s", doc_id, tracker_id)
+
+        props = {
+            'id': doc_id,
+            'extraction_type': 'ANALYSIS'
+        }
+        _ = self.falcon.add_extended_document_properties(props)
+        return doc_id
+
+    def update_job_id(self, doc_id: str, job_id: str) -> bool:
+        """
+        Update the job ID for a document.
+
+        Args:
+            doc_id (str): ID of document
+            job_id (str): ID of job
+
+        Returns:
+            bool: True if successful, otherwise False
+        """
+        r = self.falcon.get_extended_document_properties(doc_id)
+        props = r.payload
+        props['job_id'] = job_id
+        r = self.falcon.update_extended_document_properties(props)
+        return r.success
+
+    def move_to_cloud(self, file_path: str) -> str:
+        """
+        Copy a file to the cloud for processing.
+
+        Args:
+            file_path (str): path of document to store
+
+        Returns:
+            str: key_path if successful, otherwise None
+        """
+        key = os.path.basename(file_path)
+        key_path = f'{self.folder}/{key}'
+        LOGGER.debug("key_path: %s", key_path)
+
+        try:
+            # Copy the file to the async processing bucket on S3
+            s3 = boto3.resource('s3', **self.boto3_credentials)  # pylint: disable=invalid-name
+            assert s3.meta is not None, "S3 resource is not available"
+            ttl = int(os.environ.get('QUEUED_DOC_TTL_SECONDS', '86400'))
+            try:
+                now = datetime.utcnow()
+                expires = now + timedelta(seconds=ttl)
+                s3.meta.client.upload_file(file_path, self.bucket, key_path, ExtraArgs={'Expires': expires})
+            except Exception as e:  # pylint: disable=broad-except,invalid-name
+                LOGGER.error("%s", str(e))
+                return None
+        except Exception as e:  # pylint: disable=broad-except,invalid-name
+            LOGGER.error("Error staging %s to S3: %s", file_path, str(e))
+            return None
+        return key_path
+
+    def queue_text_extraction(self, key_path: str, file_path: str) -> str:
+        """
+        Queue a text extraction job.
+
+        Args:
+            key_path (str): S3 key path to the file
+            file_path (str): Path to the file
+
+        Returns:
+            str: ID of the job
+        """
+        job_id = None
+        s3object = {'Bucket': self.bucket, 'Name': key_path}
+        notification_channel = {
+            'RoleArn': os.environ.get('TEXTRACT_ROLE_ARN', ''),
+            'SNSTopicArn': os.environ.get('SNS_TOPIC_ARN', '')
+        }
+        client_request_token = re.sub('[^a-zA-Z0-9-_]', '', key_path)[:64]
+        job_tag = re.sub('[^a-zA-Z0-9_.-]', '', key_path)[:32]
+
+        textract_client = boto3.client('textract', **self.boto3_credentials)  # pylint: disable=invalid-name
+        try:
+            response = textract_client.start_document_analysis(
+                DocumentLocation={'S3Object': s3object},
+                ClientRequestToken=client_request_token,
+                JobTag=job_tag,
+                NotificationChannel=notification_channel,
+                FeatureTypes=['TABLES'],
+            )
+
+            job_id = response.get('JobId', None)
+            return job_id
+        except textract_client.exceptions.InvalidParameterException as e:  # pylint: disable=invalid-name
+            LOGGER.error("Error queuing %s for async processing: %s", file_path, str(e))
+            LOGGER.error("S3Object: %s", s3object)
+            LOGGER.error("ClientRequestToken: %s", client_request_token)
+            LOGGER.error("JobTag: %s", job_tag)
+            LOGGER.error("NotificationChannel: %s", notification_channel)
+            return None
+        except textract_client.exceptions.IdempotentParameterMismatchException as e:  # pylint: disable=invalid-name
+            LOGGER.error("Error queuing %s for async processing: %s", file_path, str(e))
+            LOGGER.error("A ClientRequestToken input parameter was reused with an operation, but at least one of the other input parameters is different from the previous call to the operation.")
+            LOGGER.error("ClientRequestToken: %s", client_request_token)
+            LOGGER.error("JobTag: %s", job_tag)
+            return None
+        except Exception as e:  # pylint: disable=broad-except,invalid-name
+            LOGGER.error("Error queuing %s for async processing: %s", file_path, str(e))
+            return None
+
+    def text_extraction_status(self, doc_id: str) -> str:
+        """
+        Get the status of a text extraction job.
+
+        Args:
+            doc_id (str): ID of document to be queued
+
+        Returns:
+            str: Status of the job ('SUCCEEDED' = done)
+        """
+        r = self.falcon.get_extended_document_properties(doc_id)
+        props = r.payload
+        job_id = props.get('job_id')
+        if not job_id:
+            return 'NOT_QUEUED'
+        status = props.get('job_status')
+        if not status:
+            return 'QUEUED*'
+        return status
+
+    def get_documents(self, client_id: str, user_email: str) -> list:
+        """
+        Retrieve a list of documents relating to this user.
+
+        Args:
+            client_id (str): Client ID
+            user_email (str): Email address of user
+
+        Returns:
+            list: List of documents
+        """
+        result = self.falcon.get_trackers(user_email)
+        trackers = result.payload.get('trackers', [])
+        if not trackers:
+            return []
+
+        tracker_id = None
+        for tracker in trackers:
+            if tracker['name'] == FalconManager.Tracker_Name:
+                tracker_id = tracker['id']
+                break
+
+        if not tracker_id:
+            return []
+
+        result = self.falcon.get_documents(tracker_id)
+        documents = result.payload.get('documents', []) or []
+        if not documents:
+            return []
+        client_documents = []
+        for doc in documents:
+            if doc['client_reference'] == client_id:
+                client_documents.append(doc)
+
+        if not client_documents:
+            return []
+
+        for doc in client_documents:
+            result = self.falcon.get_extended_document_properties(doc['id'])
+            xprops = result.payload
+            status = 'FAILED'
+            has_tables = False
+            if xprops:
+                status = xprops.get('job_status', 'NOT_QUEUED') or 'NOT_QUEUED'
+                dict_tables = xprops.get('dict_tables', {}) or {}
+                tables = dict_tables.get('tables', []) or []
+                has_tables = len(tables) > 0
+            doc['status'] = status
+            doc['has_tables'] = has_tables
+
+        return client_documents
+
+
+FALCONLIB = FalconManager()
 
 @tools_routes.route('/client_tools/<string:client_id>/load_file', methods=['GET'])
 @DECORATORS.is_logged_in
@@ -88,12 +389,38 @@ def save_file(client_id: str):
         tmp_file_name = f'{user_email}_{client_id}__{file.filename}'
         tmp_file = os.path.join(tmp_dir, tmp_file_name)
         file.save(tmp_file)
+        doc_id = FALCONLIB.extract_text(file.filename, tmp_file, user_email, client_id)
     except Exception as err:  # pylint: disable=broad-except
         LOGGER.error("Unexpected error saving file: %s", err)
         LOGGER.debug("File: %s", tmp_file)
         return jsonify({'success': False, 'error': str(err)})
     LOGGER.debug("Saved file: %s", file.filename)
-    return jsonify({'success': True, 'doc_id': tmp_file_name})
+    return jsonify({'success': True, 'doc_id': doc_id, 'message': 'Text extraction in progress'})
+
+
+@tools_routes.route('/client_tools/<string:client_id>/documents', methods=['GET'])
+@DECORATORS.is_logged_in
+@DECORATORS.auth_crm_user
+def get_documents(client_id: str):
+    """
+    Get a list of documents for a client.
+
+    Args:
+        client_id (str): Client ID
+
+    Returns:
+        JSON response
+    """
+    user_email = session['user']['preferred_username']
+    client = DBCLIENTS.get_one(client_id)
+    authorizations = _get_authorizations(user_email)
+    documents = FALCONLIB.get_documents(client_id, user_email)
+    return render_template(
+        'tools/documents.html',
+        client=client,
+        authorizations=authorizations,
+        documents=documents
+    )
 
 
 @tools_routes.route('/client_tools/<string:client_id>/classify', methods=['POST'])
@@ -301,7 +628,6 @@ def cs_violations(client_id: str):
         )
         payments_due = combined_payment_schedule(
             children=children,
-            children=children,
             initial_child_support_payment=Decimal(form_data['cs_payment_amount']),
             health_insurance_payment=Decimal(form_data['medical_payment_amount']),
             dental_insurance_payment=Decimal(form_data['dental_payment_amount']),
@@ -366,7 +692,6 @@ def cs_arrearage(client_id: str):
             user_email
         )
         payments_due = combined_payment_schedule(
-            children=children,
             children=children,
             initial_child_support_payment=Decimal(form_data['cs_payment_amount']),
             health_insurance_payment=Decimal(form_data['medical_payment_amount']),
