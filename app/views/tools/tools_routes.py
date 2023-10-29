@@ -324,15 +324,14 @@ class FalconManager():
         for doc in client_documents:
             result = self.falcon.get_extended_document_properties(doc['id'])
             xprops = result.payload
-            status = 'FAILED'
-            has_tables = False
+            status = "FAILED"
             if xprops:
-                status = xprops.get('job_status', 'NOT_QUEUED') or 'NOT_QUEUED'
-                dict_tables = xprops.get('dict_tables', {}) or {}
-                tables = dict_tables.get('tables', []) or []
-                has_tables = len(tables) > 0
+                job_id = xprops.get('job_id', None)
+                if job_id:
+                    status = xprops.get('job_status', "QUEUED*")
+                else:
+                    status = "(unknown)"
             doc['status'] = status
-            doc['has_tables'] = has_tables
 
         return client_documents
 
