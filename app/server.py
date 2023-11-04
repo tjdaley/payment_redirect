@@ -6,16 +6,14 @@ server.py - Entry point to CRM server
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 from datetime import datetime
+import locale
+import platform
+import re
 import os
 from flask import Flask, render_template, redirect, url_for
 from flask_session import Session
-import locale
-import platform
 from pymongo import MongoClient
-import re
 from waitress import serve
-
-import settings  # NOQA
 import msftconfig # NOQA
 
 from util.database import Database, do_upgrades
@@ -62,10 +60,16 @@ app.register_blueprint(tools_routes)
 
 # jinja filters
 def phone_filter(value):
+    """
+    Flask Filter: Format a phone number as xxx-xxx-xxxx
+    """
     return f"{value[2:5]}-{value[5:8]}-{value[8:]}"
 
 
 def crm_state_filter(value):
+    """
+    Flask Filter: Convert a CRM state code to its description
+    """
     for crm_state in CRM_STATES:
         if crm_state[0] == value:
             return crm_state[1]
@@ -73,10 +77,16 @@ def crm_state_filter(value):
 
 
 def case_type_filter(value):
+    """
+    Flask Filter: Convert a case type code to its description
+    """
     return dict(CASE_TYPES).get(value, None)
 
 
 def date_filter(value):
+    """
+    Flask Filter: Convert a date to mm/dd/yyyy format
+    """
     if isinstance(value, datetime):
         return datetime.strftime(value, '%m/%d/%Y')
     date_parts = value.split('-')
@@ -84,6 +94,9 @@ def date_filter(value):
 
 
 def fullname_filter(value):
+    """
+    Flask Filter: Convert a name dictionary to a full name
+    """
     return " ".join([
         value.get('last_name', '').upper()+",",
         value.get('first_name', ''),
@@ -94,7 +107,7 @@ def fullname_filter(value):
 
 def newlines_filter(value: str) -> str:
     """
-    Convert newlines to <br /> for displaying on browser.
+    Flask Filter: Convert newlines to <br /> for displaying on browser.
     """
     if isinstance(value, str):
         return value.replace('\n', '<br />')
@@ -103,13 +116,13 @@ def newlines_filter(value: str) -> str:
 
 def currency_filter(value: str) -> str:
     """
-    Create a number that looks like currency
+    Flask Filter: Create a number that looks like currency
     """
     try:
         c_value = float(value)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         if isinstance(value, str):
-            c_value = re.sub('[^0-9\.]', '', value)
+            c_value = re.sub(r'[^0-9\.]', '', value)
         if value is None or c_value == '':
             c_value = '0'
         c_value = float(value)
@@ -117,27 +130,45 @@ def currency_filter(value: str) -> str:
 
 
 # {{"" | pyimplementation}} {"" | {pyversion}}
-def platform_system_filter(value: str) -> str:
+def platform_system_filter(value: str) -> str:  # pylint: disable=unused-argument
+    """
+    Flask Filter: Return the name of the operating system
+    """
     return platform.system()
 
 
-def platform_release_filter(value: str) -> str:
+def platform_release_filter(value: str) -> str:  # pylint: disable=unused-argument
+    """
+    Flask Filter: Return the version of the operating system
+    """
     return platform.release()
 
 
-def platform_hostname_filter(value: str) -> str:
+def platform_hostname_filter(value: str) -> str:  # pylint: disable=unused-argument
+    """
+    Flask Filter: Return the hostname of the computer
+    """
     return os.getenv('HOSTNAME', os.getenv('COMPUTERNAME', platform.node())).split('.')[0]
 
 
-def platform_pyimplementation_filter(value: str) -> str:
+def platform_pyimplementation_filter(value: str) -> str:  # pylint: disable=unused-argument
+    """
+    Flask Filter: Return the name of the Python implementation
+    """
     return platform.python_implementation()
 
 
-def platform_pyversion_filter(value: str) -> str:
+def platform_pyversion_filter(value: str) -> str:  # pylint: disable=unused-argument
+    """
+    Flask Filter: Return the version of the Python implementation
+    """
     return platform.python_version()
 
 
 def email_name_filter(value: str) -> str:
+    """
+    Flask Filter: Return the name part of an email address
+    """
     return value.split('@')[0]
 
 app.jinja_env.filters['case_type'] = case_type_filter  # noqa pylint: disable=no-member
@@ -157,16 +188,25 @@ app.jinja_env.filters['pyversion'] = platform_pyversion_filter  # noqa pylint: d
 
 @app.route('/', methods=['GET'])
 def index():
+    """
+    Render the home page.
+    """
     return redirect(url_for('crm_routes.list_clients'))
 
 
 @app.route('/privacy')
 def privacy():
+    """
+    Render the privacy policy page.
+    """
     return render_template("privacy.html")
 
 
 @app.route('/terms_and_conditions')
 def terms_and_conditions():
+    """
+    Render the terms and conditions page.
+    """
     return render_template("terms_and_conditions.html")
 
 

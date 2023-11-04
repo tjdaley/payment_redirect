@@ -4,12 +4,11 @@ template_manager.py - Manage email templates.
 Copyright (c) 2020 by Thomas J. Daley, J.D. All Rights Reserved.
 """
 import os
-import json  # for debugging
 import re
 import boto3
-from botocore.exceptions import ClientError
 
-import settings
+from dotenv import load_dotenv
+load_dotenv()
 
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 

@@ -1,7 +1,11 @@
+"""
+email_sender.py - Send an email using Amazon SES
+"""
 import boto3
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+load_dotenv()
 
-import settings
 
 # Replace sender@example.com with your "From" address.
 # This address must be verified with Amazon SES.
