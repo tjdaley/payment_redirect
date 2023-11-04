@@ -330,7 +330,7 @@ class FalconManager():
                 if job_id:
                     status = xprops.get('job_status', "QUEUED*")
                 else:
-                    status = "(unknown)"
+                    status = "(unknown)*"
             doc['status'] = status
 
         return client_documents
@@ -713,8 +713,8 @@ def cs_arrearage(client_id: str):
 
 
         sum_of_totals = Decimal(0.00)
-        for item in total_arrearages:
-            sum_of_totals += total_arrearages[item]
+        for item in total_arrearages.items():
+            sum_of_totals += item
         total_arrearages['TOTAL'] = sum_of_totals
 
         return render_template(

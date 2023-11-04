@@ -5,37 +5,38 @@ Copyright (c) 2020 by Thomas J. Daley. All Rights Reserved.
 """
 import datetime as dt
 import os
-from flask import Blueprint, flash, redirect, render_template, request, url_for
 import random
-import settings  # NOQA
 import urllib.parse
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from dotenv import load_dotenv
 
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
-from util.logger import get_logger
 from views.payment.forms.ClientIdForm import ClientIdForm
+from util.logger import get_logger
 from util.db_clients import DbClients, correct_check_digit, make_client_name
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 DBCLIENTS = DbClients()
+load_dotenv()
 
 payment_routes = Blueprint("payment_routes", __name__, template_folder="templates")
 
 
 @payment_routes.route('/pay/<string:id>', methods=['GET'])
-def route_client(id: str):
+def route_client(url_id: str):
     """
     First three digits of ID are last three digits of client's SSN
     Next three digits of ID are last three digits of client's driver's license number
     Last digit is a check digit
     """
-    if len(id) != 7:
+    if len(url_id) != 7:
         flash("Invalid client id.", "warning")
         return redirect(url_for('payment_routes.identify_client'))
 
-    ssn = id[:3]
-    dl = id[3:6]
-    check_digit = id[-1].upper()
+    ssn = url_id[:3]
+    dl = url_id[3:6]
+    check_digit = url_id[-1].upper()
     if check_digit != correct_check_digit(ssn, dl):
         flash("Invalid client id.", "danger")
         return redirect(url_for('payment_routes.identify_client'))
@@ -52,6 +53,9 @@ def route_client(id: str):
 
 @payment_routes.route("/pay", methods=['GET', 'POST'])
 def identify_client():
+    """
+    Identify the client who wants to make a payment.
+    """
     form = ClientIdForm(request.form)
 
     # TODO: form.validate() does NOT display error messages on validation errors.
@@ -96,7 +100,7 @@ def enrich_url(base_url, client_doc) -> str:
         params = f'{params}&email={cl_email}'
     except KeyError as e:
         logger = get_logger('payment_routes')
-        logger.warn("Error creating redirect url:", e)
+        logger.warning("Error creating redirect url: %s", e)
 
     encoded_params = urllib.parse.quote(params, safe='?&=')
     url = f'{base_url}{encoded_params}'
@@ -119,6 +123,9 @@ def get_greeting():
 
 
 def get_day_time():
+    """
+    Return a string indicating the time of day.
+    """
     hour = dt.datetime.today().hour
     if hour < 12:
         return "Morning"
